@@ -41,3 +41,20 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+bin/AndroidManifest.xml
+bin/classes/com/example/filemanager/BuildConfig.class
+bin/classes/com/example/filemanager/FileListAdapter.class
+bin/classes/com/example/filemanager/ListItemFragment$1.class
+bin/classes/com/example/filemanager/R$menu.class
+bin/classes/com/example/filemanager/ListItemFragment.class
+bin/classes/com/example/filemanager/ListItemInterface.class
+bin/classes/com/example/filemanager/MainActivity.class
+bin/classes/com/example/filemanager/R$attr.class
+bin/classes/com/example/filemanager/R$dimen.class
+bin/classes/com/example/filemanager/R$drawable.class
+bin/classes/com/example/filemanager/R$layout.class
+bin/classes/com/example/filemanager/R$id.class
+bin/classes/com/example/filemanager/R$string.class
+bin/classes/com/example/filemanager/R$style.class
+bin/classes/com/example/filemanager/R.class
