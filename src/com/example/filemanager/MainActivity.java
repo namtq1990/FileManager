@@ -26,7 +26,7 @@ public class MainActivity extends Activity implements ListItemInterface{
 
 		mCurrentFolder = new File("/");
 		mFileList = new ArrayList<File>(Arrays.asList(mCurrentFolder.listFiles()));
-		mAdapter = new FileListAdapter(this, R.layout.item_list, mFileList);
+		mAdapter = new FileListAdapter(this, R.layout.item_file, mFileList);
 		
 		setContentView(R.layout.activity_main);
 	}

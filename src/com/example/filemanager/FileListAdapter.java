@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -35,6 +36,9 @@ public class FileListAdapter extends ArrayAdapter<File>{
 		File item = getItem(position);
 		if (item != null) {
 			TextView tv = (TextView)newView.findViewById(R.id.title_item);
+			//ImageButton button = (ImageButton)newView.findViewById(R.id.icon_item);
+			//button.setFocusable(false);
+			//button.setClickable(false);
 			tv.setText(item.getName());
 		}
 		
