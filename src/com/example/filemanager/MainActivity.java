@@ -3,10 +3,10 @@ package com.example.filemanager;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.ListAdapter;
 import android.widget.Toast;
@@ -16,17 +16,30 @@ public class MainActivity extends Activity implements ListItemInterface{
 	/*
 	 * 
 	 */
-	FileListAdapter mAdapter;			//Adapter to the list view
-	ArrayList<File> mFileList;			//List file in the folder to display
-	File			mCurrentFolder;
+	FileListAdapter 	mAdapter;			//Adapter to the list view
+	ArrayList<File> 	mFileList;			//List file in the folder to display
+	File				mCurrentFolder;
+	Comparator<File> 	mComparator;		//compare between file and file to sort
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		mCurrentFolder = new File("/");
-		mFileList = new ArrayList<File>(Arrays.asList(mCurrentFolder.listFiles()));
+		mFileList = new ArrayList<File>();
 		mAdapter = new FileListAdapter(this, R.layout.item_file, mFileList);
+		mComparator = new Comparator<File>() {
+			
+			@Override
+			public int compare(File a, File b) {
+				if (a.isDirectory() ^ b.isDirectory()) {
+					return a.isDirectory() ? -1 : 1;
+				}
+				
+				return (a.getName().compareToIgnoreCase(b.getName()) <= 0) ? -1 : 1;
+			}
+		};
+		openDirectory(mCurrentFolder);
 		
 		setContentView(R.layout.activity_main);
 	}
@@ -57,7 +70,8 @@ public class MainActivity extends Activity implements ListItemInterface{
 			if (list != null) {
 				mCurrentFolder = location;
 				mFileList.clear();
-				mFileList.addAll(Arrays.asList(location.listFiles()));
+				Arrays.sort(list, mComparator);
+				mFileList.addAll(Arrays.asList(list));
 				mAdapter.notifyDataSetChanged();
 			}
 			else {
