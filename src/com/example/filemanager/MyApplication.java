@@ -9,6 +9,8 @@ import android.app.Application;
 public class MyApplication extends Application{
 	
 	private static MyApplication	msInstance;
+	
+	//TODO Remove this variable, unused
 	public	static boolean			msIsCreated;		//stop activity recreate many time
 	public ArrayList<File>			mFileList;			//List file in the folder to display
 	public	File					mCurrentFolder;
@@ -19,7 +21,7 @@ public class MyApplication extends Application{
 	}
 	
 	@Override
-	public final void onCreate() {
+	public void onCreate() {
 		super.onCreate();
 		msInstance = this;
 		msIsCreated = true;
