@@ -1,4 +1,4 @@
-package com.example.filemanager;
+package com.tqnam.filemanager.explorer;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -11,23 +11,31 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.ListAdapter;
 
+import com.tqnam.filemanager.R;
+
+interface ListItemInterface {
+	public ListAdapter getAdapter();
+
+	public void onClickItem(int position);
+}
+
 public class ListItemFragment extends Fragment {
 	private ListItemInterface mActivity;
-	
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View root = inflater.inflate(R.layout.fragment_item_list, container, false);
 
 		GridView view = (GridView)root.findViewById(R.id.grid_view_list);
 		view.setAdapter(mActivity.getAdapter());
-		
+
 		view.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 				mActivity.onClickItem(position);
 			}
 		});
-		
+
 		return root;
 	}
 
@@ -37,9 +45,4 @@ public class ListItemFragment extends Fragment {
 		super.onAttach(activity);
 		mActivity = (ListItemInterface)activity;
 	}
-}
-
-interface ListItemInterface {
-	public ListAdapter getAdapter();
-	public void onClickItem(int position);
 }

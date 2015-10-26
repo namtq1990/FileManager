@@ -1,14 +1,10 @@
-package com.example.filemanager;
-
-import java.io.File;
-import java.util.List;
+package com.tqnam.filemanager.explorer;
 
 import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
@@ -17,9 +13,54 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.tqnam.filemanager.R;
+
+import java.io.File;
+import java.util.List;
+
 public class FileListAdapter extends ArrayAdapter<File>{
 
 	int m_resID;
+	private OnLongClickListener mTextViewLongClick = new OnLongClickListener() {
+
+		@Override
+		public boolean onLongClick(View v) {
+			if (v instanceof EditText) {
+				ViewGroup parent = (ViewGroup) v.getParent();
+
+				parent.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+				v.requestFocus();
+			}
+
+			return false;
+		}
+	};
+	private OnTouchListener mOnItemTouch = new OnTouchListener() {
+
+		@Override
+		public boolean onTouch(View v, MotionEvent event) {
+			if (v instanceof EditText) {
+				return false;
+			}
+
+			if (event.getAction() == MotionEvent.ACTION_DOWN) {
+
+				Activity context = (Activity) getContext();
+				if (context.getCurrentFocus() instanceof EditText) {
+					EditText et = (EditText) ((Activity) getContext()).getCurrentFocus();
+
+					if (et != null) {
+						et.clearFocus();
+						((ViewGroup) et.getParent()).setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+	};
 
 	public FileListAdapter(Context context, int resid, List<File> items) {
 		super(context, resid, items);
@@ -71,46 +112,6 @@ public class FileListAdapter extends ArrayAdapter<File>{
 		return newView;
 	}
 
-	private OnLongClickListener mTextViewLongClick = new OnLongClickListener() {
-
-		@Override
-		public boolean onLongClick(View v) {
-			if (v instanceof EditText) {
-				ViewGroup parent = (ViewGroup) v.getParent();
-				
-				parent.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
-				v.requestFocus();
-			}
-
-			return false;
-		}
-	};
-	
-	private OnTouchListener mOnItemTouch = new OnTouchListener() {
-
-		@Override
-		public boolean onTouch(View v, MotionEvent event) {
-			if (v instanceof EditText) {
-				return false;
-			}
-			
-			if (event.getAction() == MotionEvent.ACTION_DOWN) {
-				
-				Activity context = (Activity) getContext();
-				if (context.getCurrentFocus() instanceof EditText) {
-					EditText et = (EditText) ((Activity)getContext()).getCurrentFocus();
-
-					if (et != null) {
-						et.clearFocus();
-						((ViewGroup)et.getParent()).setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
-					}
-				}
-			}
-
-			return false;
-		}
-	};
-	
 	private class ViewHolder {
 		EditText label;
 		ImageView icon;

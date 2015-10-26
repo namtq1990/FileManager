@@ -5,7 +5,7 @@
 
     <fragment
         android:id="@+id/list_item_panel"
-        android:name="com.example.filemanager.ListItemFragment"
+        android:name="com.tqnam.filemanager.explorer.ListItemFragment"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 

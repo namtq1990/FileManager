@@ -1,22 +1,18 @@
-package com.example.filemanager;
+package com.tqnam.filemanager;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-import android.app.Application;
+public class Application extends android.app.Application {
 
-public class MyApplication extends Application{
+	private static Application msInstance;
 	
-	private static MyApplication	msInstance;
-	
-	//TODO Remove this variable, unused
-	public	static boolean			msIsCreated;		//stop activity recreate many time
 	public ArrayList<File>			mFileList;			//List file in the folder to display
 	public	File					mCurrentFolder;
 	public	Comparator<File>		mComparator;		//compare between file and file to sort
-	
-	public static MyApplication getInstance() {
+
+	public static Application getInstance() {
 		return msInstance;
 	}
 	
@@ -24,8 +20,7 @@ public class MyApplication extends Application{
 	public void onCreate() {
 		super.onCreate();
 		msInstance = this;
-		msIsCreated = true;
-		
+
 		mCurrentFolder = new File("/");
 		mFileList = new ArrayList<File>();
 		mComparator = new Comparator<File>() {

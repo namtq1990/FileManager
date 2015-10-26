@@ -1,13 +1,16 @@
-package com.example.filemanager;
-
-import java.io.File;
-import java.util.Arrays;
+package com.tqnam.filemanager.explorer;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.widget.ListAdapter;
 import android.widget.Toast;
+
+import com.tqnam.filemanager.Application;
+import com.tqnam.filemanager.R;
+
+import java.io.File;
+import java.util.Arrays;
 
 public class MainActivity extends Activity implements ListItemInterface{
 
@@ -44,9 +47,9 @@ public class MainActivity extends Activity implements ListItemInterface{
 		}
 		return super.onKeyDown(keyCode, event);
 	}
-	
-	public MyApplication getMyApp() {
-		return (MyApplication)getApplication();
+
+	public Application getMyApp() {
+		return (Application) getApplication();
 	}
 	
 	public void openDirectory(File location) {
