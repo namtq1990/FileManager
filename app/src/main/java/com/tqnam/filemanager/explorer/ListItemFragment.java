@@ -20,6 +20,8 @@ interface ListItemInterface {
 }
 
 public class ListItemFragment extends Fragment {
+	public static final String TAG = "ListItemFragment";
+
 	private ListItemInterface mActivity;
 
 	@Override
@@ -30,6 +32,7 @@ public class ListItemFragment extends Fragment {
 		view.setAdapter(mActivity.getAdapter());
 
 		view.setOnItemClickListener(new OnItemClickListener() {
+
 			@Override
 			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 				mActivity.onClickItem(position);

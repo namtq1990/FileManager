@@ -15,10 +15,9 @@ import android.widget.RelativeLayout;
 
 import com.tqnam.filemanager.R;
 
-import java.io.File;
 import java.util.List;
 
-public class FileListAdapter extends ArrayAdapter<File>{
+public class FileListAdapter extends ArrayAdapter<ItemExplorer>{
 
 	int m_resID;
 	private OnLongClickListener mTextViewLongClick = new OnLongClickListener() {
@@ -62,8 +61,8 @@ public class FileListAdapter extends ArrayAdapter<File>{
 		}
 	};
 
-	public FileListAdapter(Context context, int resid, List<File> items) {
-		super(context, resid, items);
+	public FileListAdapter(Context context, int resid, List<? extends ItemExplorer> items) {
+		super(context, resid, (List<ItemExplorer>) items);
 		m_resID = resid;
 	}
 
@@ -99,9 +98,9 @@ public class FileListAdapter extends ArrayAdapter<File>{
 			label = tag.label;
 			icon = tag.icon;
 		}
-		File item = getItem(position);
+		ItemExplorer item = getItem(position);
 		if (item != null) {
-			label.setText(item.getName());
+			label.setText(item.getDisplayName());
 
 			if (item.isDirectory()) {
 				icon.setImageResource(R.drawable.folder_icon);

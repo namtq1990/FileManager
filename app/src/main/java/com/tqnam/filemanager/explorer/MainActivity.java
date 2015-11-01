@@ -9,23 +9,41 @@ import android.widget.Toast;
 import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.R;
 
-import java.io.File;
-import java.util.Arrays;
+import java.util.ArrayList;
 
-public class MainActivity extends Activity implements ListItemInterface{
+public class MainActivity extends Activity implements ListItemInterface, ExplorerView {
 
 	/*
 	 * 
 	 */
 	private	FileListAdapter 	mAdapter;			//Adapter to the list view
+	private ExplorerPresenter	mPresenter;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mAdapter = new FileListAdapter(this, R.layout.item_file, getMyApp().mFileList);
-		openDirectory(getMyApp().mCurrentFolder);
-		
 		setContentView(R.layout.activity_main);
+
+		mPresenter = new FileExplorerPresenter(this, ((Application) getApplicationContext()).getGlobalData());
+	}
+
+	@Override
+	public void init(ExplorerPresenter presenter, ArrayList<? extends ItemExplorer> listItem) {
+		// Init Fragment
+		ListItemFragment fragmentList = (ListItemFragment) getFragmentManager()
+				.findFragmentByTag(ListItemFragment.TAG);
+
+		if (fragmentList == null) {
+			fragmentList = new ListItemFragment();
+			getFragmentManager().beginTransaction()
+					.add(R.id.fragment_list_container, fragmentList, ListItemFragment.TAG)
+					.commit();
+		}
+
+		mAdapter = new FileListAdapter(this, R.layout.item_file, listItem);
+		mPresenter = presenter;
+		mPresenter.openDirectory(new FileItem(((Application) getApplicationContext()).getGlobalData().mCurFolder));
+
 	}
 
 	@Override
@@ -35,16 +53,19 @@ public class MainActivity extends Activity implements ListItemInterface{
 	
 	@Override
 	public void onClickItem(int position) {
-		File f = getMyApp().mFileList.get(position);
-		openDirectory(f);
+		ItemExplorer item = mAdapter.getItem(position);
+		mPresenter.openDirectory(item);
 	}
 	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			openDirectory(getMyApp().mCurrentFolder.getParentFile());
+			FileItem folder = new FileItem(Application.getInstance().getGlobalData().mCurFolder);
+			mPresenter.openDirectory(folder);
+
 			return false;
 		}
+
 		return super.onKeyDown(keyCode, event);
 	}
 
@@ -52,20 +73,14 @@ public class MainActivity extends Activity implements ListItemInterface{
 		return (Application) getApplication();
 	}
 	
-	public void openDirectory(File location) {
-		if (location != null && location.isDirectory()) {
-			File[] list = location.listFiles();
-			if (list != null) {
-				getMyApp().mCurrentFolder = location;
-				getMyApp().mFileList.clear();
-				Arrays.sort(list, getMyApp().mComparator);
-				getMyApp().mFileList.addAll(Arrays.asList(list));
-				mAdapter.notifyDataSetChanged();
-			}
-			else {
-				if (!location.canRead())
-					Toast.makeText(this, "Don't have permission to access file", Toast.LENGTH_SHORT).show();
-			}
-		}
+	@Override
+	public void updateList(ArrayList<? extends  ItemExplorer> listItem) {
+		mAdapter.notifyDataSetChanged();
 	}
+
+	@Override
+	public void onErrorPermission() {
+		Toast.makeText(this, "Don't have permission to access file", Toast.LENGTH_SHORT).show();
+	}
+
 }
