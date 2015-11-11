@@ -1,5 +1,7 @@
 package com.tqnam.filemanager.explorer;
 
+import com.tqnam.filemanager.model.ItemExplorer;
+
 import java.util.ArrayList;
 
 /**
@@ -7,7 +9,14 @@ import java.util.ArrayList;
  */
 public interface ExplorerView {
 
-    void init(ExplorerPresenter presenter, ArrayList<? extends  ItemExplorer> listItem);
+    /**
+     * Update list item to UI
+     * @param listItem List to show in UI
+     */
     void updateList(ArrayList<? extends ItemExplorer> listItem);
+
+    /**
+     * Handle when don't have permission to execute UI
+     */
     void onErrorPermission();
 }

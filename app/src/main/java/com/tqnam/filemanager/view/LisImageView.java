@@ -1,4 +1,4 @@
-package com.tqnam.filemanager.explorer;
+package com.tqnam.filemanager.view;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;

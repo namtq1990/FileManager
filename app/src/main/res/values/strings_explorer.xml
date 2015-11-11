@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="explorer_err_permission">Don\'t have permission to access file</string>
+</resources>

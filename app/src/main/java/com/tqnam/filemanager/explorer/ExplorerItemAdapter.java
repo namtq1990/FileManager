@@ -14,10 +14,11 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.tqnam.filemanager.R;
+import com.tqnam.filemanager.model.ItemExplorer;
 
 import java.util.List;
 
-public class FileListAdapter extends ArrayAdapter<ItemExplorer>{
+public class ExplorerItemAdapter extends ArrayAdapter<ItemExplorer>{
 
 	int m_resID;
 	private OnLongClickListener mTextViewLongClick = new OnLongClickListener() {
@@ -61,7 +62,7 @@ public class FileListAdapter extends ArrayAdapter<ItemExplorer>{
 		}
 	};
 
-	public FileListAdapter(Context context, int resid, List<? extends ItemExplorer> items) {
+	public ExplorerItemAdapter(Context context, int resid, List<? extends ItemExplorer> items) {
 		super(context, resid, (List<ItemExplorer>) items);
 		m_resID = resid;
 	}
