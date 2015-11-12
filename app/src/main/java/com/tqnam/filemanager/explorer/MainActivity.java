@@ -1,9 +1,9 @@
 package com.tqnam.filemanager.explorer;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.view.KeyEvent;
 
+import com.tqnam.filemanager.BaseActivity;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
 
@@ -12,7 +12,7 @@ import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
  * 	First design for file explorer, may be add setting, too.
  */
 
-public class MainActivity extends Activity {
+public class MainActivity extends BaseActivity {
 
 	private ViewHolder mViewHolder;
 

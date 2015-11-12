@@ -35,7 +35,6 @@ public class FileExplorerPresenter implements ExplorerPresenter {
 
     @Override
     public void onBackPressed() {
-
     }
 
     @Override
