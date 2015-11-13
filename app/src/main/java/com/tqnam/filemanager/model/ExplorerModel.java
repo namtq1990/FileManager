@@ -15,6 +15,7 @@ public class ExplorerModel {
     public static final int COMPARE_TYPE = 2;
 
     public static final String ARG_CUR_LOCATION = "cur_location";
+    public static final String ARG_PARENT_PATH = "parent_path";
     public static final String ARG_CUR_COMPARE = "cur_compare";
     public static final String ARG_LIST_ITEM = "list_item";
 
@@ -23,6 +24,7 @@ public class ExplorerModel {
      */
     public ArrayList<ItemExplorer> mListItem;
     public String mCurLocation;
+    public String mParentPath;
     public int mCurCompare;
 
     public ExplorerModel() {
@@ -32,11 +34,13 @@ public class ExplorerModel {
     public void onSavedInstanceState(Bundle savedState) {
         savedState.putInt(ARG_CUR_COMPARE, mCurCompare);
         savedState.putString(ARG_CUR_LOCATION, mCurLocation);
+        savedState.putString(ARG_PARENT_PATH, mParentPath);
     }
 
     public void onRestoreInstanceState(Bundle savedState) {
         mCurCompare = savedState.getInt(ARG_CUR_COMPARE);
         mCurLocation = savedState.getString(ARG_CUR_LOCATION);
+        mParentPath = savedState.getString(ARG_PARENT_PATH);
     }
 
     public void sort() {

@@ -1,7 +1,5 @@
 package com.tqnam.filemanager;
 
-import android.app.Fragment;
-
 /**
  * Created by quangnam on 11/12/15.
  *
@@ -9,6 +7,6 @@ import android.app.Fragment;
  * Add it to handle lifecycle and can quickly modify for all fragment
  *
  */
-public class BaseFragment extends Fragment {
+public class BaseFragment extends android.support.v4.app.Fragment {
 
 }

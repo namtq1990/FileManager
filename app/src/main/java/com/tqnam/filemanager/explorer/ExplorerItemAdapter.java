@@ -67,6 +67,10 @@ public class ExplorerItemAdapter extends ArrayAdapter<ItemExplorer>{
 		m_resID = resid;
 	}
 
+	public void measureItem(int columnWidth) {
+
+	}
+
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		RelativeLayout newView;

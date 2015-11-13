@@ -8,5 +8,5 @@ public interface ItemExplorer {
     String getDisplayName();
     String getPath();
     boolean isDirectory();
-
+    String getParentPath();
 }

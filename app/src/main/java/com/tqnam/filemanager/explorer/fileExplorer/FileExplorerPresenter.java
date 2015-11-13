@@ -35,6 +35,10 @@ public class FileExplorerPresenter implements ExplorerPresenter {
 
     @Override
     public void onBackPressed() {
+        if (mModel.mParentPath != null) {
+            FileItem parentFolder = new FileItem(mModel.mParentPath);
+            openDirectory(parentFolder);
+        }
     }
 
     @Override
@@ -53,6 +57,7 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                 }
 
                 mModel.sort();
+                mModel.mParentPath = item.getParentPath();
 
                 mView.updateList(mModel.mListItem);
             }

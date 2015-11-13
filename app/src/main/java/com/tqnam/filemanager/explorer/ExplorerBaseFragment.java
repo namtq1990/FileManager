@@ -39,6 +39,12 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         return root;
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mViewHolder = null;
+    }
+
     /**
      * Init data for fragment
      * @param savedInstanceState saved state of fragment

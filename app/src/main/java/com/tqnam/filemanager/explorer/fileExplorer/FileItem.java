@@ -45,6 +45,11 @@ public class FileItem extends File implements ItemExplorer, Parcelable {
     }
 
     @Override
+    public String getParentPath() {
+        return getParent();
+    }
+
+    @Override
     public int describeContents() {
         return hashCode();
     }
