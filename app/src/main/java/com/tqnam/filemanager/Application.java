@@ -6,11 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 
-import com.crashlytics.android.Crashlytics;
-
 import java.lang.ref.WeakReference;
-
-import io.fabric.sdk.android.Fabric;
 
 public class Application extends android.app.Application implements android.app.Application.ActivityLifecycleCallbacks {
 
@@ -25,7 +21,7 @@ public class Application extends android.app.Application implements android.app.
     @Override
     public void onCreate() {
         super.onCreate();
-        Fabric.with(this, new Crashlytics());
+//        Fabric.with(this, new Crashlytics());
         msInstance = this;
 
         mGlobalData = new GlobalData();

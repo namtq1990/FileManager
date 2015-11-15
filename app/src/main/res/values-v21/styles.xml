@@ -2,6 +2,9 @@
 <resources>
 
     <style name="AppBaseTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    </style>
 
+    <style name="ExplorerTheme">
+        <item name="android:colorPrimaryDark">@color/blue_dark</item>
     </style>
 </resources>

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="explorer_err_permission">Don\'t have permission to access file</string>
+    <string name="hint_search">Search all item in this folder</string>
 </resources>

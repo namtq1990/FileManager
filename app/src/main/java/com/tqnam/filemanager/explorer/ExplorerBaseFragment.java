@@ -1,12 +1,22 @@
 package com.tqnam.filemanager.explorer;
 
+import android.animation.LayoutTransition;
 import android.app.Activity;
+import android.app.SearchManager;
+import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.tqnam.filemanager.Application;
@@ -20,6 +30,7 @@ import java.util.ArrayList;
 
 /**
  * Created by quangnam on 11/12/15.
+ * Base fragment for explorer view, may be file explorer, ftp explorer, ...
  */
 public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView {
 
@@ -28,6 +39,12 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     protected abstract ExplorerModel genModel();
     protected abstract ExplorerPresenter genPresenter(ExplorerModel model);
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -82,6 +99,66 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         mPresenter.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        Activity activity = getActivity();
+        inflater.inflate(R.menu.menu_explorer, menu);
+        SearchManager searchManager = (SearchManager) activity
+                .getSystemService(Context.SEARCH_SERVICE);
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        final SearchView searchView = (SearchView) searchItem.getActionView();
+        LinearLayout searchBar = (LinearLayout) searchView.findViewById(R.id.search_bar);
+//        LayoutTransition slideTransition = new LayoutTransition();
+//        slideTransition.setAnimator(LayoutTransition.APPEARING, );
+
+        searchView.post(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println(searchView.getWidth());
+            }
+        });
+
+        searchBar.setLayoutTransition(new LayoutTransition());
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(activity.getComponentName()));
+        MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem menuItem) {
+                try {
+                    AppCompatActivity activity = (AppCompatActivity) getActivity();
+                    activity.getSupportActionBar().setDisplayShowHomeEnabled(false);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    return true;
+                }
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem menuItem) {
+                try {
+                    AppCompatActivity activity = (AppCompatActivity) getActivity();
+                    activity.getSupportActionBar().setDisplayShowHomeEnabled(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    return true;
+                }
+            }
+        });
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_search:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public void onBackPressed() {

@@ -21,7 +21,7 @@
         android:layout_toRightOf="@id/icon_item"
         android:background="@null"
         android:gravity="center_vertical"
-        android:inputType="textMultiLine"
+        android:inputType="textMultiLine|textNoSuggestions"
         android:scrollHorizontally="false"
         android:singleLine="false"
         android:textAppearance="@android:style/TextAppearance.DeviceDefault" />
