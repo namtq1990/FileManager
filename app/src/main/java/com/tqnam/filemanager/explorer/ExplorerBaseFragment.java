@@ -32,7 +32,7 @@ import java.util.ArrayList;
  * Created by quangnam on 11/12/15.
  * Base fragment for explorer view, may be file explorer, ftp explorer, ...
  */
-public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView {
+public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView, MenuItemCompat.OnActionExpandListener {
 
     private ExplorerPresenter mPresenter;
     private ViewHolder mViewHolder = new ViewHolder();
@@ -103,52 +103,56 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        Activity activity = getActivity();
         inflater.inflate(R.menu.menu_explorer, menu);
+        addActionSearch(menu);
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    private void addActionSearch(Menu menu) {
+        Activity activity = getActivity();
         SearchManager searchManager = (SearchManager) activity
                 .getSystemService(Context.SEARCH_SERVICE);
         MenuItem searchItem = menu.findItem(R.id.action_search);
-        final SearchView searchView = (SearchView) searchItem.getActionView();
+        SearchView searchView = (SearchView) searchItem.getActionView();
         LinearLayout searchBar = (LinearLayout) searchView.findViewById(R.id.search_bar);
-//        LayoutTransition slideTransition = new LayoutTransition();
-//        slideTransition.setAnimator(LayoutTransition.APPEARING, );
-
-        searchView.post(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println(searchView.getWidth());
-            }
-        });
-
-        searchBar.setLayoutTransition(new LayoutTransition());
+        MenuItemCompat.setOnActionExpandListener(searchItem, this);
         searchView.setSearchableInfo(searchManager.getSearchableInfo(activity.getComponentName()));
-        MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
-            @Override
-            public boolean onMenuItemActionExpand(MenuItem menuItem) {
-                try {
-                    AppCompatActivity activity = (AppCompatActivity) getActivity();
-                    activity.getSupportActionBar().setDisplayShowHomeEnabled(false);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    return true;
-                }
-            }
 
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem menuItem) {
-                try {
-                    AppCompatActivity activity = (AppCompatActivity) getActivity();
-                    activity.getSupportActionBar().setDisplayShowHomeEnabled(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    return true;
-                }
-            }
-        });
 
-        super.onCreateOptionsMenu(menu, inflater);
+        //region Add animation to search field, consider default fadeIn and translate
+        // -----------------------------------------------------------------------------------------
+
+        LayoutTransition searchBarTransition = new LayoutTransition();
+
+        //If use translation animation
+//        int curWidth = getResources().getDisplayMetrics().widthPixels;
+//        ObjectAnimator animSlide = ObjectAnimator.ofFloat(searchBar, "translationX", curWidth, 0);
+//        searchBarTransition.setAnimator(LayoutTransition.APPEARING, animSlide);
+//        searchBarTransition.setDuration(getResources().getInteger(android.R.integer.config_shortAnimTime));
+//        searchBarTransition.setStartDelay(LayoutTransition.APPEARING, 0);
+        searchBar.setLayoutTransition(searchBarTransition);
+        // -----------------------------------------------------------------------------------------
+        //endregion
+
+    }
+
+    @Override
+    public boolean onMenuItemActionExpand(MenuItem menuItem) {
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        if (activity.getSupportActionBar() != null)
+            activity.getSupportActionBar().setDisplayShowHomeEnabled(false);
+
+        return true;
+    }
+
+    @Override
+    public boolean onMenuItemActionCollapse(MenuItem menuItem) {
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        if (activity.getSupportActionBar() != null)
+            activity.getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        return true;
     }
 
     @Override
