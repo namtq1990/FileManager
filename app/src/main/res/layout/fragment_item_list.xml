@@ -1,12 +1,12 @@
-<GridView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.tqnam.filemanager.view.GridView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/grid_view_list"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:numColumns="auto_fit"
-    android:stretchMode="columnWidth"
     android:layout_gravity="center"
     android:background="@color/bg_list"
     android:clipToPadding="false"
-    android:paddingBottom="12dp" >
+    android:numColumns="@integer/explorer_column_num"
+    android:paddingBottom="12dp"
+    android:stretchMode="columnWidth" >
 
-</GridView>
+</com.tqnam.filemanager.view.GridView>

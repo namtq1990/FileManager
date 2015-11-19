@@ -11,16 +11,20 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.view.GridViewItem;
 
 import java.util.List;
 
+/**
+ * Adapter for explorer, must be combined with custom GridView and GridViewItem
+ */
 public class ExplorerItemAdapter extends ArrayAdapter<ItemExplorer>{
 
 	int m_resID;
+
 	private OnLongClickListener mTextViewLongClick = new OnLongClickListener() {
 
 		@Override
@@ -35,6 +39,7 @@ public class ExplorerItemAdapter extends ArrayAdapter<ItemExplorer>{
 			return false;
 		}
 	};
+
 	private OnTouchListener mOnItemTouch = new OnTouchListener() {
 
 		@Override
@@ -67,18 +72,14 @@ public class ExplorerItemAdapter extends ArrayAdapter<ItemExplorer>{
 		m_resID = resid;
 	}
 
-	public void measureItem(int columnWidth) {
-
-	}
-
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		RelativeLayout newView;
+		GridViewItem newView;
 		EditText label;
 		ImageView icon;
 
 		if (convertView == null) {
-			newView = new RelativeLayout(getContext());
+			newView = new GridViewItem(getContext());
 			String inflater = Context.LAYOUT_INFLATER_SERVICE;
 			LayoutInflater li = (LayoutInflater)getContext().getSystemService(inflater);
 			li.inflate(m_resID, newView);
@@ -97,13 +98,15 @@ public class ExplorerItemAdapter extends ArrayAdapter<ItemExplorer>{
 			newView.setTag(tag);
 		}
 		else {
-			newView = (RelativeLayout) convertView;
+			newView = (GridViewItem) convertView;
 			ViewHolder tag = (ViewHolder)newView.getTag();
 
 			label = tag.label;
 			icon = tag.icon;
 		}
+
 		ItemExplorer item = getItem(position);
+		newView.setPosition(position);
 		if (item != null) {
 			label.setText(item.getDisplayName());
 

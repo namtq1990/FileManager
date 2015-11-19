@@ -38,6 +38,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     private ViewHolder mViewHolder = new ViewHolder();
 
     protected abstract ExplorerModel genModel();
+
     protected abstract ExplorerPresenter genPresenter(ExplorerModel model);
 
     @Override
@@ -64,6 +65,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     /**
      * Init data for fragment
+     *
      * @param savedInstanceState saved state of fragment
      */
     private void initData(Bundle savedInstanceState) {
@@ -185,7 +187,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     private class ViewHolder {
         ExplorerItemAdapter mAdapter;
-        GridView mList;
+        GridView            mList;
     }
 
 
