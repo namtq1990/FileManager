@@ -34,4 +34,5 @@ public class GridView extends android.widget.GridView {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);       // First measure to init max Row height
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);       // Measure again to get correct max row height
     }
+
 }

@@ -35,7 +35,7 @@ public class Application extends android.app.Application implements android.app.
 
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
-        mGlobalData.mCurActivity = new WeakReference<Activity>(activity);
+        mGlobalData.mCurActivity = new WeakReference<>(activity);
 
         // tqnam: set color of status_bar if request
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
@@ -56,12 +56,12 @@ public class Application extends android.app.Application implements android.app.
 
     @Override
     public void onActivityStarted(Activity activity) {
-        mGlobalData.mCurActivity = new WeakReference<Activity>(activity);
+        mGlobalData.mCurActivity = new WeakReference<>(activity);
     }
 
     @Override
     public void onActivityResumed(Activity activity) {
-        mGlobalData.mCurActivity = new WeakReference<Activity>(activity);
+        mGlobalData.mCurActivity = new WeakReference<>(activity);
     }
 
     @Override
@@ -89,7 +89,7 @@ public class Application extends android.app.Application implements android.app.
         private WeakReference<Activity> mCurActivity;
 
         public GlobalData() {
-            int statusBarRes = 0;
+            int statusBarRes;
             statusBarRes = getResources().getIdentifier("status_bar_height", "dimen", "android");
 
             if (statusBarRes > 0) {

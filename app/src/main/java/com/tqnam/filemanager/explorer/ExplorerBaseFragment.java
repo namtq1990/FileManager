@@ -12,9 +12,11 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -95,6 +97,25 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                 mPresenter.openDirectory(mViewHolder.mAdapter.getItem(position));
             }
         });
+        mViewHolder.mList.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+
+                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+
+                    MenuItemCompat.collapseActionView(mViewHolder.mSearchMenu);
+                    Activity context = getActivity();
+
+                    if (context.getCurrentFocus() instanceof EditText) {
+                        EditText et = (EditText) context.getCurrentFocus();
+                        mViewHolder.mAdapter.updateUI(et, ExplorerItemAdapter.STATE_NORMAL);
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        });
     }
 
     @Override
@@ -107,7 +128,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_explorer, menu);
         addActionSearch(menu);
-
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -115,11 +135,13 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         Activity activity = getActivity();
         SearchManager searchManager = (SearchManager) activity
                 .getSystemService(Context.SEARCH_SERVICE);
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
-        LinearLayout searchBar = (LinearLayout) searchView.findViewById(R.id.search_bar);
-        MenuItemCompat.setOnActionExpandListener(searchItem, this);
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(activity.getComponentName()));
+        mViewHolder.mSearchMenu = menu.findItem(R.id.action_search);
+        mViewHolder.mSearchView = (SearchView) mViewHolder.mSearchMenu.getActionView();
+        LinearLayout searchBar = (LinearLayout) mViewHolder.mSearchView
+                .findViewById(R.id.search_bar);
+        MenuItemCompat.setOnActionExpandListener(mViewHolder.mSearchMenu, this);
+        mViewHolder.mSearchView
+                .setSearchableInfo(searchManager.getSearchableInfo(activity.getComponentName()));
 
 
         //region Add animation to search field, consider default fadeIn and translate
@@ -188,6 +210,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     private class ViewHolder {
         ExplorerItemAdapter mAdapter;
         GridView            mList;
+        MenuItem            mSearchMenu;
+        SearchView          mSearchView;
     }
 
 
