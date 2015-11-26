@@ -47,53 +47,46 @@ public class ExplorerItemAdapter extends ArrayAdapter<ItemExplorer>{
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		GridViewItem newView;
-		EditText label;
-		ImageView icon;
+		ViewHolder holder;
 
 		if (convertView == null) {
-			newView = new GridViewItem(getContext());
 			String inflater = Context.LAYOUT_INFLATER_SERVICE;
 			LayoutInflater li = (LayoutInflater)getContext().getSystemService(inflater);
-			li.inflate(m_resID, newView);
+			convertView = li.inflate(m_resID, parent, false);
 
-			label = (EditText) newView.findViewById(R.id.title_item);
-			icon = (ImageView) newView.findViewById(R.id.icon_item);
-			ViewHolder tag = new ViewHolder();
+			holder = new ViewHolder();
+			holder.label = (EditText) convertView.findViewById(R.id.title_item);
+			holder.icon = (ImageView) convertView.findViewById(R.id.icon_item);
+			holder.checkBox = (CheckBox) convertView.findViewById(R.id.item_check);
 
-			label.setOnLongClickListener(mTextViewLongClick);
-//			label.setOnTouchListener(mOnItemTouch);
+			holder.label.setOnLongClickListener(mTextViewLongClick);
 
-			tag.label = label;
-			tag.icon = icon;
-            tag.checkBox = (CheckBox) newView.findViewById(R.id.item_check);
+//            tag.checkBox.setVisibility(View.GONE);          //TODO hide this view because it may be reason gridview blank when scroll
 
-			newView.setTag(tag);
+			convertView.setTag(holder);
 		}
 		else {
-			newView = (GridViewItem) convertView;
-			ViewHolder tag = (ViewHolder)newView.getTag();
-
-			label = tag.label;
-			icon = tag.icon;
+			holder = (ViewHolder)convertView.getTag();
 		}
 
         if (mState == STATE_MULTI_SELECT) {
-
-        }
-
-		ItemExplorer item = getItem(position);
-		newView.setPosition(position);
-		if (item != null) {
-			label.setText(item.getDisplayName());
-
-			if (item.isDirectory()) {
-				icon.setImageResource(R.drawable.folder_icon);
-			}
-			else icon.setImageResource(R.drawable.file_icon);
+			holder.checkBox.setVisibility(View.VISIBLE);
+        } else {
+			holder.checkBox.setVisibility(View.GONE);
 		}
 
-		return newView;
+		ItemExplorer item = getItem(position);
+		((GridViewItem) convertView).setPosition(position);
+		if (item != null) {
+			holder.label.setText(item.getDisplayName());
+
+			if (item.isDirectory()) {
+				holder.icon.setImageResource(R.drawable.folder_icon);
+			}
+			else holder.icon.setImageResource(R.drawable.file_icon);
+		}
+
+		return convertView;
 	}
 
     public void updateUI(View view, int state) {

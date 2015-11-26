@@ -24,15 +24,13 @@ public class GridView extends android.widget.GridView {
 
     public GridView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mMaxRowHeight.clear();
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         mNumColumn = getNumColumns();
         mMaxRowHeight.clear();              // Clear list height to sure row height is always updated
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);       // First measure to init max Row height
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);       // Measure again to get correct max row height
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
 }

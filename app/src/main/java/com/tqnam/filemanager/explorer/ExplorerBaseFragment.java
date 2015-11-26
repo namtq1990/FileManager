@@ -102,14 +102,17 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             public boolean onTouch(View view, MotionEvent motionEvent) {
 
                 if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-
-                    MenuItemCompat.collapseActionView(mViewHolder.mSearchMenu);
                     Activity context = getActivity();
+                    View curFocus = context.getCurrentFocus();
 
-                    if (context.getCurrentFocus() instanceof EditText) {
-                        EditText et = (EditText) context.getCurrentFocus();
-                        mViewHolder.mAdapter.updateUI(et, ExplorerItemAdapter.STATE_NORMAL);
-                        return true;
+                    if (curFocus != null) {
+                        MenuItemCompat.collapseActionView(mViewHolder.mSearchMenu);
+
+                        if (curFocus.getId() == R.id.title_item) {
+                            EditText et = (EditText) context.getCurrentFocus();
+                            mViewHolder.mAdapter.updateUI(et, ExplorerItemAdapter.STATE_NORMAL);
+                            return true;
+                        }
                     }
                 }
 
