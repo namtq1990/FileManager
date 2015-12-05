@@ -22,3 +22,6 @@ local.properties
 .idea/vcs.xml
 
 .idea/copyright
+.idea/compiler.xml
+
+.idea/gradle.xml
