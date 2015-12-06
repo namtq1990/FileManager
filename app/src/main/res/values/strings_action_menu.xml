@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_copy">COPY ITEMS</string>
+    <string name="action_cut">CUT ITEMS</string>
+    <string name="action_archive">COMPRESS ITEMS</string>
+    <string name="action_remove">REMOVE ITEMS</string>
+</resources>
