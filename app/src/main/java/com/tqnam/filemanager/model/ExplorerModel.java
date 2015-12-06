@@ -55,4 +55,12 @@ public class ExplorerModel {
         if (curComparator != null)
             Collections.sort(mListItem, curComparator);
     }
+
+    public ItemExplorer getItemAt(int position) {
+        return mListItem.get(position);
+    }
+
+    public int getTotalItem() {
+        return mListItem.size();
+    }
 }

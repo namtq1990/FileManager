@@ -17,10 +17,18 @@
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
         <item name="colorPrimary">@android:color/holo_blue_dark</item>
         <item name="colorPrimaryDark">@color/blue_dark</item>
+        <item name="actionModeBackground">?colorPrimary</item>
+        <item name="windowActionModeOverlay">true</item>
     </style>
 
     <style name="ToolbarTheme">
         <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="popupTheme">@style/PopupToolbarStyle</item>
+        <item name="actionBarPopupTheme">@style/PopupToolbarStyle</item>
+    </style>
+    
+    <style name="PopupToolbarStyle">
+        <item name="android:colorBackground">?colorPrimaryDark</item>
     </style>
 
 </resources>

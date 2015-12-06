@@ -9,20 +9,27 @@
         android:id="@+id/status_padding"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="?attr/colorPrimaryDark"/>
+        android:background="?attr/colorPrimary"/>
 
-    <include
-        android:id="@+id/toolbar"
-        layout="@layout/toolbar"
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/status_padding"/>
+        android:layout_below="@id/status_padding"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-    <RelativeLayout
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </android.support.design.widget.AppBarLayout>
+
+    <FrameLayout
         android:id="@+id/fragment_list_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/toolbar"
+        android:layout_below="@+id/appbar"
         android:foreground="?android:attr/windowContentOverlay"/>
 
 </RelativeLayout>

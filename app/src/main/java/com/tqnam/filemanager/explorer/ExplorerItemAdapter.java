@@ -1,124 +1,228 @@
 package com.tqnam.filemanager.explorer;
 
-import android.app.Activity;
-import android.content.Context;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
+import android.support.v7.widget.RecyclerView;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;
-import com.tqnam.filemanager.utils.UIUtils;
 import com.tqnam.filemanager.view.GridViewItem;
 
-import java.util.List;
-
 /**
- * Adapter for explorer, must be combined with custom GridView and GridViewItem
+ * Adapter for explorer, must be combined with GridViewItem
  */
-public class ExplorerItemAdapter extends ArrayAdapter<ItemExplorer>{
+public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapter.ViewHolder> {
 
-    public static final int STATE_NORMAL = 0;
-    public static final int STATE_EDIT = 1;
-	public static final int STATE_MULTI_SELECT = 2;
-	int m_resID;
-	int mState = STATE_NORMAL;
-	private OnLongClickListener mTextViewLongClick = new OnLongClickListener() {
+    public static final int STATE_NORMAL       = 0;
+    //    public static final int STATE_EDIT         = 1;
+    public static final int STATE_MULTI_SELECT = 2;
+    int mState = STATE_NORMAL;
 
-		@Override
-		public boolean onLongClick(View v) {
-			if (v instanceof EditText) {
-                updateUI(v, STATE_EDIT);
-			}
+    private SparseBooleanArray       mSelectedList;
+    private ActionMode               mActionMode;
+    private ExplorerPresenter        mPresenter;
+    private OnRenameActionListener   mRenameListener;
+    private OnOpenItemActionListener mOpenItemListener;
 
-			return false;
-		}
-	};
+    private OnLongClickListener mTextViewLongClick = new OnLongClickListener() {
 
-	public ExplorerItemAdapter(Context context, int resid, List<? extends ItemExplorer> items) {
-		super(context, resid, (List<ItemExplorer>) items);
-		m_resID = resid;
-	}
+        @Override
+        public boolean onLongClick(View v) {
+//            updateUI(v, STATE_EDIT);
+            if (mRenameListener != null) {
+                GridViewItem item = (GridViewItem) v.getParent();
+                mRenameListener.onRenameAction(((TextView) v).getText().toString(), item.getPosition());
+            }
 
-	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
-		ViewHolder holder;
+            return false;
+        }
+    };
 
-		if (convertView == null) {
-			String inflater = Context.LAYOUT_INFLATER_SERVICE;
-			LayoutInflater li = (LayoutInflater)getContext().getSystemService(inflater);
-			convertView = li.inflate(m_resID, parent, false);
+    private View.OnClickListener mItemClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            switch (mState) {
+                case STATE_MULTI_SELECT: {
+                    GridViewItem item = (GridViewItem) v;
+                    setItemChecked(item, !item.isChecked());
+                    break;
+                }
+                case STATE_NORMAL: {
+                    if (mOpenItemListener != null) {
+                        GridViewItem item = (GridViewItem) v;
+                        mOpenItemListener.onOpenAction(item.getPosition());
+                    }
+                    break;
+                }
+            }
+        }
+    };
+    private ActionMode.Callback mActionCallback = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.action_select_item, menu);
 
-			holder = new ViewHolder();
-			holder.label = (EditText) convertView.findViewById(R.id.title_item);
-			holder.icon = (ImageView) convertView.findViewById(R.id.icon_item);
-			holder.checkBox = (CheckBox) convertView.findViewById(R.id.item_check);
+            return true;
+        }
 
-			holder.label.setOnLongClickListener(mTextViewLongClick);
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            mActionMode = mode;
+            return false;
+        }
 
-//            tag.checkBox.setVisibility(View.GONE);          //TODO hide this view because it may be reason gridview blank when scroll
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            return true;
+        }
 
-			convertView.setTag(holder);
-		}
-		else {
-			holder = (ViewHolder)convertView.getTag();
-		}
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            mActionMode = null;
+            updateUI(null, ExplorerItemAdapter.STATE_NORMAL);
+            mSelectedList.clear();
+        }
+    };
+    private OnLongClickListener mItemLongClickListener = new OnLongClickListener() {
+        @Override
+        public boolean onLongClick(View v) {
+            GridViewItem item = (GridViewItem) v;
+            setItemChecked(item, true);
 
-        if (mState == STATE_MULTI_SELECT) {
-			holder.checkBox.setVisibility(View.VISIBLE);
-        } else {
-			holder.checkBox.setVisibility(View.GONE);
-		}
+            if (mState != STATE_MULTI_SELECT) {
+                updateUI(v, STATE_MULTI_SELECT);
+            }
 
-		ItemExplorer item = getItem(position);
-		((GridViewItem) convertView).setPosition(position);
-		if (item != null) {
-			holder.label.setText(item.getDisplayName());
+            return true;
+        }
+    };
 
-			if (item.isDirectory()) {
-				holder.icon.setImageResource(R.drawable.folder_icon);
-			}
-			else holder.icon.setImageResource(R.drawable.file_icon);
-		}
-
-		return convertView;
-	}
+    public ExplorerItemAdapter(ExplorerPresenter presenter) {
+        mPresenter = presenter;
+        mSelectedList = new SparseBooleanArray(getItemCount());
+    }
 
     public void updateUI(View view, int state) {
-		if (mState == state)
-			return;
+
+        if (mState == state)
+            return;
+
+        if (mState == STATE_MULTI_SELECT) {
+            for (int i = 0; i < mSelectedList.size(); i++) {
+                notifyItemChanged(mSelectedList.keyAt(i));
+            }
+
+            mSelectedList.clear();
+        }
 
         switch (state) {
             case STATE_NORMAL:
-                view.setEnabled(false);
-                view.setEnabled(true);
-                UIUtils.hideKeyboard((Activity) getContext());
-                        ((ViewGroup) view.getParent()).setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
-                view.clearFocus();
+//                if (view != null) {
+//                }
 
                 break;
-            case STATE_EDIT:
-                ViewGroup parent = (ViewGroup) view.getParent();
+            case STATE_MULTI_SELECT:
+                if (mActionMode == null && view != null) {
+                    AppCompatActivity activity = (AppCompatActivity) view.getContext();
+                    activity.startSupportActionMode(mActionCallback);
+                }
 
-                parent.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
-                view.requestFocus();
 
                 break;
-			case STATE_MULTI_SELECT:
-				break;
         }
 
-		mState = state;
+        mState = state;
     }
 
-	private class ViewHolder {
-        CheckBox checkBox;
-		EditText label;
-		ImageView icon;
-	}
+    public void setItemChecked(GridViewItem item, boolean checked) {
+        item.setChecked(checked);
+
+        if (checked) {
+            mSelectedList.append(item.getPosition(), true);
+        } else {
+            mSelectedList.delete(item.getPosition());
+        }
+
+        if (mSelectedList.size() == 0) {
+            mActionMode.finish();
+        }
+    }
+
+    public void setRenameListener(OnRenameActionListener listener) {
+        mRenameListener = listener;
+    }
+
+    public void setOpenItemListener(OnOpenItemActionListener listener) {
+        mOpenItemListener = listener;
+    }
+
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_file, parent, false);
+        ViewHolder holder = new ViewHolder(v);
+
+        return holder;
+    }
+
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+
+        ItemExplorer item = mPresenter.getItemAt(position);
+        holder.panel.setPosition(position);
+        if (item != null) {
+            holder.label.setText(item.getDisplayName());
+
+            if (item.isDirectory()) {
+                holder.icon.setImageResource(R.drawable.folder_icon);
+            } else holder.icon.setImageResource(R.drawable.file_icon);
+        }
+
+        if (mSelectedList.get(position)) {
+            holder.panel.setChecked(true);
+        } else {
+            holder.panel.setChecked(false);
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        return mPresenter.getItemCount();
+    }
+
+    public interface OnRenameActionListener {
+        void onRenameAction(String item, int position);
+    }
+
+    public interface OnOpenItemActionListener {
+        void onOpenAction(int position);
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        public TextView     label;
+        public ImageView    icon;
+        public GridViewItem panel;
+
+        public ViewHolder(View itemView) {
+            super(itemView);
+            label = (TextView) itemView.findViewById(R.id.title_item);
+            icon = (ImageView) itemView.findViewById(R.id.icon_item);
+            panel = (GridViewItem) itemView;
+
+            label.setOnLongClickListener(mTextViewLongClick);
+            panel.setOnClickListener(mItemClickListener);
+            panel.setOnLongClickListener(mItemLongClickListener);
+            panel.setTag(R.string.item_key_tag_viewholder, this);
+        }
+    }
 }

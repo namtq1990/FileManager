@@ -3,33 +3,25 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/state_item_bg"
     android:descendantFocusability="blocksDescendants"
     android:padding="5dp" >
-
-    <CheckBox
-        android:id="@+id/item_check"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_centerVertical="true"/>
 
     <com.tqnam.filemanager.view.LisImageView
         android:id="@+id/icon_item"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/item_check"/>
+        android:layout_height="wrap_content"/>
 
-    <EditText
+    <TextView
         android:id="@+id/title_item"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="5dp"
+        android:layout_marginLeft="@dimen/padding_small_01"
+        android:layout_marginStart="@dimen/padding_small_01"
+        android:layout_toEndOf="@id/icon_item"
         android:layout_toRightOf="@id/icon_item"
-        android:background="@null"
         android:gravity="center_vertical"
-        android:inputType="textMultiLine|textNoSuggestions"
-        android:scrollHorizontally="false"
         android:singleLine="false"
         android:textAppearance="@android:style/TextAppearance.DeviceDefault" />
 

@@ -8,7 +8,6 @@ import com.tqnam.filemanager.model.ExplorerModel;
 import com.tqnam.filemanager.model.ItemExplorer;
 
 import java.io.File;
-import java.util.ArrayList;
 
 /**
  * Created by tqnam on 10/28/2015.
@@ -59,7 +58,7 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                 mModel.sort();
                 mModel.mParentPath = item.getParentPath();
 
-                mView.updateList(mModel.mListItem);
+                mView.updateList();
             }
             else {
                 if (!folder.canRead())
@@ -69,8 +68,14 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public ArrayList<? extends ItemExplorer> getCurList() {
-        return mModel.mListItem;
+    public int getItemCount() {
+        return mModel.getTotalItem();
     }
+
+    @Override
+    public ItemExplorer getItemAt(int position) {
+        return mModel.getItemAt(position);
+    }
+
 
 }

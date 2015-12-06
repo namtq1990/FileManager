@@ -7,35 +7,33 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.EditText;
-import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.BaseFragment;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.ExplorerModel;
-import com.tqnam.filemanager.model.ItemExplorer;
-
-import java.util.ArrayList;
 
 /**
  * Created by quangnam on 11/12/15.
  * Base fragment for explorer view, may be file explorer, ftp explorer, ...
  */
-public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView, MenuItemCompat.OnActionExpandListener {
+public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView,
+        MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.OnRenameActionListener,
+        ExplorerItemAdapter.OnOpenItemActionListener {
 
+    private ActionMode        mActionMode;
     private ExplorerPresenter mPresenter;
     private ViewHolder mViewHolder = new ViewHolder();
 
@@ -85,40 +83,38 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
      * Setup UI for fragment
      */
     private void initView(View rootView) {
-        mViewHolder.mAdapter = new ExplorerItemAdapter(getActivity(), R.layout.item_file, mPresenter.getCurList());
+        mViewHolder.mAdapter = new ExplorerItemAdapter(mPresenter);
 
-        mViewHolder.mList = (GridView) rootView.findViewById(R.id.grid_view_list);
+        mViewHolder.mList = (RecyclerView) rootView.findViewById(R.id.grid_view_list);
         mViewHolder.mList.setAdapter(mViewHolder.mAdapter);
+        mViewHolder.mList.setLayoutManager(new GridLayoutManager(rootView.getContext(), 2));
+        mViewHolder.mList.setHasFixedSize(true);
 
-        mViewHolder.mList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mViewHolder.mAdapter.setRenameListener(this);
+        mViewHolder.mAdapter.setOpenItemListener(this);
+//        mViewHolder.mList.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View view, MotionEvent motionEvent) {
+//
+//                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+//                    Activity context = getActivitySafe();
+//                    View curFocus = context.getCurrentFocus();
+//
+//                    if (curFocus != null) {
+//                        MenuItemCompat.collapseActionView(mViewHolder.mSearchMenu);
+//
+//                        if (curFocus.getId() == R.id.title_item) {
+//                            EditText et = (EditText) context.getCurrentFocus();
+//                            mViewHolder.mAdapter.updateUI(et, ExplorerItemAdapter.STATE_NORMAL);
+//                            return true;
+//                        }
+//                    }
+//                }
+//
+//                return false;
+//            }
+//        });
 
-            @Override
-            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                mPresenter.openDirectory(mViewHolder.mAdapter.getItem(position));
-            }
-        });
-        mViewHolder.mList.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-
-                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                    Activity context = getActivity();
-                    View curFocus = context.getCurrentFocus();
-
-                    if (curFocus != null) {
-                        MenuItemCompat.collapseActionView(mViewHolder.mSearchMenu);
-
-                        if (curFocus.getId() == R.id.title_item) {
-                            EditText et = (EditText) context.getCurrentFocus();
-                            mViewHolder.mAdapter.updateUI(et, ExplorerItemAdapter.STATE_NORMAL);
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            }
-        });
     }
 
     @Override
@@ -135,7 +131,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     }
 
     private void addActionSearch(Menu menu) {
-        Activity activity = getActivity();
+        Activity activity = getActivitySafe();
         SearchManager searchManager = (SearchManager) activity
                 .getSystemService(Context.SEARCH_SERVICE);
         mViewHolder.mSearchMenu = menu.findItem(R.id.action_search);
@@ -166,7 +162,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public boolean onMenuItemActionExpand(MenuItem menuItem) {
-        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        AppCompatActivity activity = (AppCompatActivity) getActivitySafe();
         if (activity.getSupportActionBar() != null)
             activity.getSupportActionBar().setDisplayShowHomeEnabled(false);
 
@@ -175,7 +171,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public boolean onMenuItemActionCollapse(MenuItem menuItem) {
-        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        AppCompatActivity activity = (AppCompatActivity) getActivitySafe();
         if (activity.getSupportActionBar() != null)
             activity.getSupportActionBar().setDisplayShowHomeEnabled(true);
 
@@ -197,22 +193,36 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     }
 
     @Override
-    public void updateList(ArrayList<? extends ItemExplorer> listItem) {
+    public void onRenameAction(String label, int position) {
+        DialogRenameFragment dialog = new DialogRenameFragment();
+        Bundle args = new Bundle();
+        args.putString(DialogRenameFragment.ARG_LABEL, label);
+
+        dialog.setArguments(args);
+        dialog.show(getFragmentManager(), DialogRenameFragment.TAG);
+    }
+
+    @Override
+    public void onOpenAction(int position) {
+        mPresenter.openDirectory(mPresenter.getItemAt(position));
+    }
+
+    @Override
+    public void updateList() {
         if (mViewHolder.mAdapter != null)
             mViewHolder.mAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onErrorPermission() {
-        Activity curActivity = getActivity() != null ? getActivity() : Application.getInstance()
-                .getGlobalData().getCurActivity();
+        Activity curActivity = getActivitySafe();
         Toast.makeText(curActivity, curActivity.getString(R.string.explorer_err_permission), Toast.LENGTH_LONG)
                 .show();
     }
 
     private class ViewHolder {
         ExplorerItemAdapter mAdapter;
-        GridView            mList;
+        RecyclerView        mList;
         MenuItem            mSearchMenu;
         SearchView          mSearchView;
     }
