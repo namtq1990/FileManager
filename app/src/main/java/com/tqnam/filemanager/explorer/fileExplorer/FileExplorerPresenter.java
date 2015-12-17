@@ -14,7 +14,7 @@ import java.io.File;
  */
 public class FileExplorerPresenter implements ExplorerPresenter {
 
-    private ExplorerView mView;
+    private ExplorerView  mView;
     private ExplorerModel mModel;
 
     public FileExplorerPresenter(ExplorerView view, ExplorerModel model) {
@@ -59,8 +59,7 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                 mModel.mParentPath = item.getParentPath();
 
                 mView.updateList();
-            }
-            else {
+            } else {
                 if (!folder.canRead())
                     mView.onErrorPermission();
             }

@@ -1,13 +1,20 @@
 package com.tqnam.filemanager.explorer;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ArgbEvaluator;
 import android.animation.LayoutTransition;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.ActionMode;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -16,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -32,8 +40,7 @@ import com.tqnam.filemanager.model.ExplorerModel;
 public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView,
         MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.OnRenameActionListener,
         ExplorerItemAdapter.OnOpenItemActionListener {
-
-    private ActionMode        mActionMode;
+    private Animator               mOpenAnimType;
     private ExplorerPresenter mPresenter;
     private ViewHolder mViewHolder = new ViewHolder();
 
@@ -75,7 +82,17 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         if (savedInstanceState != null) {
             mPresenter.onRestoreInstanceState(savedInstanceState);
         } else {
-            mPresenter.openDirectory(new FileItem("/"));
+            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getAppContext());
+            String key_pref_homepath = getAppContext().getString(R.string.pref_local_home_path);
+            String homePath = PreferenceManager.getDefaultSharedPreferences(getAppContext())
+                    .getString(key_pref_homepath, null);
+            if (homePath == null) {
+                homePath = "/";
+                pref.edit().putString(key_pref_homepath, homePath)
+                .commit();
+            }
+
+            mPresenter.openDirectory(new FileItem(homePath));
         }
     }
 
@@ -83,7 +100,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
      * Setup UI for fragment
      */
     private void initView(View rootView) {
-        mViewHolder.mAdapter = new ExplorerItemAdapter(mPresenter);
+        mViewHolder.mAdapter = new ExplorerItemAdapter(rootView.getContext(), mPresenter);
 
         mViewHolder.mList = (RecyclerView) rootView.findViewById(R.id.grid_view_list);
         mViewHolder.mList.setAdapter(mViewHolder.mAdapter);
@@ -92,28 +109,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
         mViewHolder.mAdapter.setRenameListener(this);
         mViewHolder.mAdapter.setOpenItemListener(this);
-//        mViewHolder.mList.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View view, MotionEvent motionEvent) {
-//
-//                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-//                    Activity context = getActivitySafe();
-//                    View curFocus = context.getCurrentFocus();
-//
-//                    if (curFocus != null) {
-//                        MenuItemCompat.collapseActionView(mViewHolder.mSearchMenu);
-//
-//                        if (curFocus.getId() == R.id.title_item) {
-//                            EditText et = (EditText) context.getCurrentFocus();
-//                            mViewHolder.mAdapter.updateUI(et, ExplorerItemAdapter.STATE_NORMAL);
-//                            return true;
-//                        }
-//                    }
-//                }
-//
-//                return false;
-//            }
-//        });
 
     }
 
@@ -189,7 +184,68 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     }
 
     public void onBackPressed() {
+        mOpenAnimType = animActionOpenUp();
         mPresenter.onBackPressed();
+    }
+
+    private Animator animActionOpenUp() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                && getView() != null) {
+            View rootView = getView();
+            Context context = rootView.getContext();
+            int startColor = ContextCompat.getColor(context, R.color.accent_material_dark);
+            int endColor = ContextCompat.getColor(context, R.color.white);
+            int width = rootView.getWidth();
+            int height = rootView.getHeight();
+
+            int startRadius = (int) Math.sqrt(width * width + height * height);
+            AnimatorSet set = new AnimatorSet();
+            Animator anim = ViewAnimationUtils.createCircularReveal(rootView, width, height, startRadius, 0);
+            ObjectAnimator colorAnim = ObjectAnimator.ofObject(rootView, "backgroundColor",
+                    new ArgbEvaluator(), startColor, endColor).setDuration(anim.getDuration());
+            set.play(anim).with(colorAnim);
+            rootView.setVisibility(View.VISIBLE);
+
+            return set;
+        } else {
+            return null;
+        }
+    }
+
+    private Animator animActionOpenIn(View itemView) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                && getView() != null) {
+            final View rootView = getView();
+            // TODO need iconview to be child directly of itemView
+            View iconView = itemView.findViewById(R.id.icon_item);
+            int left = itemView.getLeft() + iconView.getLeft();
+            int right = itemView.getLeft() + iconView.getRight();
+            int top = itemView.getTop() + iconView.getTop();
+            int bottom = itemView.getTop() + iconView.getBottom();
+            Context context = rootView.getContext();
+            rootView.setVisibility(View.INVISIBLE);
+            int centerX = (left + right) / 2;
+            int centerY = (top + bottom) / 2;
+            int width = rootView.getWidth();
+            int height = rootView.getHeight();
+            int startRadius = 0;
+            int startColor = ContextCompat.getColor(context, R.color.accent_material_dark);
+            final int endColor = ContextCompat.getColor(context, R.color.white);
+
+            int finalRadius = (int) (Math.sqrt(width * width
+                    + height * height));
+            AnimatorSet set = new AnimatorSet();
+            Animator anim = ViewAnimationUtils.createCircularReveal(rootView, centerX, centerY,
+                    startRadius, finalRadius);
+            ObjectAnimator colorAnim = ObjectAnimator.ofObject(rootView, "backgroundColor",
+                    new ArgbEvaluator(), startColor, endColor).setDuration(anim.getDuration());
+            set.play(anim).with(colorAnim);
+            rootView.setVisibility(View.VISIBLE);
+
+            return set;
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -204,13 +260,20 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public void onOpenAction(int position) {
+        mOpenAnimType = animActionOpenIn(mViewHolder.mList.findViewHolderForAdapterPosition(position).itemView);
         mPresenter.openDirectory(mPresenter.getItemAt(position));
     }
 
     @Override
     public void updateList() {
-        if (mViewHolder.mAdapter != null)
+        if (mViewHolder.mAdapter != null) {
+            if (mOpenAnimType != null && getView() != null) {
+                View rootView = getView();
+                mOpenAnimType.start();
+            }
+
             mViewHolder.mAdapter.notifyDataSetChanged();
+        }
     }
 
     @Override

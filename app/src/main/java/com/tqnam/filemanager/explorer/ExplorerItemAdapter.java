@@ -1,9 +1,11 @@
 package com.tqnam.filemanager.explorer;
 
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,6 +28,8 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     public static final int STATE_NORMAL       = 0;
     //    public static final int STATE_EDIT         = 1;
     public static final int STATE_MULTI_SELECT = 2;
+    public static int mDefaultThemeBackgroundID;
+
     int mState = STATE_NORMAL;
 
     private SparseBooleanArray       mSelectedList;
@@ -34,23 +38,16 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     private OnRenameActionListener   mRenameListener;
     private OnOpenItemActionListener mOpenItemListener;
 
-    private OnLongClickListener mTextViewLongClick = new OnLongClickListener() {
-
-        @Override
-        public boolean onLongClick(View v) {
-//            updateUI(v, STATE_EDIT);
-            if (mRenameListener != null) {
-                GridViewItem item = (GridViewItem) v.getParent();
-                mRenameListener.onRenameAction(((TextView) v).getText().toString(), item.getPosition());
-            }
-
-            return false;
-        }
-    };
-
     private View.OnClickListener mItemClickListener = new View.OnClickListener() {
         @Override
-        public void onClick(View v) {
+        public void onClick(final View v) {
+//            v.setEnabled(false);
+//            v.postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    v.setEnabled(true);
+//
+
             switch (mState) {
                 case STATE_MULTI_SELECT: {
                     GridViewItem item = (GridViewItem) v;
@@ -65,9 +62,13 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                     break;
                 }
             }
+//                }
+//            }, v.getResources().getInteger(android.R.integer.config_shortAnimTime));
+//        }
         }
     };
-    private ActionMode.Callback mActionCallback = new ActionMode.Callback() {
+
+    private ActionMode.Callback mActionCallback        = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             MenuInflater inflater = mode.getMenuInflater();
@@ -108,9 +109,12 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         }
     };
 
-    public ExplorerItemAdapter(ExplorerPresenter presenter) {
+    public ExplorerItemAdapter(Context context, ExplorerPresenter presenter) {
         mPresenter = presenter;
         mSelectedList = new SparseBooleanArray(getItemCount());
+        TypedValue typedValueAttr = new TypedValue();
+        context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, typedValueAttr, true);
+        mDefaultThemeBackgroundID = typedValueAttr.resourceId;
     }
 
     public void updateUI(View view, int state) {
@@ -119,6 +123,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             return;
 
         if (mState == STATE_MULTI_SELECT) {
+            // Handler destroy multi select state
             for (int i = 0; i < mSelectedList.size(); i++) {
                 notifyItemChanged(mSelectedList.keyAt(i));
             }
@@ -212,6 +217,17 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         public TextView     label;
         public ImageView    icon;
         public GridViewItem panel;
+        private OnLongClickListener mTextViewLongClick = new OnLongClickListener() {
+
+            @Override
+            public boolean onLongClick(View v) {
+                if (mRenameListener != null) {
+                    mRenameListener.onRenameAction(((TextView) v).getText().toString(), getAdapterPosition());
+                }
+
+                return false;
+            }
+        };
 
         public ViewHolder(View itemView) {
             super(itemView);

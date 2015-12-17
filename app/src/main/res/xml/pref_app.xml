@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="Explorer">
+
+        <EditTextPreference
+            android:dialogMessage="Please enter path of default local home directory"
+            android:key="@string/pref_local_home_path"
+            android:summary="Home path in local storage"/>
+    </PreferenceCategory>
+</PreferenceScreen>

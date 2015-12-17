@@ -1,5 +1,6 @@
 package com.tqnam.filemanager;
 
+import android.content.Context;
 import android.support.v4.app.FragmentActivity;
 
 /**
@@ -11,6 +12,7 @@ import android.support.v4.app.FragmentActivity;
  */
 public class BaseFragment extends android.support.v4.app.Fragment {
 
+    private Context mAppContext;
 
     /**
      * Safety get activity of Fragment to stop something stupid from {@link #getActivity()}
@@ -18,5 +20,15 @@ public class BaseFragment extends android.support.v4.app.Fragment {
      */
     public FragmentActivity getActivitySafe() {
         return getActivity() != null ? getActivity() : (FragmentActivity) Application.getInstance().getGlobalData().getCurActivity();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mAppContext = context.getApplicationContext();
+    }
+
+    public Context getAppContext() {
+        return  mAppContext;
     }
 }

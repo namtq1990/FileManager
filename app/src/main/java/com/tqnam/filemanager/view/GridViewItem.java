@@ -52,9 +52,19 @@ public class GridViewItem extends RelativeLayout implements Checkable {
      */
     @Override
     public void setChecked(boolean checked) {
+        if (checked != mChecked) {
+            // Check state changed, change background
+            if (checked) {
+                setBackgroundResource(R.drawable.state_item_bg);
+            } else {
+                setBackgroundResource(ExplorerItemAdapter.mDefaultThemeBackgroundID);
+            }
+        }
+
         ExplorerItemAdapter.ViewHolder holder = (ExplorerItemAdapter.ViewHolder) getTag(R.string.item_key_tag_viewholder);
         setSelected(checked);
         mChecked = checked;
+
     }
 
     /**
@@ -62,7 +72,7 @@ public class GridViewItem extends RelativeLayout implements Checkable {
      */
     @Override
     public void toggle() {
-
+        setChecked(!mChecked);
     }
 
 }
