@@ -37,24 +37,13 @@ public class MainActivity extends BaseActivity {
     private void init() {
         mViewHolder = new ViewHolder();
 
-        // Init Fragment
-//        ListFileFragment listFile = (ListFileFragment) getSupportFragmentManager()
-//                .findFragmentByTag(ListFileFragment.TAG);
-//
-//        if (listFile == null) {
-//            listFile = new ListFileFragment();
-//            getSupportFragmentManager().beginTransaction()
-//                    .add(R.id.fragment_list_container, listFile, ListFileFragment.TAG)
-//                    .commit();
-//        }
-
-//        mViewHolder.mFragmentListFile = listFile;
         mViewHolder.mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mViewHolder.mPager = (ViewPager) findViewById(R.id.pager);
         mViewHolder.mTab = (TabLayout) findViewById(R.id.appbar_tab);
         setSupportActionBar(mViewHolder.mToolbar);
         mViewHolder.mPager.setAdapter(new PageAdapter(getSupportFragmentManager()));
         mViewHolder.mTab.setupWithViewPager(mViewHolder.mPager);
+
     }
 
     @Override
