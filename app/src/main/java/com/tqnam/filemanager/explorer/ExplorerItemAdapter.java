@@ -263,7 +263,6 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                         @Override
                         public void call(Throwable throwable) {
                             Common.Log("error when open item " + ((GridViewItem) itemView).getPosition());
-                            System.out.println(throwable);
                             throwable.printStackTrace();
                         }
                     });
