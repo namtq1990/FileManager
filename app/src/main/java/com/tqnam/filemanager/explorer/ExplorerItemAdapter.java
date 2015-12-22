@@ -238,7 +238,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             panel.setOnLongClickListener(mItemLongClickListener);
             panel.setTag(R.string.item_key_tag_viewholder, this);
 
-            RxView.clicks(itemView).throttleLast(500, TimeUnit.MILLISECONDS)
+            RxView.clicks(itemView).throttleLast(350, TimeUnit.MILLISECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Action1<Void>() {

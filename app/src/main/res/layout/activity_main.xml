@@ -59,6 +59,7 @@
             android:layout_margin="16dp"
             android:src="@drawable/ic_add"
             android:tint="@color/white"
+            app:layout_behavior="com.tqnam.filemanager.explorer.behavior.FABScrollBehavior"
             app:layout_anchor="@id/pager"
             app:layout_anchorGravity="bottom|right|end"/>
 
