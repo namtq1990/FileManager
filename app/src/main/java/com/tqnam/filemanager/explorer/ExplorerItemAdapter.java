@@ -16,9 +16,16 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.jakewharton.rxbinding.view.RxView;
+import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.view.GridViewItem;
+
+import java.util.concurrent.TimeUnit;
+
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
 /**
  * Adapter for explorer, must be combined with GridViewItem
@@ -38,35 +45,26 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     private OnRenameActionListener   mRenameListener;
     private OnOpenItemActionListener mOpenItemListener;
 
-    private View.OnClickListener mItemClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(final View v) {
-//            v.setEnabled(false);
-//            v.postDelayed(new Runnable() {
-//                @Override
-//                public void run() {
-//                    v.setEnabled(true);
+//    private View.OnClickListener mItemClickListener = new View.OnClickListener() {
+//        @Override
+//        public void onClick(final View v) {
 //
-
-            switch (mState) {
-                case STATE_MULTI_SELECT: {
-                    GridViewItem item = (GridViewItem) v;
-                    setItemChecked(item, !item.isChecked());
-                    break;
-                }
-                case STATE_NORMAL: {
-                    if (mOpenItemListener != null) {
-                        GridViewItem item = (GridViewItem) v;
-                        mOpenItemListener.onOpenAction(item.getPosition());
-                    }
-                    break;
-                }
-            }
+//            switch (mState) {
+//                case STATE_MULTI_SELECT: {
+//                    GridViewItem item = (GridViewItem) v;
+//                    setItemChecked(item, !item.isChecked());
+//                    break;
 //                }
-//            }, v.getResources().getInteger(android.R.integer.config_shortAnimTime));
+//                case STATE_NORMAL: {
+//                    if (mOpenItemListener != null) {
+//                        GridViewItem item = (GridViewItem) v;
+//                        mOpenItemListener.onOpenAction(item.getPosition());
+//                    }
+//                    break;
+//                }
+//            }
 //        }
-        }
-    };
+//    };
 
     private ActionMode.Callback mActionCallback        = new ActionMode.Callback() {
         @Override
@@ -115,6 +113,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         TypedValue typedValueAttr = new TypedValue();
         context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, typedValueAttr, true);
         mDefaultThemeBackgroundID = typedValueAttr.resourceId;
+
     }
 
     public void updateUI(View view, int state) {
@@ -175,9 +174,8 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_file, parent, false);
-        ViewHolder holder = new ViewHolder(v);
 
-        return holder;
+        return new ViewHolder(v);
     }
 
     @Override
@@ -229,16 +227,46 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             }
         };
 
-        public ViewHolder(View itemView) {
+        public ViewHolder(final View itemView) {
             super(itemView);
             label = (TextView) itemView.findViewById(R.id.title_item);
             icon = (ImageView) itemView.findViewById(R.id.icon_item);
             panel = (GridViewItem) itemView;
 
             label.setOnLongClickListener(mTextViewLongClick);
-            panel.setOnClickListener(mItemClickListener);
+//            panel.setOnClickListener(mItemClickListener);
             panel.setOnLongClickListener(mItemLongClickListener);
             panel.setTag(R.string.item_key_tag_viewholder, this);
+
+            RxView.clicks(itemView).throttleLast(500, TimeUnit.MILLISECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<Void>() {
+                        @Override
+                        public void call(Void aVoid) {
+                            switch (mState) {
+                                case STATE_MULTI_SELECT: {
+                                    GridViewItem item = (GridViewItem) itemView;
+                                    setItemChecked(item, !item.isChecked());
+                                    break;
+                                }
+                                case STATE_NORMAL: {
+                                    if (mOpenItemListener != null) {
+                                        GridViewItem item = (GridViewItem) itemView;
+                                        mOpenItemListener.onOpenAction(item.getPosition());
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            Common.Log("error when open item " + ((GridViewItem) itemView).getPosition());
+                            System.out.println(throwable);
+                            throwable.printStackTrace();
+                        }
+                    });
         }
     }
 }

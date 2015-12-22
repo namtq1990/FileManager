@@ -40,7 +40,7 @@ import com.tqnam.filemanager.model.ExplorerModel;
 public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView,
         MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.OnRenameActionListener,
         ExplorerItemAdapter.OnOpenItemActionListener {
-    private Animator               mOpenAnimType;
+//    private Animator               mOpenAnimType;
     private ExplorerPresenter mPresenter;
     private ViewHolder mViewHolder = new ViewHolder();
 
@@ -89,7 +89,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             if (homePath == null) {
                 homePath = "/";
                 pref.edit().putString(key_pref_homepath, homePath)
-                .commit();
+                .apply();
             }
 
             mPresenter.openDirectory(new FileItem(homePath));
@@ -184,7 +184,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     }
 
     public void onBackPressed() {
-        mOpenAnimType = animActionOpenUp();
+//        mOpenAnimType = animActionOpenUp();
         mPresenter.onBackPressed();
     }
 
@@ -260,17 +260,17 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public void onOpenAction(int position) {
-        mOpenAnimType = animActionOpenIn(mViewHolder.mList.findViewHolderForAdapterPosition(position).itemView);
+//        mOpenAnimType = animActionOpenIn(mViewHolder.mList.findViewHolderForAdapterPosition(position).itemView);
         mPresenter.openDirectory(mPresenter.getItemAt(position));
     }
 
     @Override
     public void updateList() {
         if (mViewHolder.mAdapter != null) {
-            if (mOpenAnimType != null && getView() != null) {
-                View rootView = getView();
-                mOpenAnimType.start();
-            }
+//            if (mOpenAnimType != null && getView() != null) {
+//                View rootView = getView();
+//                mOpenAnimType.start();
+//            }
 
             mViewHolder.mAdapter.notifyDataSetChanged();
         }
