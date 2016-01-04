@@ -2,6 +2,7 @@ package com.tqnam.filemanager.explorer.fileExplorer;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.webkit.MimeTypeMap;
 
 import com.tqnam.filemanager.model.ItemExplorer;
 
@@ -42,6 +43,11 @@ public class FileItem extends File implements ItemExplorer, Parcelable {
     @Override
     public String getPath() {
         return getAbsolutePath();
+    }
+
+    @Override
+    public String getExtension() {
+        return MimeTypeMap.getSingleton().getFileExtensionFromUrl(getDisplayName());
     }
 
     @Override
