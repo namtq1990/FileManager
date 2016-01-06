@@ -1,5 +1,7 @@
 package com.tqnam.filemanager.model;
 
+import android.net.Uri;
+
 /**
  * Created by tqnam on 10/28/2015.
  */
@@ -40,4 +42,6 @@ public interface ItemExplorer {
     String getExtension();
 
     String getParentPath();
+
+    Uri getUri();
 }

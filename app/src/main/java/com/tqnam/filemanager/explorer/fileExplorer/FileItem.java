@@ -1,5 +1,6 @@
 package com.tqnam.filemanager.explorer.fileExplorer;
 
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.webkit.MimeTypeMap;
@@ -53,6 +54,11 @@ public class FileItem extends File implements ItemExplorer, Parcelable {
     @Override
     public String getParentPath() {
         return getParent();
+    }
+
+    @Override
+    public Uri getUri() {
+        return Uri.fromFile(this);
     }
 
     @Override
