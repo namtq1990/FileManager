@@ -12,7 +12,7 @@ public interface ItemExplorer {
     int FILE_TYPE_AUDIO  = 4;
     int FILE_TYPE_PDF    = 5;
     int FILE_TYPE_WORD   = 6;
-    int FILE_TYPE_NORMAL = 7;
+    int FILE_TYPE_NORMAL = -1;
 
     /**
      * Need to keep value of {@link ItemExplorer#FILE_TYPE_IMAGE}, {@link ItemExplorer#FILE_TYPE_VIDEO}, ...

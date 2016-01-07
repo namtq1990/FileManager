@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_add">
+
+    <target
+        android:name="plus_img"
+        android:animation="@animator/rotate_quarter"/>
+
+    <!--<target-->
+        <!--android:animation="@animator/rotate_quarter"-->
+        <!--android:name="horizontal_line"/>-->
+</animated-vector>

@@ -1,12 +1,15 @@
 package com.tqnam.filemanager.explorer;
 
+import android.graphics.drawable.Animatable;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
 
 import com.tqnam.filemanager.BaseActivity;
 import com.tqnam.filemanager.R;
@@ -40,10 +43,20 @@ public class MainActivity extends BaseActivity {
         mViewHolder.mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mViewHolder.mPager = (ViewPager) findViewById(R.id.pager);
         mViewHolder.mTab = (TabLayout) findViewById(R.id.appbar_tab);
+        mViewHolder.mBtnAddFile = (FloatingActionButton) findViewById(R.id.btn_add);
         setSupportActionBar(mViewHolder.mToolbar);
         mViewHolder.mPager.setAdapter(new PageAdapter(getSupportFragmentManager()));
         mViewHolder.mTab.setupWithViewPager(mViewHolder.mPager);
-
+        mViewHolder.mBtnAddFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FloatingActionButton btn = (FloatingActionButton) v;
+                if (btn.getDrawable() instanceof Animatable) {
+                    Animatable animatable = (Animatable) btn.getDrawable();
+                    animatable.start();
+                }
+            }
+        });
     }
 
     @Override
@@ -59,7 +72,7 @@ public class MainActivity extends BaseActivity {
     private class PageAdapter extends FragmentPagerAdapter {
 
         private final int mLocalFileFragmentIndex = 0;
-        private final int mPrefFragmentIndex = 1;
+        private final int mPrefFragmentIndex      = 1;
 
         public PageAdapter(FragmentManager fm) {
             super(fm);
@@ -104,9 +117,10 @@ public class MainActivity extends BaseActivity {
     }
 
     private class ViewHolder {
-        ListFileFragment mFragmentListFile;
-        Toolbar          mToolbar;
-        TabLayout        mTab;
-        ViewPager        mPager;
+        ListFileFragment     mFragmentListFile;
+        Toolbar              mToolbar;
+        TabLayout            mTab;
+        ViewPager            mPager;
+        FloatingActionButton mBtnAddFile;
     }
 }
