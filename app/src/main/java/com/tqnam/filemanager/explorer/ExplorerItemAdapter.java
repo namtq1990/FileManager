@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.jakewharton.rxbinding.view.RxView;
 import com.squareup.picasso.Picasso;
+import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;
@@ -196,9 +197,10 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
 
                 switch (fileType) {
                     case ItemExplorer.FILE_TYPE_IMAGE:
-                        //TODO Resize image to specific size
+                        Application.GlobalData globalData = ((Application)context.getApplicationContext())
+                                .getGlobalData();
                         Picasso.with(context).load(item.getUri())
-                                .resize(200, 200)
+                                .resize(globalData.mIconSize, globalData.mIconSize)
                                 .placeholder(R.drawable.file_icon)
                                 .into(holder.icon);
                         break;
