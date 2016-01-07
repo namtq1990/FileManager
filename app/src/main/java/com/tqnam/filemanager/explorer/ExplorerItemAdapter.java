@@ -17,9 +17,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.jakewharton.rxbinding.view.RxView;
+import com.squareup.picasso.Picasso;
+import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.utils.ItemUtils;
 import com.tqnam.filemanager.view.GridViewItem;
 
 import java.util.concurrent.TimeUnit;
@@ -32,17 +35,17 @@ import rx.functions.Action1;
  */
 public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapter.ViewHolder> {
 
-    public static final int STATE_NORMAL       = 0;
+    public static final int STATE_NORMAL = 0;
     //    public static final int STATE_EDIT         = 1;
     public static final int STATE_MULTI_SELECT = 2;
     public static int mDefaultThemeBackgroundID;
 
     int mState = STATE_NORMAL;
 
-    private SparseBooleanArray       mSelectedList;
-    private ActionMode               mActionMode;
-    private ExplorerPresenter        mPresenter;
-    private OnRenameActionListener   mRenameListener;
+    private SparseBooleanArray mSelectedList;
+    private ActionMode mActionMode;
+    private ExplorerPresenter mPresenter;
+    private OnRenameActionListener mRenameListener;
     private OnOpenItemActionListener mOpenItemListener;
 
 //    private View.OnClickListener mItemClickListener = new View.OnClickListener() {
@@ -66,7 +69,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
 //        }
 //    };
 
-    private ActionMode.Callback mActionCallback        = new ActionMode.Callback() {
+    private ActionMode.Callback mActionCallback = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             MenuInflater inflater = mode.getMenuInflater();
@@ -188,7 +191,25 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
 
             if (item.isDirectory()) {
                 holder.icon.setImageResource(R.drawable.folder_icon);
-            } else holder.icon.setImageResource(R.drawable.file_icon);
+            } else {
+                int fileType = ItemUtils.getFileType(item.getExtension());
+                Context context = holder.panel.getContext();
+
+                switch (fileType) {
+                    case ItemExplorer.FILE_TYPE_IMAGE:
+                        Application.GlobalData globalData = ((Application)context.getApplicationContext())
+                                .getGlobalData();
+                        Picasso.with(context).load(item.getUri())
+                                .resize(globalData.mIconSize, globalData.mIconSize)
+                                .placeholder(R.drawable.file_icon)
+                                .into(holder.icon);
+                        break;
+                    default:
+                        holder.icon.setImageResource(R.drawable.file_icon);
+                        break;
+                }
+
+            }
         }
 
         if (mSelectedList.get(position)) {
@@ -212,8 +233,8 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView     label;
-        public ImageView    icon;
+        public TextView label;
+        public ImageView icon;
         public GridViewItem panel;
         private OnLongClickListener mTextViewLongClick = new OnLongClickListener() {
 

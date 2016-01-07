@@ -86,6 +86,11 @@ public class Application extends android.app.Application implements android.app.
 
     public class GlobalData {
         public int mStatusBarHeight;
+
+        /**
+         * icon for item in list
+         */
+        public Integer mIconSize;
         private WeakReference<Activity> mCurActivity;
 
         public GlobalData() {
@@ -95,6 +100,8 @@ public class Application extends android.app.Application implements android.app.
             if (statusBarRes > 0) {
                 mStatusBarHeight = getResources().getDimensionPixelSize(statusBarRes);
             }
+
+            mIconSize = getResources().getDimensionPixelSize(R.dimen.design_fab_size_normal);
         }
 
         public Activity getCurActivity() {

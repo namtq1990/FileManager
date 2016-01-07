@@ -54,8 +54,8 @@
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/btn_add"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/design_fab_size_normal"
+            android:layout_height="@dimen/design_fab_size_normal"
             android:layout_margin="16dp"
             android:src="@drawable/icon_create_file"
             android:tint="@color/white"
