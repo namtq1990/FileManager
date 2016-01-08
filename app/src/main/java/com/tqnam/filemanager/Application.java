@@ -5,6 +5,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.view.WindowManager;
 
 import java.lang.ref.WeakReference;
 
@@ -51,6 +52,10 @@ public class Application extends android.app.Application implements android.app.
                     }
                 }
             });
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // tqnam: for some reason, need to set flag FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS to true to
+            // enable system bar background in api >= 21
+            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         }
     }
 
