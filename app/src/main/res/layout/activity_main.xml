@@ -52,16 +52,45 @@
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
+        <View
+            android:id="@+id/frame_blur"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#20008080"
+            android:visibility="gone"/>
+
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/btn_add"
             android:layout_width="@dimen/design_fab_size_normal"
             android:layout_height="@dimen/design_fab_size_normal"
-            android:layout_margin="16dp"
+            android:layout_margin="@dimen/activity_horizontal_margin"
             android:src="@drawable/icon_create_file"
             android:tint="@color/white"
             app:layout_anchor="@id/pager"
             app:layout_anchorGravity="bottom|right|end"
             app:layout_behavior="com.tqnam.filemanager.explorer.behavior.FABScrollBehavior"/>
+
+        <LinearLayout
+            android:id="@+id/menu_add_item"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:orientation="vertical"
+            app:layout_anchor="@id/btn_add"
+            app:layout_anchorGravity="center_horizontal">
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/btn_add_folder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"/>
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/btn_add_file"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"/>
+        </LinearLayout>
 
     </android.support.design.widget.CoordinatorLayout>
 
