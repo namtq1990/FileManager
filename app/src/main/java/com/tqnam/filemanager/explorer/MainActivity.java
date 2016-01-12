@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -69,29 +70,53 @@ public class MainActivity extends BaseActivity {
                 }
             }
         });
+        mViewHolder.mBlurFrame.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                mViewHolder.mMenuAddItem.setVisibility(View.GONE);
+                return true;
+            }
+        });
 
         Observable<Boolean> obsMenuVisibility = RxView.layoutChanges(mViewHolder.mMenuAddItem)
                 .flatMap(new Func1<Void, Observable<Boolean>>() {
                     @Override
                     public Observable<Boolean> call(Void aVoid) {
-                        return Observable.just(View.VISIBLE == mViewHolder.mMenuAddItem.getVisibility());
+                        boolean isVisible = mViewHolder.mMenuAddItem.isShown()
+                                && mViewHolder.mBtnAddFile.isShown();
+                        return Observable.just(isVisible);
                     }
                 })
                 .distinctUntilChanged();
         obsMenuVisibility.subscribe(new Action1<Boolean>() {
             @Override
-            public void call(Boolean aBoolean) {
-                if (aBoolean) {
-                    mViewHolder.mBtnAddFile.animate().rotation(45)
-                            .setDuration(100)
-                            .start();
+            public void call(Boolean isShown) {
+                if (isShown) {
+                    showMenuAddItem();
                 } else {
-                    mViewHolder.mBtnAddFile.animate().rotation(0)
-                            .setDuration(100)
-                            .start();
+                    hideMenuAddItem();
                 }
             }
         });
+    }
+
+    private void showMenuAddItem() {
+        mViewHolder.mBtnAddFile.animate().rotation(45)
+                .setDuration(100)
+                .start();
+        if (!mViewHolder.mMenuAddItem.isShown())
+            mViewHolder.mMenuAddItem.setVisibility(View.VISIBLE);
+        mViewHolder.mBlurFrame.setVisibility(View.VISIBLE);
+    }
+
+    private void hideMenuAddItem() {
+        mViewHolder.mBtnAddFile.animate().rotation(0)
+                .setDuration(100)
+                .start();
+        if (mViewHolder.mMenuAddItem.isShown()) {
+            mViewHolder.mMenuAddItem.setVisibility(View.GONE);
+        }
+        mViewHolder.mBlurFrame.setVisibility(View.GONE);
     }
 
     @Override
