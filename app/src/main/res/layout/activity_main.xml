@@ -53,13 +53,6 @@
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
-        <View
-            android:id="@+id/frame_blur"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#70000030"
-            android:visibility="gone"/>
-
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/btn_add"
             android:layout_width="@dimen/design_fab_size_normal"

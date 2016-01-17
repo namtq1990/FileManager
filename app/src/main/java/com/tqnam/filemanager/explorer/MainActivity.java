@@ -43,8 +43,6 @@ public class MainActivity extends BaseActivity {
         mViewHolder.mPager = (ViewPager) findViewById(R.id.pager);
         mViewHolder.mTab = (TabLayout) findViewById(R.id.appbar_tab);
         mViewHolder.mBtnAddFile = (FloatingActionButton) findViewById(R.id.btn_add);
-//        mViewHolder.mMenuAddItem = (ViewGroup) findViewById(R.id.menu_add_item);
-        mViewHolder.mBlurFrame = findViewById(R.id.frame_blur);
         setSupportActionBar(mViewHolder.mToolbar);
         mViewHolder.mPager.setAdapter(new PageAdapter(getSupportFragmentManager()));
         mViewHolder.mTab.setupWithViewPager(mViewHolder.mPager);
@@ -157,7 +155,5 @@ public class MainActivity extends BaseActivity {
         TabLayout            mTab;
         ViewPager            mPager;
         FloatingActionButton mBtnAddFile;
-//        ViewGroup            mMenuAddItem;
-        View                 mBlurFrame;
     }
 }
