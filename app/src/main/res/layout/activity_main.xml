@@ -57,7 +57,7 @@
             android:id="@+id/frame_blur"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#20008080"
+            android:background="#70000030"
             android:visibility="gone"/>
 
         <android.support.design.widget.FloatingActionButton
