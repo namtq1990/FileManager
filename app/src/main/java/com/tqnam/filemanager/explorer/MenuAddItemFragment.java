@@ -28,6 +28,7 @@ public class MenuAddItemFragment extends BaseFragment {
         mHolder = new ViewHolder();
         View rootView = inflater.inflate(R.layout.fragment_menu_add_item, container, false);
         mHolder.mBtnAdd = (FloatingActionButton) rootView.findViewById(R.id.btn_add);
+        mHolder.mBackground = rootView.findViewById(R.id.background);
 
         showMenu();
         mHolder.mBtnAdd.setOnClickListener(new View.OnClickListener() {
@@ -56,11 +57,20 @@ public class MenuAddItemFragment extends BaseFragment {
                 .setDuration(getContext().getResources().getInteger(android.R.integer.config_shortAnimTime))
                 .rotation(135)
                 .start();
+        mHolder.mBackground.animate()
+                .setDuration(getContext().getResources().getInteger(android.R.integer.config_shortAnimTime))
+                .alphaBy(0.5f)
+                .alpha(1)
+                .start();
     }
 
     @Override
     public Animator onCreateAnimator(int transit, boolean enter, int nextAnim) {
         if (!enter) {
+            mHolder.mBackground.animate()
+                    .setDuration(getContext().getResources().getInteger(android.R.integer.config_shortAnimTime))
+                    .alpha(0.5f)
+                    .start();
             return ObjectAnimator.ofFloat(mHolder.mBtnAdd, "rotation", 135, 0)
                     .setDuration(getContext().getResources().getInteger(android.R.integer.config_shortAnimTime));
         }
@@ -69,6 +79,7 @@ public class MenuAddItemFragment extends BaseFragment {
     }
 
     private class ViewHolder {
+        View mBackground;
         FloatingActionButton mBtnAdd;
     }
 }
