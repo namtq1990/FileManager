@@ -1,6 +1,5 @@
 package com.tqnam.filemanager;
 
-import android.animation.Animator;
 import android.content.Context;
 import android.support.v4.app.FragmentActivity;
 import android.view.animation.Animation;
@@ -35,14 +34,14 @@ public class BaseFragment extends android.support.v4.app.Fragment {
     public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
         Animation anim = super.onCreateAnimation(transit, enter, nextAnim);
 
-        Animator animator = onCreateAnimator(transit, enter, nextAnim);
-        if (animator != null) {
+        long timeAnim = getTimeAnimate();
+        if (timeAnim != 0) {
 
             if (anim == null) {
                 anim = AnimationUtils.loadAnimation(getActivitySafe(), R.anim.anim_base_time);
             }
-            anim.setDuration(animator.getDuration());
-            animator.start();
+            anim.setDuration(timeAnim);
+            onCreateAnimator(transit, enter, nextAnim);
         }
 
         return anim;
@@ -51,9 +50,17 @@ public class BaseFragment extends android.support.v4.app.Fragment {
     /**
      * Use this function to deal with object animator in support fragment.
      * Can add any animation to start in this anim
+     * Time of all animator must be smaller than {@link #getTimeAnimate()}
      */
-    public Animator onCreateAnimator(int transit, boolean enter, int nextAnim) {
-        return null;
+    public void onCreateAnimator(int transit, boolean enter, int nextAnim) {
+    }
+
+    /**
+     * Use this function to define max time to animate, setup with default animation.
+     * @return
+     */
+    public long getTimeAnimate() {
+        return 0;
     }
 
     public Context getAppContext() {
