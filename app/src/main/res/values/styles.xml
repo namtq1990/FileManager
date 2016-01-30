@@ -18,6 +18,7 @@
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
         <item name="colorPrimary">@android:color/holo_blue_dark</item>
         <item name="colorPrimaryDark">@color/blue_dark</item>
+        <item name="colorAccent">@android:color/holo_red_dark</item>
         <item name="actionModeBackground">?colorPrimary</item>
         <item name="windowActionModeOverlay">true</item>
     </style>

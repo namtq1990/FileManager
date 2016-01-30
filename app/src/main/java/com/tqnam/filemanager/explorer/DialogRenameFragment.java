@@ -10,7 +10,7 @@ import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
-import com.tqnam.filemanager.BaseDialog;
+import com.quangnam.baseframework.BaseDialog;
 import com.tqnam.filemanager.R;
 
 /**

@@ -1,12 +1,12 @@
 package com.tqnam.filemanager.preference;
 
 import android.os.Bundle;
-import android.support.v7.preference.PreferenceFragmentCompat;
 import android.view.View;
 
+import com.quangnam.baseframework.BasePreferenceFragment;
 import com.tqnam.filemanager.R;
 
-public class PreferenceFragment extends PreferenceFragmentCompat {
+public class PreferenceFragment extends BasePreferenceFragment {
 
 
     @Override

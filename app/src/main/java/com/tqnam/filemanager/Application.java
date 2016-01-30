@@ -7,9 +7,9 @@ import android.os.Handler;
 import android.view.View;
 import android.view.WindowManager;
 
-import java.lang.ref.WeakReference;
+import com.quangnam.baseframework.BaseApplication;
 
-public class Application extends android.app.Application implements android.app.Application.ActivityLifecycleCallbacks {
+public class Application extends BaseApplication implements android.app.Application.ActivityLifecycleCallbacks {
 
     private static Application msInstance;
 
@@ -26,7 +26,6 @@ public class Application extends android.app.Application implements android.app.
         msInstance = this;
 
         mGlobalData = new GlobalData();
-        registerActivityLifecycleCallbacks(this);
     }
 
     public GlobalData getGlobalData() {
@@ -36,7 +35,6 @@ public class Application extends android.app.Application implements android.app.
 
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
-        mGlobalData.mCurActivity = new WeakReference<>(activity);
 
         // tqnam: set color of status_bar if request
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
@@ -45,7 +43,7 @@ public class Application extends android.app.Application implements android.app.
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    View v = mGlobalData.getCurActivity().findViewById(R.id.status_padding);
+                    View v = getCurActivity().findViewById(R.id.status_padding);
 
                     if (v != null) {
                         v.getLayoutParams().height = mGlobalData.mStatusBarHeight;
@@ -59,36 +57,6 @@ public class Application extends android.app.Application implements android.app.
         }
     }
 
-    @Override
-    public void onActivityStarted(Activity activity) {
-        mGlobalData.mCurActivity = new WeakReference<>(activity);
-    }
-
-    @Override
-    public void onActivityResumed(Activity activity) {
-        mGlobalData.mCurActivity = new WeakReference<>(activity);
-    }
-
-    @Override
-    public void onActivityPaused(Activity activity) {
-
-    }
-
-    @Override
-    public void onActivityStopped(Activity activity) {
-
-    }
-
-    @Override
-    public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
-
-    }
-
-    @Override
-    public void onActivityDestroyed(Activity activity) {
-
-    }
-
     public class GlobalData {
         public int mStatusBarHeight;
 
@@ -96,7 +64,6 @@ public class Application extends android.app.Application implements android.app.
          * icon for item in list
          */
         public Integer mIconSize;
-        private WeakReference<Activity> mCurActivity;
 
         public GlobalData() {
             int statusBarRes;
@@ -109,9 +76,6 @@ public class Application extends android.app.Application implements android.app.
             mIconSize = getResources().getDimensionPixelSize(R.dimen.design_fab_size_normal);
         }
 
-        public Activity getCurActivity() {
-            return mCurActivity == null ? null : mCurActivity.get();
-        }
 
     }
 }

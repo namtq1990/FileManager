@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -8,7 +9,7 @@
         android:id="@+id/background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#50000000" />
+        android:background="#AA000000" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/btn_add"
@@ -24,13 +25,17 @@
         android:src="@drawable/icon_create_file"
         android:tint="@color/white"/>
 
+    <!--All view in menu and label will be gone to animate auto from LayoutTransition-->
+
     <LinearLayout
         android:id="@+id/menu_add_item"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@id/btn_add"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignEnd="@id/btn_add"
+        android:layout_alignLeft="@id/btn_add"
+        android:layout_alignRight="@id/btn_add"
+        android:layout_alignStart="@id/btn_add"
         android:orientation="vertical"
         android:tag="menu_add_item">
 
@@ -38,19 +43,57 @@
             android:id="@+id/btn_add_folder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_marginBottom="@dimen/activity_vertical_margin"
-            android:layout_marginLeft="@dimen/activity_horizontal_margin"
-            android:layout_marginRight="@dimen/activity_horizontal_margin"
-            android:visibility="gone"/>
+            android:src="@drawable/folder_fab"
+            android:visibility="gone"
+            app:fabSize="mini"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/btn_add_file"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:src="@drawable/file_fab"
+            android:visibility="gone"
+            app:fabSize="mini"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/menu_add_item_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/menu_add_item"
+        android:layout_alignTop="@id/menu_add_item"
+        android:layout_toLeftOf="@id/menu_add_item"
+        android:layout_toStartOf="@id/menu_add_item"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_gravity="right"
             android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:layout_marginLeft="@dimen/activity_horizontal_margin"
-            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:layout_weight="1"
+            android:background="@drawable/bg_border"
+            android:gravity="center"
+            android:text="ADD FOLDER"
             android:visibility="gone"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_gravity="right"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_weight="1"
+            android:background="@drawable/bg_border"
+            android:gravity="center"
+            android:text="ADD FILE"
+            android:visibility="gone"/>
+
     </LinearLayout>
 
 </RelativeLayout>

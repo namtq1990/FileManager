@@ -1,4 +1,4 @@
-package com.tqnam.filemanager;
+package com.quangnam.baseframework;
 
 import android.support.v7.app.AppCompatActivity;
 
@@ -10,4 +10,10 @@ import android.support.v7.app.AppCompatActivity;
  */
 public class BaseActivity extends AppCompatActivity {
 
+    private BaseFragmentInterface mFocusFragment;
+
+    public void setFocusFragment(BaseFragmentInterface fragment) {
+
+        mFocusFragment = fragment;
+    }
 }

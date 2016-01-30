@@ -11,7 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
-import com.tqnam.filemanager.BaseFragment;
+import com.quangnam.baseframework.BaseFragment;
 import com.tqnam.filemanager.R;
 
 /**
@@ -31,10 +31,11 @@ public class MenuAddItemFragment extends BaseFragment {
         mHolder.mBtnAdd = (FloatingActionButton) rootView.findViewById(R.id.btn_add);
         mHolder.mBackground = rootView.findViewById(R.id.background);
         mHolder.mMenu = (ViewGroup) rootView.findViewById(R.id.menu_add_item);
+        mHolder.mMenuLabel = (ViewGroup) rootView.findViewById(R.id.menu_add_item_label);
 
         LayoutTransition transition = new LayoutTransition();
-//        transition.setDuration(2000);
         mHolder.mMenu.setLayoutTransition(transition);
+        mHolder.mMenuLabel.setLayoutTransition(transition);
 
         mHolder.mBtnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,6 +77,7 @@ public class MenuAddItemFragment extends BaseFragment {
                 .start();
         for (int i = 0;i < mHolder.mMenu.getChildCount();i++) {
             mHolder.mMenu.getChildAt(i).setVisibility(View.VISIBLE);
+            mHolder.mMenuLabel.getChildAt(i).setVisibility(View.VISIBLE);
         }
     }
 
@@ -90,6 +92,7 @@ public class MenuAddItemFragment extends BaseFragment {
 
         for (int i = 0;i < mHolder.mMenu.getChildCount();i++) {
             mHolder.mMenu.getChildAt(i).setVisibility(View.INVISIBLE);
+            mHolder.mMenuLabel.getChildAt(i).setVisibility(View.INVISIBLE);
         }
     }
 
@@ -110,5 +113,6 @@ public class MenuAddItemFragment extends BaseFragment {
         View mBackground;
         FloatingActionButton mBtnAdd;
         ViewGroup mMenu;
+        ViewGroup mMenuLabel;
     }
 }

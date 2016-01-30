@@ -10,7 +10,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
-import com.tqnam.filemanager.BaseActivity;
+import com.quangnam.baseframework.BaseActivity;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
 import com.tqnam.filemanager.preference.PreferenceFragment;
