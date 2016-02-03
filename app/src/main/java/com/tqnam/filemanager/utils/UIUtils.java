@@ -16,4 +16,8 @@ public class UIUtils {
             im.hideSoftInputFromWindow(curFocus.getWindowToken(), 0);
         }
     }
+
+    public static String getViewPagerTag(int viewId, long id) {
+        return "android:switcher:" + viewId + ":" + id;
+    }
 }

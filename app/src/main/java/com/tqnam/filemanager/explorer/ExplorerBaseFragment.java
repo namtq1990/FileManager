@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -27,7 +26,9 @@ import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
+import com.quangnam.baseframework.BaseActivity;
 import com.quangnam.baseframework.BaseFragment;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
@@ -62,6 +63,16 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         initView(root);
 
         return root;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        BaseActivity activity = (BaseActivity) getActivity();
+
+        if (activity.getFocusFragment() == null) {
+            requestFocus();
+        }
     }
 
     @Override
@@ -183,6 +194,18 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         }
     }
 
+    @Override
+    public void requestFocus() {
+        super.requestFocus();
+        ((ExplorerBaseFunction) getActivity()).showAddButton();
+    }
+
+    @Override
+    public void clearFocus() {
+        super.clearFocus();
+        ((ExplorerBaseFunction) getActivity()).hideAddButton();
+    }
+
     public void onBackPressed() {
 //        mOpenAnimType = animActionOpenUp();
         mPresenter.onBackPressed();
@@ -279,9 +302,14 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     @Override
     public void onErrorPermission() {
         Activity curActivity = getActivitySafe();
-        Snackbar.make(getView(), R.string.explorer_err_permission, Snackbar.LENGTH_SHORT).show();
-//        Toast.makeText(curActivity, curActivity.getString(R.string.explorer_err_permission), Toast.LENGTH_LONG)
-//                .show();
+//        Snackbar.make(getView(), R.string.explorer_err_permission, Snackbar.LENGTH_SHORT).show();
+        Toast.makeText(curActivity, curActivity.getString(R.string.explorer_err_permission), Toast.LENGTH_LONG)
+                .show();
+    }
+
+    public interface ExplorerBaseFunction {
+        void showAddButton();
+        void hideAddButton();
     }
 
     private class ViewHolder {
@@ -290,6 +318,4 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         MenuItem            mSearchMenu;
         SearchView          mSearchView;
     }
-
-
 }

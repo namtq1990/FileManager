@@ -16,12 +16,19 @@ import com.tqnam.filemanager.R;
 
 /**
  * Created by quangnam on 1/17/16.
+ *
  */
 public class MenuAddItemFragment extends BaseFragment {
 
     public static final String TAG = "MenuAddItem";
 
     private ViewHolder mHolder;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRestoreFocus(true);
+    }
 
     @Nullable
     @Override
@@ -63,6 +70,16 @@ public class MenuAddItemFragment extends BaseFragment {
         super.onResume();
 
         showMenu();
+        requestFocus();
+    }
+
+    @Override
+    public void onDestroy() {
+        if (!getActivity().isChangingConfigurations()) {
+            ((MainActivity) getActivity()).showAddButtonDirect();
+        }
+
+        super.onDestroy();
     }
 
     private void showMenu() {

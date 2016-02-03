@@ -12,8 +12,16 @@ public class BaseActivity extends AppCompatActivity {
 
     private BaseFragmentInterface mFocusFragment;
 
-    public void setFocusFragment(BaseFragmentInterface fragment) {
+    public BaseFragmentInterface getFocusFragment() {
+        return mFocusFragment;
+    }
+
+    void setFocusFragment(BaseFragmentInterface fragment) {
+        if (mFocusFragment != null) {
+            mFocusFragment.clearFocus();
+        }
 
         mFocusFragment = fragment;
     }
+
 }

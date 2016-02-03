@@ -1,6 +1,8 @@
 package com.quangnam.baseframework;
 
 import android.content.Context;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.view.animation.Animation;
@@ -9,10 +11,41 @@ import android.view.animation.AnimationUtils;
 public abstract class BasePreferenceFragment extends PreferenceFragmentCompat implements BaseFragmentInterface {
 
     private Context mAppContext;
+    private String mOldFocusTag;
+    private boolean mRestoreFocus;
 
     @Override
-    public Context getAppContext() {
-        return mAppContext;
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            mOldFocusTag = savedInstanceState.getString(ARG_OLD_FOCUS_TAG);
+            mRestoreFocus = savedInstanceState.getBoolean(ARG_IS_RESTORE_FOCUS);
+        } else {
+            mRestoreFocus = false;
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(ARG_OLD_FOCUS_TAG, mOldFocusTag);
+        outState.putBoolean(ARG_IS_RESTORE_FOCUS, mRestoreFocus);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        BaseActivity activity = (BaseActivity) getActivity();
+        if (isRestoreFocus() && !activity.isChangingConfigurations()) {
+            if (activity.getFocusFragment() == this && mOldFocusTag != null) {
+                Fragment oldFocus = getFragmentManager().findFragmentByTag(mOldFocusTag);
+
+                if (oldFocus instanceof BaseFragmentInterface)
+                    ((BaseFragmentInterface) oldFocus).requestFocus();
+            }
+        }
     }
 
     @Override
@@ -44,12 +77,42 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat im
         return anim;
     }
 
-    @Override
     public void onCreateAnimator(int transit, boolean enter, int nextAnim) {
     }
 
-    @Override
     public long getTimeAnimate() {
         return 0;
+    }
+
+    @Override
+    public void requestFocus() {
+        BaseActivity activity = (BaseActivity) getActivity();
+
+        if (activity.getFocusFragment() != this) {
+            if (activity.getFocusFragment() != null && isRestoreFocus()) {
+                mOldFocusTag = ((Fragment) activity.getFocusFragment()).getTag();
+            }
+
+            activity.setFocusFragment(this);
+        }
+    }
+
+    @Override
+    public void clearFocus() {
+
+    }
+
+    @Override
+    public boolean isRestoreFocus() {
+        return mRestoreFocus;
+    }
+
+    @Override
+    public void setRestoreFocus(boolean isRestoreFocus) {
+        mRestoreFocus = isRestoreFocus;
+    }
+
+    public Context getAppContext() {
+        return mAppContext;
     }
 }

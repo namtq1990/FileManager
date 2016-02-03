@@ -11,16 +11,18 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import com.quangnam.baseframework.BaseActivity;
+import com.quangnam.baseframework.BaseFragmentInterface;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
 import com.tqnam.filemanager.preference.PreferenceFragment;
+import com.tqnam.filemanager.utils.UIUtils;
 
 /**
  * Activity container
  * First design for file explorer, may be add setting, too.
  */
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements ViewPager.OnPageChangeListener, ExplorerBaseFragment.ExplorerBaseFunction {
 
     private ViewHolder mViewHolder;
 
@@ -43,22 +45,14 @@ public class MainActivity extends BaseActivity {
         mViewHolder.mPager = (ViewPager) findViewById(R.id.pager);
         mViewHolder.mTab = (TabLayout) findViewById(R.id.appbar_tab);
         mViewHolder.mBtnAddFile = (FloatingActionButton) findViewById(R.id.btn_add);
+        mViewHolder.mAdapter = new PageAdapter(getSupportFragmentManager());
         setSupportActionBar(mViewHolder.mToolbar);
-        mViewHolder.mPager.setAdapter(new PageAdapter(getSupportFragmentManager()));
+        mViewHolder.mPager.setAdapter(mViewHolder.mAdapter);
         mViewHolder.mTab.setupWithViewPager(mViewHolder.mPager);
+        mViewHolder.mPager.addOnPageChangeListener(this);
         mViewHolder.mBtnAddFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                FloatingActionButton btn = (FloatingActionButton) v;
-//                if (btn.getDrawable() instanceof Animatable) {
-//                    Animatable animatable = (Animatable) btn.getDrawable();
-//                    animatable.start();
-//                }
-//                if (mViewHolder.mMenuAddItem.getVisibility() == View.VISIBLE) {
-//                    mViewHolder.mMenuAddItem.setVisibility(View.GONE);
-//                } else {
-//                    mViewHolder.mMenuAddItem.setVisibility(View.VISIBLE);
-//                }
                 MenuAddItemFragment fragment = new MenuAddItemFragment();
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.rootview, fragment, MenuAddItemFragment.TAG)
@@ -93,19 +87,50 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        if (mViewHolder.mFragmentListFile != null
-                && mViewHolder.mFragmentListFile.isResumed()) {
-            // TODO add Flag for Fragment is Showing or convert all to Fragment Backstack
+        BaseFragmentInterface fragment = getFocusFragment();
 
-            mViewHolder.mFragmentListFile.onBackPressed();
+        if (fragment != null && fragment instanceof ExplorerBaseFragment) {
+            ((ExplorerBaseFragment) fragment).onBackPressed();
+        } else {
+            super.onBackPressed();
         }
-//        super.onBackPressed();
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+
+    @Override
+    public void onPageSelected(int position) {
+        String tag = UIUtils.getViewPagerTag(mViewHolder.mPager.getId(),
+                mViewHolder.mAdapter.getItemId(position));
+
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(tag);
+
+        if (fragment != null &&
+                fragment instanceof BaseFragmentInterface) {
+            ((BaseFragmentInterface) fragment).requestFocus();
+        }
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {}
+
+    public void showAddButton() {
+        mViewHolder.mBtnAddFile.show();
+    }
+
+    public void showAddButtonDirect() {
+        mViewHolder.mBtnAddFile.setVisibility(View.VISIBLE);
+    }
+
+    public void hideAddButton() {
+        mViewHolder.mBtnAddFile.setVisibility(View.GONE);
     }
 
     private class PageAdapter extends FragmentPagerAdapter {
 
-        private final int mLocalFileFragmentIndex = 0;
-        private final int mPrefFragmentIndex      = 1;
+        static final int INDEX_LOCAL_FILE_FRAGMENT = 0;
+        static final int INDEX_PREF_FRAGMENT       = 1;
 
         public PageAdapter(FragmentManager fm) {
             super(fm);
@@ -116,11 +141,12 @@ public class MainActivity extends BaseActivity {
             Fragment fragment = null;
 
             switch (position) {
-                case mLocalFileFragmentIndex:
+                case INDEX_LOCAL_FILE_FRAGMENT:
                     fragment = new ListFileFragment();
                     mViewHolder.mFragmentListFile = (ListFileFragment) fragment;
+
                     break;
-                case mPrefFragmentIndex:
+                case INDEX_PREF_FRAGMENT:
                     fragment = new PreferenceFragment();
                     break;
                 default:
@@ -139,9 +165,9 @@ public class MainActivity extends BaseActivity {
         public CharSequence getPageTitle(int position) {
             //TODO Add string to xml
             switch (position) {
-                case mLocalFileFragmentIndex:
+                case INDEX_LOCAL_FILE_FRAGMENT:
                     return "LOCAL";
-                case mPrefFragmentIndex:
+                case INDEX_PREF_FRAGMENT:
                     return "PREFERENCE";
                 default:
                     return null;
@@ -154,6 +180,7 @@ public class MainActivity extends BaseActivity {
         Toolbar              mToolbar;
         TabLayout            mTab;
         ViewPager            mPager;
+        PageAdapter          mAdapter;
         FloatingActionButton mBtnAddFile;
     }
 }
