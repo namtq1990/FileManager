@@ -17,7 +17,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.jakewharton.rxbinding.view.RxView;
-import com.squareup.picasso.Picasso;
 import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
@@ -199,7 +198,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                     case ItemExplorer.FILE_TYPE_IMAGE:
                         Application.GlobalData globalData = ((Application)context.getApplicationContext())
                                 .getGlobalData();
-                        Picasso.with(context).load(item.getUri())
+                        globalData.mImage.load(item.getUri())
                                 .resize(globalData.mIconSize, globalData.mIconSize)
                                 .placeholder(R.drawable.file_icon)
                                 .into(holder.icon);
@@ -288,5 +287,6 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                         }
                     });
         }
+
     }
 }

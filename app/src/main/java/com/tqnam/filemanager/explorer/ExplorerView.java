@@ -1,5 +1,7 @@
 package com.tqnam.filemanager.explorer;
 
+import android.net.Uri;
+
 /**
  * Created by tqnam on 10/28/2015.
  */
@@ -20,4 +22,12 @@ public interface ExplorerView {
      * Handle when don't have permission to execute UI
      */
     void onErrorPermission();
+
+    /**
+     * Display preview content of item
+     * @param path  Uri of item in system
+     * @param data  content data read from {@link ExplorerPresenter}
+     * @param type  type of display like {@link com.tqnam.filemanager.model.ItemExplorer#FILE_TYPE_IMAGE}, ...
+     */
+    void displayPreview(Uri path, Object data, int type);
 }

@@ -9,6 +9,7 @@ import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -33,6 +34,7 @@ import com.quangnam.baseframework.BaseFragment;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.ExplorerModel;
+import com.tqnam.filemanager.model.ItemExplorer;
 
 /**
  * Created by quangnam on 11/12/15.
@@ -40,7 +42,7 @@ import com.tqnam.filemanager.model.ExplorerModel;
  */
 public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView,
         MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.OnRenameActionListener,
-        ExplorerItemAdapter.OnOpenItemActionListener {
+        ExplorerItemAdapter.OnOpenItemActionListener, BaseActivity.OnBackPressedListener {
 //    private Animator               mOpenAnimType;
     private ExplorerPresenter mPresenter;
     private ViewHolder mViewHolder = new ViewHolder();
@@ -284,7 +286,33 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     @Override
     public void onOpenAction(int position) {
 //        mOpenAnimType = animActionOpenIn(mViewHolder.mList.findViewHolderForAdapterPosition(position).itemView);
-        mPresenter.openDirectory(mPresenter.getItemAt(position));
+        mPresenter.openItem(position);
+    }
+
+    @Override
+    public void displayPreview(Uri path, Object data, int fileType) {
+        PreviewFragment previewFragment = (PreviewFragment) getFragmentManager()
+                .findFragmentByTag(PreviewFragment.TAG);
+
+        switch (fileType) {
+            case ItemExplorer.FILE_TYPE_IMAGE:
+                if (previewFragment == null) {
+                    previewFragment = new PreviewFragment();
+
+                    getFragmentManager().beginTransaction()
+                            .add(R.id.rootview, previewFragment, PreviewFragment.TAG)
+                            .commit();
+                }
+
+                Bundle request = new Bundle();
+                request.putParcelable(PreviewFragment.ARG_URI, path);
+                request.putInt(PreviewFragment.ARG_TYPE, fileType);
+                previewFragment.setArguments(request);
+
+                break;
+            default:
+                break;
+        }
     }
 
     @Override

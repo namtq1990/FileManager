@@ -24,4 +24,16 @@ public class BaseActivity extends AppCompatActivity {
         mFocusFragment = fragment;
     }
 
+    @Override
+    public void onBackPressed() {
+        if (mFocusFragment instanceof OnBackPressedListener) {
+            ((OnBackPressedListener) mFocusFragment).onBackPressed();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    public interface OnBackPressedListener {
+        void onBackPressed();
+    }
 }

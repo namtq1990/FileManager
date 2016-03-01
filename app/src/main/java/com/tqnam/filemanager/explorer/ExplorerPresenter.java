@@ -12,6 +12,7 @@ public interface ExplorerPresenter {
     void onRestoreInstanceState(Bundle savedInstanceState);
     void onSaveInstanceState(Bundle bundle);
     void onBackPressed();
+    void openItem(int position);
     void openDirectory(ItemExplorer path);
     int getItemCount();
     ItemExplorer getItemAt(int position);

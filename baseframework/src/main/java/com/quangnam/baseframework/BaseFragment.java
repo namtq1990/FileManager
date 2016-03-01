@@ -102,6 +102,16 @@ public class BaseFragment extends android.support.v4.app.Fragment implements Bas
         }
     }
 
+    public void popBackFocus() {
+        if (isRestoreFocus()) {
+            BaseFragmentInterface fragment = (BaseFragmentInterface) getFragmentManager()
+                    .findFragmentByTag(mOldFocusTag);
+            if (fragment != null) {
+                fragment.requestFocus();
+            }
+        }
+    }
+
     @Override
     public void clearFocus() {
 

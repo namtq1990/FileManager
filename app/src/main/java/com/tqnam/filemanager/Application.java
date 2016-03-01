@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.WindowManager;
 
 import com.quangnam.baseframework.BaseApplication;
+import com.squareup.picasso.Picasso;
 
 public class Application extends BaseApplication implements android.app.Application.ActivityLifecycleCallbacks {
 
@@ -65,6 +66,8 @@ public class Application extends BaseApplication implements android.app.Applicat
          */
         public Integer mIconSize;
 
+        public Picasso mImage;
+
         public GlobalData() {
             int statusBarRes;
             statusBarRes = getResources().getIdentifier("status_bar_height", "dimen", "android");
@@ -74,6 +77,8 @@ public class Application extends BaseApplication implements android.app.Applicat
             }
 
             mIconSize = getResources().getDimensionPixelSize(R.dimen.design_fab_size_normal);
+
+            mImage = Picasso.with(Application.this);
         }
 
 

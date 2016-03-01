@@ -2,10 +2,14 @@ package com.tqnam.filemanager.explorer.fileExplorer;
 
 import android.os.Bundle;
 
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
+import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
 import com.tqnam.filemanager.explorer.ExplorerView;
 import com.tqnam.filemanager.model.ExplorerModel;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.utils.ItemUtils;
 
 import java.io.File;
 
@@ -37,6 +41,25 @@ public class FileExplorerPresenter implements ExplorerPresenter {
         if (mModel.mParentPath != null) {
             FileItem parentFolder = new FileItem(mModel.mParentPath);
             openDirectory(parentFolder);
+        }
+    }
+
+    @Override
+    public void openItem(int position) {
+        ItemExplorer item = getItemAt(position);
+
+        if (item.isDirectory()) {
+            openDirectory(item);
+        } else {
+            switch (ItemUtils.getFileType(item.getExtension())) {
+                case ItemExplorer.FILE_TYPE_IMAGE:
+                    RequestCreator request = Picasso.with(Application.getInstance())
+                            .load(item.getUri());
+                    mView.displayPreview(item.getUri(), request, ItemExplorer.FILE_TYPE_IMAGE);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 

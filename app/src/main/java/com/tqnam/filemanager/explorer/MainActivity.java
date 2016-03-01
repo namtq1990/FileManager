@@ -86,17 +86,6 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
     }
 
     @Override
-    public void onBackPressed() {
-        BaseFragmentInterface fragment = getFocusFragment();
-
-        if (fragment != null && fragment instanceof ExplorerBaseFragment) {
-            ((ExplorerBaseFragment) fragment).onBackPressed();
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
     @Override
