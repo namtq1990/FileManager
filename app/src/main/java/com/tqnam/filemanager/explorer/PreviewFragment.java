@@ -17,7 +17,8 @@ import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.view.Preview;
 
 public class PreviewFragment extends BaseFragment implements Preview.OnRemoveListener,
-        Preview.OnStateChangeListener, BaseActivity.OnBackPressedListener {
+        Preview.OnStateChangeListener, BaseActivity.OnBackPressedListener,
+        View.OnClickListener {
     public static final String TAG      = "PreviewFragment";
     public static final String ARG_URI  = "file_uri";
     public static final String ARG_TYPE = "file_type";
@@ -60,6 +61,7 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
         mPreview.setContentView(contentView);
         mPreview.setOnStateChangeListener(this);
         mPreview.setOnRemoveListener(this);
+        mPreview.setOnClickListener(this);
         requestFocus();
 
         return mPreview;
@@ -84,5 +86,12 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
     @Override
     public void onBackPressed() {
         mPreview.minimize();
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (v == mPreview) {
+            mPreview.maximum();
+        }
     }
 }

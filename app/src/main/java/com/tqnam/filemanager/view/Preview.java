@@ -30,36 +30,35 @@ public class Preview extends RelativeLayout implements View.OnClickListener, Vie
     public static final int STATE_MAXIMUM  = 1;
     public static final int STATE_REMOVING = 2;
 
-    public static final int   MIN_TOUCH = 10;
-    public static final float MIN_ALPHA = 0.3f;
-    public static final float MAX_ALPHA = 1;
-    public static final int LINE_UP    = 1;
-    public static final int LINE_DOWN  = 2;
-    public static final int LINE_LEFT  = 3;
-    public static final int LINE_RIGHT = 4;
-    public static final double ANGLE_45  = Math.PI / 4;
-    public static final double ANGLE_135 = 3 * ANGLE_45;
-    public static final double ANGLE_225 = -ANGLE_135;
-    public static final double ANGLE_315 = -ANGLE_45;
-    private int        mState;
-    private PointF mFirstTouch;
-    private PointF     mLastTouch;
-    private Long       mFirstTouchTime;
-    private Long       mLastTouchUpTime;
-    private float      mRatio;
-    private int        mMaxWidth;
-    private int        mMaxHeight;
-    private int        mMinWidth;
-    private int        mMinHeight;
-    private float      mMaxScale;
-    private float      mMinScale;
-    private float      mMaxScroll;
-    private float      mMinScroll;
-    private float      mMinScrollDetect;
-    private int      mDisplayWidth;
-    private int      mDisplayHeight;
-    private boolean    mCanceled;
-    private ViewHolder mHolder;
+    public static final int    MIN_TOUCH  = 10;
+    public static final float  MIN_ALPHA  = 0.3f;
+    public static final float  MAX_ALPHA  = 1;
+    public static final int    LINE_UP    = 1;
+    public static final int    LINE_DOWN  = 2;
+    public static final int    LINE_LEFT  = 3;
+    public static final int    LINE_RIGHT = 4;
+    public static final double ANGLE_45   = Math.PI / 4;
+    public static final double ANGLE_135  = 3 * ANGLE_45;
+    public static final double ANGLE_225  = -ANGLE_135;
+    public static final double ANGLE_315  = -ANGLE_45;
+    private int                   mState;
+    private PointF                mFirstTouch;
+    private PointF                mLastTouch;
+    private Long                  mFirstTouchTime;
+    private Long                  mLastTouchUpTime;
+    private float                 mRatio;
+    private int                   mMaxWidth;
+    private int                   mMaxHeight;
+    private int                   mMinWidth;
+    private int                   mMinHeight;
+    private float                 mMaxScale;
+    private float                 mMinScale;
+    private float mMaxScroll;
+    private float                 mMinScrollDetect;
+    private int                   mDisplayWidth;
+    private int                   mDisplayHeight;
+    private boolean               mCanceled;
+    private ViewHolder            mHolder;
     private OnRemoveListener      mRemoveListener;
     private OnStateChangeListener mStateChangeListener;
 
@@ -76,16 +75,9 @@ public class Preview extends RelativeLayout implements View.OnClickListener, Vie
         init();
     }
 
-    public static int getWidthFromHeight(int height) {
+    public int getWidthFromHeight(int height) {
 //        Get best scale for screen 16:9
-        return height * 16 / 9;
-    }
-
-    /**
-     * Match with {@link #getWidthFromHeight(int)}
-     */
-    public static int getHeightFromWidth(int width) {
-        return width * 9 / 16;
+        return (int) (height * mRatio);
     }
 
     private void init() {
@@ -103,16 +95,8 @@ public class Preview extends RelativeLayout implements View.OnClickListener, Vie
         mDisplayWidth = getContext().getResources().getDisplayMetrics().widthPixels;
         mDisplayHeight = getContext().getResources().getDisplayMetrics().heightPixels -
                 Application.getInstance().getGlobalData().mStatusBarHeight;
-        mMinHeight = getContext().getResources().getDimensionPixelSize(R.dimen.c_preview_mini_height);
-        mMinWidth = getWidthFromHeight(mMinHeight);
-        mMaxWidth = mDisplayWidth;
-        mMaxHeight = mDisplayHeight;
-        mMaxScale = 1.0f;
-        mMinScale = mMinWidth / (float) mMaxWidth;
-        mMinScroll = 0;
-        mMinScrollDetect = getContext().getResources().getDisplayMetrics().density * 2;     // If touch is max 2dp then execute scroll
 
-        if (mDisplayWidth > mDisplayHeight) {
+        if (!isPortraitMode()) {
 //            Hide panel when device is in lanscape
             mHolder.mExtraInfo.setVisibility(View.GONE);
         }
@@ -191,6 +175,37 @@ public class Preview extends RelativeLayout implements View.OnClickListener, Vie
                 .start();
     }
 
+    public void maximum() {
+        mHolder.mContainer.animate()
+                .scaleX(mMaxScale)
+                .scaleY(mMaxScale)
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        setState(STATE_MAXIMUM);
+                        mHolder.mContainer.animate().setListener(null);
+                        mHolder.mMenu.setVisibility(View.VISIBLE);
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+                    }
+                })
+                .start();
+        animate().translationY(0)
+                .setListener(null)
+                .start();
+        showMenu();
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width;
@@ -202,10 +217,20 @@ public class Preview extends RelativeLayout implements View.OnClickListener, Vie
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
         heightMeasureSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
 
-
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         mHolder.mContainer.setPivotX(mHolder.mContainer.getMeasuredWidth());
         mHolder.mContainer.setPivotY(mHolder.mContainer.getMeasuredHeight());
+        mMaxScroll = isPortraitMode() ? mHolder.mExtraInfo.getMeasuredHeight()
+                : mMaxHeight - mMinHeight;
+        mRatio = !isPortraitMode() ? mDisplayWidth / (float) (mDisplayHeight)
+                : mDisplayWidth / (float) (mDisplayHeight - mHolder.mExtraInfo.getMeasuredHeight());
+        mMinHeight = getContext().getResources().getDimensionPixelSize(R.dimen.c_preview_mini_height);
+        mMinWidth = getWidthFromHeight(mMinHeight);
+        mMaxWidth = mDisplayWidth;
+        mMaxHeight = mDisplayHeight;
+        mMaxScale = 1.0f;
+        mMinScale = mMinWidth / (float) mMaxWidth;
+        mMinScrollDetect = getContext().getResources().getDisplayMetrics().density * 2;     // If touch is max 2dp then execute scroll
     }
 
     @Override
@@ -214,6 +239,8 @@ public class Preview extends RelativeLayout implements View.OnClickListener, Vie
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
             mFirstTouch = new PointF(ev.getRawX(), ev.getRawY());
             mFirstTouchTime = SystemClock.uptimeMillis();
+        } else if (ev.getAction() == MotionEvent.ACTION_UP) {
+            mLastTouchUpTime = SystemClock.uptimeMillis();
         }
 
         if (mState == STATE_MINIUM || mState == STATE_REMOVING) {
@@ -232,8 +259,6 @@ public class Preview extends RelativeLayout implements View.OnClickListener, Vie
                 }
             }
         }
-
-        mLastTouchUpTime = SystemClock.uptimeMillis();
 
         return super.onInterceptTouchEvent(ev);
     }
@@ -405,6 +430,8 @@ public class Preview extends RelativeLayout implements View.OnClickListener, Vie
 
             Common.Log("Animation before");
             anim.start();
+        } else if (mState == STATE_MINIUM) {
+            performClick();
         }
 
         mFirstTouch = null;
@@ -441,9 +468,8 @@ public class Preview extends RelativeLayout implements View.OnClickListener, Vie
 
     private void scroll(MotionEvent lastEvent) {
         float distance = mLastTouch.y - lastEvent.getRawY();
-        float maxDistance = mDisplayHeight - mMinHeight;
         float curScale = mHolder.mContainer.getScaleX();
-        float newScale = curScale + mMaxScale * distance / maxDistance;
+        float newScale = curScale + (mMaxScale - mMinScale) * distance / mMaxScroll;
 
         if (newScale > (mMaxScale + mMinScale) / 2.0f) {
             internalSetState(STATE_MAXIMUM);
@@ -454,11 +480,14 @@ public class Preview extends RelativeLayout implements View.OnClickListener, Vie
         if (newScale < mMinScale || newScale > mMaxScale) {
             return;
         } else {
-            float curTranslateY = getTranslationY();
             mHolder.mContainer.setScaleX(newScale);
             mHolder.mContainer.setScaleY(newScale);
 
-            setTranslationY(curTranslateY - distance);
+            if (isPortraitMode()) {
+                float curTranslateY = getTranslationY();
+                setTranslationY(curTranslateY - distance);
+            }
+
             if (mState == STATE_MAXIMUM) {
                 if (getTranslationY() > mMinScrollDetect) {
 //                    User start scroll in vertical
@@ -475,6 +504,10 @@ public class Preview extends RelativeLayout implements View.OnClickListener, Vie
             return Math.max(Math.abs(mLastTouch.x - mFirstTouch.x), Math.abs(mLastTouch.y - mFirstTouch.y))
                     < mMinScrollDetect;
         }
+    }
+
+    private boolean isPortraitMode() {
+        return mDisplayWidth < mDisplayHeight;
     }
 
     private int findAngleSlide(MotionEvent lastEvent) {

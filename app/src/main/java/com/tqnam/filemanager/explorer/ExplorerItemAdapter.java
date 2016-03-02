@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.jakewharton.rxbinding.view.RxView;
+import com.quangnam.baseframework.BaseActivity;
 import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
@@ -34,17 +35,17 @@ import rx.functions.Action1;
  */
 public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapter.ViewHolder> {
 
-    public static final int STATE_NORMAL = 0;
+    public static final int STATE_NORMAL       = 0;
     //    public static final int STATE_EDIT         = 1;
     public static final int STATE_MULTI_SELECT = 2;
     public static int mDefaultThemeBackgroundID;
 
     int mState = STATE_NORMAL;
 
-    private SparseBooleanArray mSelectedList;
-    private ActionMode mActionMode;
-    private ExplorerPresenter mPresenter;
-    private OnRenameActionListener mRenameListener;
+    private SparseBooleanArray       mSelectedList;
+    private ActionMode               mActionMode;
+    private ExplorerPresenter        mPresenter;
+    private OnRenameActionListener   mRenameListener;
     private OnOpenItemActionListener mOpenItemListener;
 
 //    private View.OnClickListener mItemClickListener = new View.OnClickListener() {
@@ -68,7 +69,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
 //        }
 //    };
 
-    private ActionMode.Callback mActionCallback = new ActionMode.Callback() {
+    private ActionMode.Callback mActionCallback        = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             MenuInflater inflater = mode.getMenuInflater();
@@ -196,7 +197,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
 
                 switch (fileType) {
                     case ItemExplorer.FILE_TYPE_IMAGE:
-                        Application.GlobalData globalData = ((Application)context.getApplicationContext())
+                        Application.GlobalData globalData = ((Application) context.getApplicationContext())
                                 .getGlobalData();
                         globalData.mImage.load(item.getUri())
                                 .resize(globalData.mIconSize, globalData.mIconSize)
@@ -232,8 +233,8 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView label;
-        public ImageView icon;
+        public TextView     label;
+        public ImageView    icon;
         public GridViewItem panel;
         private OnLongClickListener mTextViewLongClick = new OnLongClickListener() {
 
@@ -258,34 +259,36 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             panel.setOnLongClickListener(mItemLongClickListener);
             panel.setTag(R.string.item_key_tag_viewholder, this);
 
-            RxView.clicks(itemView).throttleLast(350, TimeUnit.MILLISECONDS)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<Void>() {
-                        @Override
-                        public void call(Void aVoid) {
-                            switch (mState) {
-                                case STATE_MULTI_SELECT: {
-                                    GridViewItem item = (GridViewItem) itemView;
-                                    setItemChecked(item, !item.isChecked());
-                                    break;
-                                }
-                                case STATE_NORMAL: {
-                                    if (mOpenItemListener != null) {
-                                        GridViewItem item = (GridViewItem) itemView;
-                                        mOpenItemListener.onOpenAction(item.getPosition());
+            BaseActivity activity = (BaseActivity) itemView.getContext();
+            activity.getLocalSubscription().add(
+                    RxView.clicks(itemView).throttleLast(350, TimeUnit.MILLISECONDS)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Action1<Void>() {
+                                @Override
+                                public void call(Void aVoid) {
+                                    switch (mState) {
+                                        case STATE_MULTI_SELECT: {
+                                            GridViewItem item = (GridViewItem) itemView;
+                                            setItemChecked(item, !item.isChecked());
+                                            break;
+                                        }
+                                        case STATE_NORMAL: {
+                                            if (mOpenItemListener != null) {
+                                                GridViewItem item = (GridViewItem) itemView;
+                                                mOpenItemListener.onOpenAction(item.getPosition());
+                                            }
+                                            break;
+                                        }
                                     }
-                                    break;
                                 }
-                            }
-                        }
-                    }, new Action1<Throwable>() {
-                        @Override
-                        public void call(Throwable throwable) {
-                            Common.Log("error when open item " + ((GridViewItem) itemView).getPosition());
-                            throwable.printStackTrace();
-                        }
-                    });
+                            }, new Action1<Throwable>() {
+                                @Override
+                                public void call(Throwable throwable) {
+                                    Common.Log("error when open item " + ((GridViewItem) itemView).getPosition());
+                                    throwable.printStackTrace();
+                                }
+                            }));
         }
 
     }

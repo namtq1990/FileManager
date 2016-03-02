@@ -2,6 +2,8 @@ package com.quangnam.baseframework;
 
 import android.support.v7.app.AppCompatActivity;
 
+import rx.subscriptions.CompositeSubscription;
+
 /**
  * Created by quangnam on 11/12/15.
  *
@@ -10,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
  */
 public class BaseActivity extends AppCompatActivity {
 
+    private CompositeSubscription mLocalSubs = new CompositeSubscription();
     private BaseFragmentInterface mFocusFragment;
 
     public BaseFragmentInterface getFocusFragment() {
@@ -25,12 +28,26 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        getLocalSubscription().unsubscribe();
+    }
+
+    @Override
     public void onBackPressed() {
         if (mFocusFragment instanceof OnBackPressedListener) {
             ((OnBackPressedListener) mFocusFragment).onBackPressed();
         } else {
             super.onBackPressed();
         }
+    }
+
+    public CompositeSubscription getLocalSubscription() {
+        return mLocalSubs;
+    }
+
+    public CompositeSubscription getLocalShareSubscription() {
+        return null;
     }
 
     public interface OnBackPressedListener {
