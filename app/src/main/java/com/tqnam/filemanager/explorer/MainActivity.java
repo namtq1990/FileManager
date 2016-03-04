@@ -61,6 +61,18 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
             }
         });
 
+        // Init data fragment
+        FragmentDataStorage fragmentDataStorage = (FragmentDataStorage) getSupportFragmentManager()
+                .findFragmentByTag(FragmentDataStorage.TAG);
+
+        if (fragmentDataStorage == null) {
+            fragmentDataStorage = new FragmentDataStorage();
+            getSupportFragmentManager().beginTransaction()
+                    .add(fragmentDataStorage, FragmentDataStorage.TAG)
+                    .commit();
+        }
+        //
+
 //        Observable<Boolean> obsMenuVisibility = RxView.layoutChanges(mViewHolder.mMenuAddItem)
 //                .flatMap(new Func1<Void, Observable<Boolean>>() {
 //                    @Override

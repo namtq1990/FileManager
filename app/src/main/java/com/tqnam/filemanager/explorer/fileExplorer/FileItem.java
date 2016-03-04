@@ -21,9 +21,7 @@ public class FileItem extends File implements ItemExplorer, Parcelable {
         @Override
         public Object createFromParcel(Parcel parcel) {
             String curPath = parcel.readString();
-            FileItem file = new FileItem(curPath);
-
-            return file;
+            return new FileItem(curPath);
         }
 
         @Override
@@ -42,13 +40,8 @@ public class FileItem extends File implements ItemExplorer, Parcelable {
     }
 
     @Override
-    public String getPath() {
-        return getAbsolutePath();
-    }
-
-    @Override
     public String getExtension() {
-        return MimeTypeMap.getSingleton().getFileExtensionFromUrl(getDisplayName());
+        return MimeTypeMap.getFileExtensionFromUrl(getDisplayName());
     }
 
     @Override
@@ -59,6 +52,28 @@ public class FileItem extends File implements ItemExplorer, Parcelable {
     @Override
     public Uri getUri() {
         return Uri.fromFile(this);
+    }
+
+    @Override
+    public int getFileType() {
+        if (isDirectory())
+            return FILE_TYPE_FOLDER;
+
+        String extension = getExtension();
+
+        if (extension == null || extension.isEmpty())
+            return ItemExplorer.FILE_TYPE_NORMAL;
+
+        for (int i = 0;i <ItemExplorer.EXT_MAPPER.length;i++) {
+            String[] type = ItemExplorer.EXT_MAPPER[i];
+
+            for (String ext : type) {
+                if (ext.equalsIgnoreCase(extension))
+                    return i;
+            }
+        }
+
+        return ItemExplorer.FILE_TYPE_NORMAL;
     }
 
     @Override

@@ -22,7 +22,6 @@ import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;
-import com.tqnam.filemanager.utils.ItemUtils;
 import com.tqnam.filemanager.view.GridViewItem;
 
 import java.util.concurrent.TimeUnit;
@@ -192,7 +191,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             if (item.isDirectory()) {
                 holder.icon.setImageResource(R.drawable.folder_icon);
             } else {
-                int fileType = ItemUtils.getFileType(item.getExtension());
+                int fileType = item.getFileType();
                 Context context = holder.panel.getContext();
 
                 switch (fileType) {
