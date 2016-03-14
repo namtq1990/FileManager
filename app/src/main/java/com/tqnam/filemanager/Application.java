@@ -79,6 +79,9 @@ public class Application extends BaseApplication implements android.app.Applicat
             mIconSize = getResources().getDimensionPixelSize(R.dimen.design_fab_size_normal);
 
             mImage = Picasso.with(Application.this);
+            //TODO Remove logging here
+            mImage.setIndicatorsEnabled(true);
+            mImage.setLoggingEnabled(true);
         }
 
 

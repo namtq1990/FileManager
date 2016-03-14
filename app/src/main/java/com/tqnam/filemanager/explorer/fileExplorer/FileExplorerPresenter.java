@@ -1,8 +1,13 @@
 package com.tqnam.filemanager.explorer.fileExplorer;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 
 import com.quangnam.baseframework.exception.SystemException;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
 import com.tqnam.filemanager.explorer.ExplorerView;
 import com.tqnam.filemanager.model.ErrorCode;
@@ -13,6 +18,7 @@ import java.io.File;
 
 import rx.Observable;
 import rx.functions.Action1;
+import rx.subjects.PublishSubject;
 
 /**
  * Created by tqnam on 10/28/2015.
@@ -22,6 +28,7 @@ public class FileExplorerPresenter implements ExplorerPresenter {
 
     private ExplorerView  mView;
     private ExplorerModel mModel;
+    private Target mCurTarget;
 
     public FileExplorerPresenter(ExplorerView view, ExplorerModel model) {
         mView = view;
@@ -98,6 +105,36 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                         }
                     }
                 });
+    }
+
+    @Override
+    public Observable<Bitmap> loadImage(ItemExplorer item) {
+        final PublishSubject<Bitmap> observable = PublishSubject.create();
+        Uri uri = item.getUri();
+        mCurTarget = new Target() {
+            @Override
+            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                mCurTarget = null;
+                observable.onNext(bitmap);
+                observable.onCompleted();
+            }
+
+            @Override
+            public void onBitmapFailed(Drawable errorDrawable) {
+                observable.onError(new SystemException(ErrorCode.RK_IMAGE_LOADING_ERROR,
+                        "Image loading error"));
+                mCurTarget = null;
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {}
+        };
+
+        Picasso.with(mView.getContext().getApplicationContext())
+                .load(uri)
+                .into(mCurTarget);
+
+        return observable.cache(1);
     }
 
     @Override

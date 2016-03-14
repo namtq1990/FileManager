@@ -1,11 +1,12 @@
 package com.tqnam.filemanager.model;
 
 import android.net.Uri;
+import android.os.Parcelable;
 
 /**
  * Created by tqnam on 10/28/2015.
  */
-public interface ItemExplorer {
+public interface ItemExplorer extends Parcelable {
 
     int FILE_TYPE_IMAGE  = 0;
     int FILE_TYPE_VIDEO  = 1;

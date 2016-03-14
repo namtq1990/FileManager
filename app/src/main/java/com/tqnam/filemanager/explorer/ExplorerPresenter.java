@@ -1,5 +1,6 @@
 package com.tqnam.filemanager.explorer;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 
 import com.tqnam.filemanager.model.ItemExplorer;
@@ -22,6 +23,7 @@ public interface ExplorerPresenter {
      */
     Observable<ItemExplorer> openItem(int position);
     Observable<ItemExplorer> openDirectory(ItemExplorer path);
+    Observable<Bitmap> loadImage(ItemExplorer item);
     int getItemCount();
     ItemExplorer getItemAt(int position);
 }

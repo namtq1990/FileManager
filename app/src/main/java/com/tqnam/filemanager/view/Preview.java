@@ -565,7 +565,7 @@ public class Preview extends RelativeLayout implements View.OnClickListener, Vie
     }
 
     public void hideMenu() {
-        mHolder.mMenu.setAlpha(0.5f);
+        mHolder.mMenu.setAlpha(0.0f);
     }
 
     @Override

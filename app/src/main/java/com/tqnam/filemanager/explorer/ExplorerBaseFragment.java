@@ -9,6 +9,7 @@ import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -366,6 +367,9 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
         switch (fileType) {
             case ItemExplorer.FILE_TYPE_IMAGE:
+                Observable<Bitmap> observable = mPresenter.loadImage(item);
+                mDataFragment.getObservableManager().updateLoaderObservable(observable);
+
                 if (previewFragment == null) {
                     previewFragment = new PreviewFragment();
 
@@ -374,10 +378,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                             .commit();
                 }
 
-                Bundle request = new Bundle();
-                request.putParcelable(PreviewFragment.ARG_URI, item.getUri());
-                request.putInt(PreviewFragment.ARG_TYPE, fileType);
-                previewFragment.setArguments(request);
+                previewFragment.setItem(item);
+                previewFragment.loadPreview();
 
                 break;
             default:

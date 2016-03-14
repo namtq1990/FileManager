@@ -2,7 +2,6 @@ package com.tqnam.filemanager.explorer.fileExplorer;
 
 import android.net.Uri;
 import android.os.Parcel;
-import android.os.Parcelable;
 import android.webkit.MimeTypeMap;
 
 import com.tqnam.filemanager.model.ItemExplorer;
@@ -12,7 +11,7 @@ import java.io.File;
 /**
  * Created by tqnam on 10/28/2015.
  */
-public class FileItem extends File implements ItemExplorer, Parcelable {
+public class FileItem extends File implements ItemExplorer {
 
     /**
      * Creator for parcelable

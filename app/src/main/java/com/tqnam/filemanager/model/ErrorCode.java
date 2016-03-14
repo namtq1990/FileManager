@@ -11,6 +11,8 @@ public class ErrorCode {
      */
     public static final int RK_UNKNOWN = 1;
 
+    public static final int RK_IMAGE_LOADING_ERROR = 2;
+
     /**
      * Errorcode for user wrong function to open item explorer
      */
