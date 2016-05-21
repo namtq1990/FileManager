@@ -1,4 +1,4 @@
-package com.quangnam.baseframework.model.message;
+package com.quangnam.baseframework.message;
 
 /**
  *

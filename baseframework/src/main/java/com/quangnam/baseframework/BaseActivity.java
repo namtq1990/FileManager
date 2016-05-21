@@ -19,7 +19,7 @@ public class BaseActivity extends AppCompatActivity {
         return mFocusFragment;
     }
 
-    void setFocusFragment(BaseFragmentInterface fragment) {
+    protected void setFocusFragment(BaseFragmentInterface fragment) {
         if (mFocusFragment != null) {
             mFocusFragment.clearFocus();
         }
@@ -46,7 +46,7 @@ public class BaseActivity extends AppCompatActivity {
         return mLocalSubs;
     }
 
-    public CompositeSubscription getLocalShareSubscription() {
+    public BaseDataFragment getDataFragment() {
         return null;
     }
 

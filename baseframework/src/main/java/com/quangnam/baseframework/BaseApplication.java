@@ -17,6 +17,8 @@ public class BaseApplication extends Application implements Application.Activity
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Log.init(this);
         registerActivityLifecycleCallbacks(this);
     }
 

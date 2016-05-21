@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="error_connection">Connection Error! Please try again.</string>
+    <string name="error_unknown">Oops! Something happened!</string>
+</resources>
