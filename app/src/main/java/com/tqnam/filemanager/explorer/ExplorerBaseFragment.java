@@ -51,9 +51,11 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.OnRenameActionListener,
         ExplorerItemAdapter.OnOpenItemActionListener, BaseActivity.OnBackPressedListener {
     //    private Animator               mOpenAnimType;
+
     private ExplorerPresenter   mPresenter;
     private FragmentDataStorage mDataFragment;
     private ViewHolder mViewHolder = new ViewHolder();
+
     private Action1<ItemExplorer> mActionOpen = new Action1<ItemExplorer>() {
         @Override
         public void call(ItemExplorer item) {
@@ -105,8 +107,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_item_list, container, false);
 
-        initData(savedInstanceState);
-        initView(root);
+        initializeData(savedInstanceState);
+        initializeView(root);
 
         return root;
     }
@@ -132,7 +134,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
      *
      * @param savedInstanceState saved state of fragment
      */
-    private void initData(Bundle savedInstanceState) {
+    private void initializeData(Bundle savedInstanceState) {
         ExplorerModel model = genModel();
         mPresenter = genPresenter(model);
         BaseActivity activity = (BaseActivity) getActivity();
@@ -166,7 +168,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     /**
      * Setup UI for fragment
      */
-    private void initView(View rootView) {
+    private void initializeView(View rootView) {
         mViewHolder.mAdapter = new ExplorerItemAdapter(rootView.getContext(), mPresenter);
 
         mViewHolder.mList = (RecyclerView) rootView.findViewById(R.id.grid_view_list);
@@ -370,6 +372,9 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                 Observable<Bitmap> observable = mPresenter.loadImage(item);
                 mDataFragment.getObservableManager().updateLoaderObservable(observable);
 
+//                break;
+            default:
+
                 if (previewFragment == null) {
                     previewFragment = new PreviewFragment();
 
@@ -380,9 +385,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
                 previewFragment.setItem(item);
                 previewFragment.loadPreview();
-
-                break;
-            default:
                 break;
         }
     }

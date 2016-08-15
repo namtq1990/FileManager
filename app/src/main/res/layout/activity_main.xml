@@ -58,10 +58,10 @@
             android:layout_width="@dimen/design_fab_size_normal"
             android:layout_height="@dimen/design_fab_size_normal"
             android:layout_margin="@dimen/activity_horizontal_margin"
-            android:src="@drawable/icon_create_file"
             app:layout_anchor="@id/pager"
             app:layout_anchorGravity="bottom|right|end"
-            app:layout_behavior="com.tqnam.filemanager.explorer.behavior.FABScrollBehavior"/>
+            app:layout_behavior="com.tqnam.filemanager.explorer.behavior.FABScrollBehavior"
+            app:srcCompat="@drawable/ic_add"/>
 
     </android.support.design.widget.CoordinatorLayout>
 

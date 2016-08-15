@@ -7,8 +7,12 @@ import android.os.Handler;
 import android.view.View;
 import android.view.WindowManager;
 
+import com.crashlytics.android.Crashlytics;
 import com.quangnam.baseframework.BaseApplication;
+import com.quangnam.baseframework.Config;
 import com.squareup.picasso.Picasso;
+
+import io.fabric.sdk.android.Fabric;
 
 public class Application extends BaseApplication implements android.app.Application.ActivityLifecycleCallbacks {
 
@@ -23,7 +27,11 @@ public class Application extends BaseApplication implements android.app.Applicat
     @Override
     public void onCreate() {
         super.onCreate();
-//        Fabric.with(this, new Crashlytics());
+
+        if (Config.USE_FABRIC) {
+            Fabric.with(this, new Crashlytics());
+        }
+
         msInstance = this;
 
         mGlobalData = new GlobalData();

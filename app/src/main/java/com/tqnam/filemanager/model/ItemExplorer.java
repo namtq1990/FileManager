@@ -47,4 +47,6 @@ public interface ItemExplorer extends Parcelable {
     Uri getUri();
 
     int getFileType();
+
+
 }

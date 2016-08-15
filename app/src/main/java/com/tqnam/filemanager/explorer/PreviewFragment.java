@@ -1,16 +1,27 @@
 package com.tqnam.filemanager.explorer;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.quangnam.baseframework.BaseActivity;
 import com.quangnam.baseframework.BaseFragment;
+import com.quangnam.baseframework.Config;
+import com.quangnam.baseframework.DialogUtil;
+import com.tqnam.filemanager.Application;
+import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.view.Preview;
 
@@ -24,10 +35,17 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
     public static final String TAG      = "PreviewFragment";
     public static final String ARG_ITEM = "item";
 
+    // The item to display in this preview
     private ItemExplorer mItem;
+
+    // The view that display item
     private Preview      mPreview;
-    private Subscription mSubsLoader;
-    private Action1<Object> mActionLoadData = new Action1<Object>() {
+
+    // The subsciption to the load item content observable
+    private Subscription mLoadDataSubscription;
+
+    // Action when load content is done
+    private Action1<Object> mLoadDataAction = new Action1<Object>() {
         @Override
         public void call(Object o) {
             View contentView;
@@ -66,13 +84,16 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        mPreview = new Preview(inflater.getContext());
-        loadPreview();
+        //TODO move preview to Debug version
+        if (Config.DEBUG) {
+            mPreview = new Preview(inflater.getContext());
+            loadPreview();
 
-        mPreview.setOnStateChangeListener(this);
-        mPreview.setOnRemoveListener(this);
-        mPreview.setOnClickListener(this);
-        requestFocus();
+            mPreview.setOnStateChangeListener(this);
+            mPreview.setOnRemoveListener(this);
+            mPreview.setOnClickListener(this);
+            requestFocus();
+        }
 
         return mPreview;
     }
@@ -84,18 +105,33 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
     }
 
     public void loadPreview() {
-        FragmentDataStorage dataFragment = (FragmentDataStorage) getFragmentManager()
-                .findFragmentByTag(FragmentDataStorage.TAG);
-        Observable<Object> observable = dataFragment.getObservableManager().getLoaderObservable();
+        if (Config.DEBUG) {
+            //TODO move preview feature to Debug version
+            FragmentDataStorage dataFragment = (FragmentDataStorage) getFragmentManager()
+                    .findFragmentByTag(FragmentDataStorage.TAG);
+            Observable<Object> observable = dataFragment.getObservableManager().getLoaderObservable();
 
-        if (mSubsLoader != null) {
-            mSubsLoader.unsubscribe();
-        }
+            if (mLoadDataSubscription != null) {
+                mLoadDataSubscription.unsubscribe();
+            }
 
-        BaseActivity activity = (BaseActivity) getActivity();
-        if (activity != null) {
-            mSubsLoader = observable.subscribe(mActionLoadData);
-            activity.getLocalSubscription().add(mSubsLoader);
+            BaseActivity activity = (BaseActivity) getActivity();
+            if (activity != null) {
+                mLoadDataSubscription = observable.subscribe(mLoadDataAction);
+                activity.getLocalSubscription().add(mLoadDataSubscription);
+            }
+        } else {
+            Activity activity = Application.getInstance().getCurActivity();
+
+            if (activity != null) {
+                String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(mItem.getExtension());
+
+                if (mimeType == null) {
+                    selectMimeTypeDialog(activity);
+                } else {
+                    openFileByType(mimeType);
+                }
+            }
         }
     }
 
@@ -125,5 +161,60 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
         if (v == mPreview) {
             mPreview.maximum();
         }
+    }
+
+    private void openFileByType(String mimeType) {
+        Activity activity = Application.getInstance().getCurActivity();
+
+        if (activity != null) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(mItem.getUri());
+            //            Intent chooserIntent = Intent.createChooser(intent, "Choose an application to open with:");
+
+            intent.setDataAndType(mItem.getUri(), mimeType);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            try {
+                BaseActivity curActivity = (BaseActivity) Application.getInstance().getCurActivity();
+                if (curActivity != null)
+                    curActivity.startActivity(intent);
+            } catch (Exception e) {
+                Toast.makeText(Application.getInstance(), "Cann't find application", Toast.LENGTH_LONG)
+                        .show();
+            }
+        }
+    }
+
+    private void selectMimeTypeDialog(Context context) {
+        String[] typeList = context.getResources().getStringArray(R.array.arr_open_file);
+        AlertDialog.Builder builder = DialogUtil.makeSelectDialog(context, "Open as", typeList, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case 0:
+                        // Open as text
+                        openFileByType("text/*");
+                        break;
+                    case 1:
+                        // Open as image
+                        openFileByType("image/*");
+                        break;
+                    case 2:
+                        // Open as audio
+                        openFileByType("audio/*");
+                        break;
+                    case 3:
+                        // Open as Video
+                        openFileByType("video/*");
+                        break;
+                    case 4:
+                        // Open as other type
+                        openFileByType("*/*");
+                        break;
+                }
+            }
+        });
+
+        builder.create().show();
     }
 }

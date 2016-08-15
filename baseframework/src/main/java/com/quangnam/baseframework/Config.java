@@ -5,7 +5,7 @@ package com.quangnam.baseframework;
  */
 public class Config {
 
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     // Debug with fake json implement in each service. To test GUI in offlinemode, set it to true
     public static final boolean DEBUG_FAKE_DATA = false;
