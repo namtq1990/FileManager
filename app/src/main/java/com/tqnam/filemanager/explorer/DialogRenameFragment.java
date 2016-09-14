@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 
 import com.quangnam.baseframework.BaseDialog;
 import com.tqnam.filemanager.R;
+import com.tqnam.filemanager.model.ItemExplorer;
 
 /**
  * Created by quangnam on 11/28/15.
@@ -20,14 +21,34 @@ public class DialogRenameFragment extends BaseDialog {
 
     public static final String TAG       = "DialogRenameFragment";
     public static final String ARG_LABEL = "label";
+    private static final String ARG_ITEM = "item";
 
+    private ItemExplorer mItem;
     private String     mCurLabel;
+
     private ViewHolder mHolder;
+    private RenameDialogListener mListener;
+
+    public static DialogRenameFragment newInstance(ItemExplorer item, String label) {
+        DialogRenameFragment fragment = new DialogRenameFragment();
+        Bundle args = new Bundle();
+
+        args.putParcelable(ARG_ITEM, item);
+        args.putString(ARG_LABEL, label);
+        fragment.setArguments(args);
+
+        return fragment;
+    }
+
+    public void setListener(RenameDialogListener listener) {
+        mListener = listener;
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mCurLabel = getArguments().getString(ARG_LABEL, "");
+        mItem = getArguments().getParcelable(ARG_ITEM);
     }
 
     @Nullable
@@ -46,7 +67,22 @@ public class DialogRenameFragment extends BaseDialog {
         if (savedInstanceState == null)
             mHolder.mEdLabel.setText(mCurLabel);
 
+        mHolder.mBtnOK.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mListener != null) {
+                    mListener.onRename(mItem, mHolder.mEdLabel.getText().toString());
+                }
+
+                dismiss();
+            }
+        });
+
         return view;
+    }
+
+    public interface RenameDialogListener {
+        void onRename(ItemExplorer item, String newName);
     }
 
     private class ViewHolder {

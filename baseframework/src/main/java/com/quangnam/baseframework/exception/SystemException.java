@@ -8,8 +8,15 @@ import java.util.Map;
  * Common exception for all system
  */
 public class SystemException extends RuntimeException {
+
+    public static final int RK_UNKNOWN = 1;
+
     public int mErrorcode;
     public String mMessage;
+
+    public SystemException(String message) {
+        this(RK_UNKNOWN, message);
+    }
 
     public SystemException(int errorcode, String message) {
         this(errorcode, message, null);

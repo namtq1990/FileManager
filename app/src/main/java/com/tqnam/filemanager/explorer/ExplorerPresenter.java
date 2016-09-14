@@ -24,6 +24,11 @@ public interface ExplorerPresenter {
     Observable<ItemExplorer> openItem(int position);
     Observable<ItemExplorer> openDirectory(ItemExplorer path);
     Observable<Bitmap> loadImage(ItemExplorer item);
+    Observable<Void> renameItem(ItemExplorer item, String newLabel);
+    Observable<ItemExplorer> reload();
+
+
+
     int getItemCount();
     ItemExplorer getItemAt(int position);
 }

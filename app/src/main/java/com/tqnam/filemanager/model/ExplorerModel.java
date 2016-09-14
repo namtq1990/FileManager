@@ -26,9 +26,12 @@ public class ExplorerModel {
     public String mCurLocation;
     public String mParentPath;
     public int mCurCompare;
+    // The list that will be display in GUI
+    private ArrayList<ItemExplorer> mDisplayedItem;
 
     public ExplorerModel() {
         mCurCompare = COMPARE_NAME;
+        mDisplayedItem = new ArrayList<>();
     }
 
     public void onSavedInstanceState(Bundle savedState) {

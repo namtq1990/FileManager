@@ -15,6 +15,7 @@ import com.tqnam.filemanager.model.ExplorerModel;
 import com.tqnam.filemanager.model.ItemExplorer;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 import rx.Observable;
 import rx.functions.Action1;
@@ -135,6 +136,31 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                 .into(mCurTarget);
 
         return observable.cache(1);
+    }
+
+    @Override
+    public Observable<Void> renameItem(final ItemExplorer item, final String newLabel) {
+
+        return Observable.fromCallable(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                FileItem file = (FileItem) item;
+                File newFile = new File(file.getParent(), newLabel);
+                boolean isRenameSuccess = ((FileItem) item).renameTo(newFile);
+
+                if (!isRenameSuccess) {
+                    throw new SystemException(ErrorCode.RK_RENAME_ERR, "Cann't rename file " + item);
+                }
+
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public Observable<ItemExplorer> reload() {
+        FileItem file = new FileItem(mModel.mCurLocation);
+        return openDirectory(file);
     }
 
     @Override

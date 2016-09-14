@@ -44,7 +44,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     private SparseBooleanArray       mSelectedList;
     private ActionMode               mActionMode;
     private ExplorerPresenter        mPresenter;
-    private OnRenameActionListener   mRenameListener;
+    private OpenRenameDialogListnener mRenameListener;
     private OnOpenItemActionListener mOpenItemListener;
 
 //    private View.OnClickListener mItemClickListener = new View.OnClickListener() {
@@ -165,7 +165,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         }
     }
 
-    public void setRenameListener(OnRenameActionListener listener) {
+    public void setRenameListener(OpenRenameDialogListnener listener) {
         mRenameListener = listener;
     }
 
@@ -223,8 +223,8 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         return mPresenter.getItemCount();
     }
 
-    public interface OnRenameActionListener {
-        void onRenameAction(String item, int position);
+    public interface OpenRenameDialogListnener {
+        void openRenameDialog(String item, int position);
     }
 
     public interface OnOpenItemActionListener {
@@ -240,7 +240,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             @Override
             public boolean onLongClick(View v) {
                 if (mRenameListener != null) {
-                    mRenameListener.onRenameAction(((TextView) v).getText().toString(), getAdapterPosition());
+                    mRenameListener.openRenameDialog(((TextView) v).getText().toString(), getAdapterPosition());
                 }
 
                 return false;

@@ -13,7 +13,7 @@ public class FileModel extends ExplorerModel {
 
     public FileModel() {
         super();
-        mListItem = new ArrayList();
+        mListItem = new ArrayList<>();
     }
 
     @SuppressWarnings("unchecked")

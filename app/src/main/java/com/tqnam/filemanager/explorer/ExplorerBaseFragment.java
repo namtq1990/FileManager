@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -48,8 +49,10 @@ import rx.functions.Action1;
  * Base fragment for explorer view, may be file explorer, ftp explorer, ...
  */
 public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView,
-        MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.OnRenameActionListener,
-        ExplorerItemAdapter.OnOpenItemActionListener, BaseActivity.OnBackPressedListener {
+        MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.OpenRenameDialogListnener,
+        ExplorerItemAdapter.OnOpenItemActionListener, BaseActivity.OnBackPressedListener,
+        DialogRenameFragment.RenameDialogListener
+{
     //    private Animator               mOpenAnimType;
 
     private ExplorerPresenter   mPresenter;
@@ -79,6 +82,10 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             switch (errcode) {
                 case ErrorCode.RK_EXPLORER_OPEN_ERROR:
                     Toast.makeText(curActivity, curActivity.getString(R.string.explorer_err_permission), Toast.LENGTH_LONG)
+                            .show();
+                    break;
+                case ErrorCode.RK_RENAME_ERR:
+                    Toast.makeText(curActivity, "Cann't rename file, check permission", Toast.LENGTH_LONG)
                             .show();
                     break;
                 case ErrorCode.RK_EXPLORER_OPEN_NOTHING:
@@ -111,6 +118,15 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         initializeView(root);
 
         return root;
+    }
+
+    @Override
+    public void onAttachFragment(Fragment childFragment) {
+        super.onAttachFragment(childFragment);
+
+        if (childFragment instanceof DialogRenameFragment) {
+            ((DialogRenameFragment) childFragment).setListener(this);
+        }
     }
 
     @Override
@@ -338,13 +354,22 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     }
 
     @Override
-    public void onRenameAction(String label, int position) {
-        DialogRenameFragment dialog = new DialogRenameFragment();
-        Bundle args = new Bundle();
-        args.putString(DialogRenameFragment.ARG_LABEL, label);
+    public void openRenameDialog(String label, int position) {
+        ItemExplorer item = mPresenter.getItemAt(position);
+        DialogRenameFragment dialog = DialogRenameFragment.newInstance(item, label);
+        dialog.show(getChildFragmentManager(), DialogRenameFragment.TAG);
+    }
 
-        dialog.setArguments(args);
-        dialog.show(getFragmentManager(), DialogRenameFragment.TAG);
+    public void onRename(ItemExplorer item, String label) {
+        BaseActivity activity = (BaseActivity) getActivity();
+        Observable<Void> observable = mPresenter.renameItem(item, label);
+        activity.getLocalSubscription().add(observable.subscribe(new Action1<Void>() {
+            @Override
+            public void call(Void aVoid) {
+                ((BaseActivity) getActivity()).getLocalSubscription()
+                        .add(mPresenter.reload().subscribe(mActionOpen, mActionError));
+            }
+        }, mActionError));
     }
 
     @Override

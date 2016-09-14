@@ -22,7 +22,9 @@ public class ErrorCode {
 
     public static final int RK_EXPLORER_OPEN_ERROR = 102;
 
-//    public static String generateError(String message, int errorcode) {
+    public static final int RK_RENAME_ERR = 110;
+
+    //    public static String generateError(String message, int errorcode) {
 //        return "" + errorcode + ":{" + message + "}";
 //    }
 //
