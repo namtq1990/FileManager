@@ -37,7 +37,6 @@ import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.ErrorCode;
-import com.tqnam.filemanager.model.ExplorerModel;
 import com.tqnam.filemanager.model.ItemExplorer;
 
 import rx.Observable;
@@ -99,9 +98,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         }
     };
 
-    protected abstract ExplorerModel genModel();
-
-    protected abstract ExplorerPresenter genPresenter(ExplorerModel model);
+    protected abstract ExplorerPresenter genPresenter();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -151,8 +148,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
      * @param savedInstanceState saved state of fragment
      */
     private void initializeData(Bundle savedInstanceState) {
-        ExplorerModel model = genModel();
-        mPresenter = genPresenter(model);
+//        ExplorerModel model = genModel();
+        mPresenter = genPresenter();
         BaseActivity activity = (BaseActivity) getActivity();
 
         if (savedInstanceState != null) {

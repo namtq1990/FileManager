@@ -86,10 +86,10 @@ public class FileExplorerPresenter implements ExplorerPresenter {
 
                             if (list != null) {
                                 mModel.mCurLocation = item.getPath();
-                                mModel.mListItem.clear();
+                                mModel.getList().clear();
 
                                 for (File file : list) {
-                                    mModel.mListItem.add(new FileItem(file.getAbsolutePath()));
+                                    mModel.getList().add(new FileItem(file.getAbsolutePath()));
                                 }
 
                                 mModel.sort();

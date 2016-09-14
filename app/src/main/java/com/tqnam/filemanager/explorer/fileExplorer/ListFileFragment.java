@@ -7,14 +7,8 @@ import com.tqnam.filemanager.model.ExplorerModel;
 public class ListFileFragment extends ExplorerBaseFragment {
     public static final String TAG = "ListFileFragment";
 
-
     @Override
-    protected ExplorerModel genModel() {
-        return new FileModel();
-    }
-
-    @Override
-    protected ExplorerPresenter genPresenter(ExplorerModel model) {
-        return new FileExplorerPresenter(this, model);
+    protected ExplorerPresenter genPresenter() {
+        return new FileExplorerPresenter(this, new ExplorerModel());
     }
 }
