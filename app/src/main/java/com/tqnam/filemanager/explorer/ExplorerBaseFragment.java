@@ -52,6 +52,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         ExplorerItemAdapter.OnOpenItemActionListener, BaseActivity.OnBackPressedListener,
         DialogRenameFragment.RenameDialogListener
 {
+    private static final String ARG_QUERIED_TEXT = "query_text";
+
     //    private Animator               mOpenAnimType;
 
     private ExplorerPresenter   mPresenter;
@@ -184,9 +186,11 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     private void initializeView(View rootView) {
         mViewHolder.mAdapter = new ExplorerItemAdapter(rootView.getContext(), mPresenter);
 
+        GridLayoutManager layoutManager = new GridLayoutManager(rootView.getContext(), 2);
+
         mViewHolder.mList = (RecyclerView) rootView.findViewById(R.id.grid_view_list);
         mViewHolder.mList.setAdapter(mViewHolder.mAdapter);
-        mViewHolder.mList.setLayoutManager(new GridLayoutManager(rootView.getContext(), 2));
+        mViewHolder.mList.setLayoutManager(layoutManager);
         mViewHolder.mList.setHasFixedSize(true);
 
         mViewHolder.mAdapter.setRenameListener(this);
@@ -218,6 +222,40 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         MenuItemCompat.setOnActionExpandListener(mViewHolder.mSearchMenu, this);
         mViewHolder.mSearchView
                 .setSearchableInfo(searchManager.getSearchableInfo(activity.getComponentName()));
+
+        mViewHolder.mSearchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean isFocused) {
+                if (!isFocused) {
+                    mViewHolder.mSearchMenu.collapseActionView();
+                }
+            }
+        });
+        mViewHolder.mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(final String query) {
+                String oldQuery = getQueryText();
+                if (oldQuery.equals(query)) {
+                    return false;
+                }
+
+                Observable<Void> observable = mPresenter.quickQueryFile(query);
+                observable.subscribe(new Action1<Void>() {
+                    @Override
+                    public void call(Void aVoid) {
+                        mViewHolder.mAdapter.notifyDataSetChanged();
+                        setQueryText(query);
+                    }
+                }, mActionError);
+
+                return false;
+            }
+        });
 
 
         //region Add animation to search field, consider default fadeIn and translate
@@ -352,7 +390,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public void openRenameDialog(String label, int position) {
-        ItemExplorer item = mPresenter.getItemAt(position);
+        ItemExplorer item = mPresenter.getItemDisplayedAt(position);
         DialogRenameFragment dialog = DialogRenameFragment.newInstance(item, label);
         dialog.show(getChildFragmentManager(), DialogRenameFragment.TAG);
     }
@@ -409,6 +447,15 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                 previewFragment.loadPreview();
                 break;
         }
+    }
+
+    protected String getQueryText() {
+        return mDataFragment.getData().containsKey(ARG_QUERIED_TEXT)
+                ? mDataFragment.getData().getString(ARG_QUERIED_TEXT) : "";
+    }
+
+    protected void setQueryText(String query) {
+        mDataFragment.getData().putString(ARG_QUERIED_TEXT, query);
     }
 
     public interface ExplorerBaseFunction {

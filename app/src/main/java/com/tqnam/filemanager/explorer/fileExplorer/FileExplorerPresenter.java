@@ -19,6 +19,7 @@ import java.util.concurrent.Callable;
 
 import rx.Observable;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 
 /**
@@ -58,7 +59,7 @@ public class FileExplorerPresenter implements ExplorerPresenter {
 
     @Override
     public Observable<ItemExplorer> openItem(int position) {
-        ItemExplorer item = getItemAt(position);
+        ItemExplorer item = getItemDisplayedAt(position);
 
         if (item.isDirectory()) {
             return openDirectory(item);
@@ -86,14 +87,16 @@ public class FileExplorerPresenter implements ExplorerPresenter {
 
                             if (list != null) {
                                 mModel.mCurLocation = item.getPath();
-                                mModel.getList().clear();
+                                mModel.clearItem();
 
                                 for (File file : list) {
-                                    mModel.getList().add(new FileItem(file.getAbsolutePath()));
+                                    mModel.addItem(new FileItem(file.getAbsolutePath()));
                                 }
 
                                 mModel.sort();
                                 mModel.mParentPath = item.getParentPath();
+
+                                mModel.resetDisplayList();
                             } else {
                                 throw new SystemException(ErrorCode.RK_EXPLORER_OPEN_ERROR,
                                         "Cannot open folder " + item + ", check permission");
@@ -164,13 +167,43 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public int getItemCount() {
-        return mModel.getTotalItem();
+    public Observable<Void> quickQueryFile(final String query) {
+        return Observable.just(query)
+                .map(new Func1<String, Void>() {
+                    @Override
+                    public Void call(String s) {
+
+                        if (s.equals("")) {
+                            mModel.resetDisplayList();
+                            return null;
+                        } else {
+                            mModel.clearDisplayItem();
+
+                            for (int i = 0;i < mModel.getTotalItem();i++) {
+                                ItemExplorer item = mModel.getItemAt(i);
+                                if (item.getDisplayName().contains(query))
+                                    mModel.addDisplayItem(item);
+                            }
+                        }
+
+                        return null;
+                    }
+                });
     }
 
     @Override
-    public ItemExplorer getItemAt(int position) {
-        return mModel.getItemAt(position);
+    public Observable<Void> queryFile(String query) {
+        return null;
+    }
+
+    @Override
+    public int getItemDisplayCount() {
+        return mModel.getDisplayCount();
+    }
+
+    @Override
+    public ItemExplorer getItemDisplayedAt(int position) {
+        return mModel.getItemDisplayedAt(position);
     }
 
 }

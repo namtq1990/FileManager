@@ -183,7 +183,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
 
-        ItemExplorer item = mPresenter.getItemAt(position);
+        ItemExplorer item = mPresenter.getItemDisplayedAt(position);
         holder.panel.setPosition(position);
         if (item != null) {
             holder.label.setText(item.getDisplayName());
@@ -220,7 +220,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
 
     @Override
     public int getItemCount() {
-        return mPresenter.getItemCount();
+        return mPresenter.getItemDisplayCount();
     }
 
     public interface OpenRenameDialogListnener {
