@@ -8,7 +8,6 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,10 +15,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -36,12 +35,16 @@ import com.quangnam.baseframework.exception.SystemException;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
+import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ItemExplorer;
+
+import java.util.List;
 
 import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
+import rx.functions.Func1;
 
 /**
  * Created by quangnam on 11/12/15.
@@ -52,21 +55,12 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         ExplorerItemAdapter.OnOpenItemActionListener, BaseActivity.OnBackPressedListener,
         DialogRenameFragment.RenameDialogListener
 {
-    private static final String ARG_QUERIED_TEXT = "query_text";
+    public static final String ARG_QUERY = "query";
+    public static final String ARG_ROOT_PATH = "root_path";
+    private static final String ARG_QUICK_QUERY = "query_text";
 
     //    private Animator               mOpenAnimType;
-
-    private ExplorerPresenter   mPresenter;
-    private FragmentDataStorage mDataFragment;
-    private ViewHolder mViewHolder = new ViewHolder();
-
-    private Action1<ItemExplorer> mActionOpen = new Action1<ItemExplorer>() {
-        @Override
-        public void call(ItemExplorer item) {
-            onOpenItem(item);
-        }
-    };
-    private Action1<Throwable> mActionError = new Action1<Throwable>() {
+    protected Action1<Throwable> mActionError = new Action1<Throwable>() {
         @Override
         public void call(Throwable e) {
             SystemException exception;
@@ -99,6 +93,15 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             }
         }
     };
+    private ExplorerPresenter   mPresenter;
+    private FragmentDataStorage mDataFragment;
+    private ViewHolder mViewHolder;
+    protected Action1<ItemExplorer> mActionOpen = new Action1<ItemExplorer>() {
+        @Override
+        public void call(ItemExplorer item) {
+            onOpenItem(item);
+        }
+    };
 
     protected abstract ExplorerPresenter genPresenter();
 
@@ -106,17 +109,22 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        mDataFragment = (FragmentDataStorage) getFragmentManager().findFragmentByTag(FragmentDataStorage.TAG);
+//        mDataFragment = (FragmentDataStorage) getFragmentManager().findFragmentByTag(FragmentDataStorage.TAG);
+
+        mPresenter = genPresenter();
+        if (savedInstanceState != null) {
+            mPresenter.onRestoreInstanceState(savedInstanceState);
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_item_list, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_item_list, container, false);
 
         initializeData(savedInstanceState);
-        initializeView(root);
+        initializeView(rootView);
 
-        return root;
+        return rootView;
     }
 
     @Override
@@ -133,14 +141,22 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         super.onResume();
         BaseActivity activity = (BaseActivity) getActivity();
 
-        if (activity.getFocusFragment() == null) {
-            requestFocus();
-        }
+//        if (activity.getFocusFragment() == null) {
+//            requestFocus();
+//        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+//        clearFocus();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        mViewHolder.mSearchView.setOnQueryTextFocusChangeListener(null);
+        mViewHolder.mSearchView.setOnQueryTextListener(null);
         mViewHolder = null;
     }
 
@@ -151,23 +167,38 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
      */
     private void initializeData(Bundle savedInstanceState) {
 //        ExplorerModel model = genModel();
-        mPresenter = genPresenter();
+//        mPresenter = genPresenter();
         BaseActivity activity = (BaseActivity) getActivity();
+        mDataFragment = (FragmentDataStorage) activity.getDataFragment();
 
-        if (savedInstanceState != null) {
-            mPresenter.onRestoreInstanceState(savedInstanceState);
-        } else {
-            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getAppContext());
-            String key_pref_homepath = getAppContext().getString(R.string.pref_local_home_path);
-            String homePath = PreferenceManager.getDefaultSharedPreferences(getAppContext())
-                    .getString(key_pref_homepath, null);
-            if (homePath == null) {
-                homePath = "/";
-                pref.edit().putString(key_pref_homepath, homePath)
-                        .apply();
+        if (savedInstanceState == null) {
+//            mPresenter.onRestoreInstanceState(savedInstanceState);
+//        } else {
+//            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getAppContext());
+//            String key_pref_homepath = getAppContext().getString(R.string.pref_local_home_path);
+//            String homePath = PreferenceManager.getDefaultSharedPreferences(getAppContext())
+//                    .getString(key_pref_homepath, null);
+//            if (homePath == null) {
+//                homePath = "/";
+//                pref.edit().putString(key_pref_homepath, homePath)
+//                        .apply();
+//            }
+            String homePath = getRootPath();
+
+            Observable<ItemExplorer> observable;
+            if (getOpenOption() == ExplorerPresenter.OpenOption.EXPLORER) {
+                observable = mPresenter.openDirectory(new FileItem(homePath)).cache();
+            } else {
+                mPresenter.setCurLocation(homePath);
+                observable = mPresenter.queryFile(homePath, getQuery())
+                        .map(new Func1<List<ItemExplorer>, ItemExplorer>() {
+                            @Override
+                            public ItemExplorer call(List<ItemExplorer> list) {
+                                return getPresenter().getCurFolder();
+                            }
+                        })
+                        .cache();
             }
-
-            Observable<ItemExplorer> observable = mPresenter.openDirectory(new FileItem(homePath)).cache();
             Subscription subscription = observable
                     .subscribe(new Action1<ItemExplorer>() {
                         @Override
@@ -184,6 +215,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
      * Setup UI for fragment
      */
     private void initializeView(View rootView) {
+        mViewHolder = new ViewHolder();
         mViewHolder.mAdapter = new ExplorerItemAdapter(rootView.getContext(), mPresenter);
 
         GridLayoutManager layoutManager = new GridLayoutManager(rootView.getContext(), 2);
@@ -234,22 +266,27 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         mViewHolder.mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                if (!TextUtils.isEmpty(query)) {
+                    onQueryTextChange("");  // Reset displaylist before execute
+                    onQueryFile(query);
+                }
+
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(final String query) {
-                String oldQuery = getQueryText();
+                String oldQuery = getQuickQuery();
                 if (oldQuery.equals(query)) {
                     return false;
                 }
 
-                Observable<Void> observable = mPresenter.quickQueryFile(query);
-                observable.subscribe(new Action1<Void>() {
+                Observable<List<ItemExplorer>> observable = mPresenter.quickQueryFile(query);
+                observable.subscribe(new Action1<List<ItemExplorer>>() {
                     @Override
-                    public void call(Void aVoid) {
-                        mViewHolder.mAdapter.notifyDataSetChanged();
-                        setQueryText(query);
+                    public void call(List<ItemExplorer> aVoid) {
+                        refreshView();
+                        setQuickQuery(query);
                     }
                 }, mActionError);
 
@@ -303,29 +340,34 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         }
     }
 
-    @Override
     public void requestFocus() {
-        super.requestFocus();
+        BaseActivity activity = (BaseActivity) getActivity();
+        activity.requestFocusFragment(this);
         ((ExplorerBaseFunction) getActivity()).showAddButton();
     }
 
-    @Override
     public void clearFocus() {
-        super.clearFocus();
+        BaseActivity activity = (BaseActivity) getActivity();
+        activity.removeFocusRequest(this);
         ((ExplorerBaseFunction) getActivity()).hideAddButton();
     }
 
-    public void onBackPressed() {
+    public boolean onBackPressed() {
 //        mOpenAnimType = animActionOpenUp();
-        Observable<ItemExplorer> observable = mPresenter.onBackPressed();
-        if (observable != null) {
-            // Can back-able so back to parent folder
-            BaseActivity activity = (BaseActivity) getActivity();
-            activity.getLocalSubscription().add(observable.subscribe(mActionOpen,
-                    mActionError));
+
+        if (isCloseFragment()) {
+            getFragmentManager().popBackStack();
         } else {
-            //TODO implement function to finish app
+            Observable<ItemExplorer> observable = mPresenter.onBackPressed();
+            if (observable != null) {
+                // Can back-able so back to parent folder
+                BaseActivity activity = (BaseActivity) getActivity();
+                activity.getLocalSubscription().add(observable.subscribe(mActionOpen,
+                        mActionError));
+            }
         }
+
+        return true;
     }
 
     private Animator animActionOpenUp() {
@@ -388,6 +430,14 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         }
     }
 
+    protected boolean isCloseFragment() {
+        if (getOpenOption() == ExplorerPresenter.OpenOption.SEARCH) {
+            return true;
+        } else {
+            return mPresenter.getCurLocation().equals(getRootPath());
+        }
+    }
+
     @Override
     public void openRenameDialog(String label, int position) {
         ItemExplorer item = mPresenter.getItemDisplayedAt(position);
@@ -420,8 +470,18 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         int fileType = item.getFileType();
 
         if (fileType == ItemExplorer.FILE_TYPE_FOLDER) {
-            mViewHolder.mAdapter.notifyDataSetChanged();
-            return;
+            if (getOpenOption() == ExplorerPresenter.OpenOption.EXPLORER) {
+                refreshView();
+                return;
+            } else if (getOpenOption() == ExplorerPresenter.OpenOption.SEARCH) {
+                ListFileFragment fragment = ListFileFragment.newInstance(item.getPath());
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, fragment, ListFileFragment.TAG)
+                        .addToBackStack(null)
+                        .commit();
+
+                return;
+            }
         }
 
         PreviewFragment previewFragment = (PreviewFragment) getFragmentManager()
@@ -438,24 +498,71 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                 if (previewFragment == null) {
                     previewFragment = new PreviewFragment();
 
-                    getFragmentManager().beginTransaction()
+                    getActivity().getSupportFragmentManager().beginTransaction()
                             .add(R.id.rootview, previewFragment, PreviewFragment.TAG)
                             .commit();
                 }
 
                 previewFragment.setItem(item);
-                previewFragment.loadPreview();
+                previewFragment.loadPreview((BaseActivity) getActivity());
                 break;
         }
     }
 
-    protected String getQueryText() {
-        return mDataFragment.getData().containsKey(ARG_QUERIED_TEXT)
-                ? mDataFragment.getData().getString(ARG_QUERIED_TEXT) : "";
+    protected String getQuickQuery() {
+        return mDataFragment.getData().containsKey(ARG_QUICK_QUERY)
+                ? mDataFragment.getData().getString(ARG_QUICK_QUERY) : "";
     }
 
-    protected void setQueryText(String query) {
-        mDataFragment.getData().putString(ARG_QUERIED_TEXT, query);
+    protected void setQuickQuery(String query) {
+        mDataFragment.getData().putString(ARG_QUICK_QUERY, query);
+    }
+
+    @Override
+    public String getQuery() {
+        return getArguments().getString(ARG_QUERY);
+    }
+
+    @Override
+    public void setQuery(String query) {
+        getArguments().putString(ARG_QUERY, query);
+    }
+
+    @Override
+    public String getRootPath() {
+        return getArguments().getString(ARG_ROOT_PATH);
+    }
+
+    @Override
+    public void setRootPath(String path) {
+        getArguments().putString(ARG_ROOT_PATH, path);
+    }
+
+    public void refreshView() {
+        mViewHolder.mAdapter.notifyDataSetChanged();
+    }
+
+//    public void setOpenOption(ExplorerPresenter.OpenOption openOption) {
+//        mPresenter.setOpenOption(openOption);
+//    }
+
+    @Override
+    public ExplorerPresenter.OpenType getOpenType() {
+        return mPresenter.getOpenType();
+    }
+
+    @Override
+    public void setOpenType(ExplorerPresenter.OpenType openType) {
+        mPresenter.setOpenType(openType);
+    }
+
+    @Override
+    public ExplorerPresenter getPresenter() {
+        return mPresenter;
+    }
+
+    public ExplorerPresenter.OpenOption getOpenOption() {
+        return mPresenter.getOpenOption();
     }
 
     public interface ExplorerBaseFunction {

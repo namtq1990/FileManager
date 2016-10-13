@@ -5,6 +5,8 @@ import android.os.Bundle;
 
 import com.tqnam.filemanager.model.ItemExplorer;
 
+import java.util.List;
+
 import rx.Observable;
 
 /**
@@ -27,9 +29,30 @@ public interface ExplorerPresenter {
     Observable<Void> renameItem(ItemExplorer item, String newLabel);
     Observable<ItemExplorer> reload();
 
-    Observable<Void> quickQueryFile(String query);
-    Observable<Void> queryFile(String query);
+    Observable<List<ItemExplorer>> quickQueryFile(String query);
+    Observable<List<ItemExplorer>> quickQueryFile(String query, String path);
+    Observable<List<ItemExplorer>> queryFile(String path, String query);
 
+    String getCurLocation();
+    void setCurLocation(String path);
+    ItemExplorer getCurFolder();
     int getItemDisplayCount();
     ItemExplorer getItemDisplayedAt(int position);
+
+    OpenType getOpenType();
+
+    void setOpenType(OpenType openType);
+
+    OpenOption getOpenOption();
+
+    void setOpenOption(OpenOption openOption);
+
+    public enum OpenType {
+        LOCAL
+    }
+
+    public enum OpenOption {
+        EXPLORER,
+        SEARCH
+    }
 }

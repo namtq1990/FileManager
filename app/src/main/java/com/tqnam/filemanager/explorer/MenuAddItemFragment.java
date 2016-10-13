@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import com.quangnam.baseframework.BaseActivity;
 import com.quangnam.baseframework.BaseFragment;
 import com.tqnam.filemanager.R;
 
@@ -23,12 +24,6 @@ public class MenuAddItemFragment extends BaseFragment {
     public static final String TAG = "MenuAddItem";
 
     private ViewHolder mHolder;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRestoreFocus(true);
-    }
 
     @Nullable
     @Override
@@ -70,13 +65,25 @@ public class MenuAddItemFragment extends BaseFragment {
         super.onResume();
 
         showMenu();
-        requestFocus();
+        BaseActivity activity = (BaseActivity) getActivity();
+        activity.requestFocusFragment(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        BaseActivity activity = (BaseActivity) getActivity();
+        activity.removeFocusRequest(this);
     }
 
     @Override
     public void onDestroy() {
         if (!getActivity().isChangingConfigurations()) {
             ((MainActivity) getActivity()).showAddButtonDirect();
+
+            // Restore the focus of list fragment
+
         }
 
         super.onDestroy();

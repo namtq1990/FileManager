@@ -8,7 +8,6 @@ import com.tqnam.filemanager.R;
 
 public class PreferenceFragment extends BasePreferenceFragment {
 
-
     @Override
     public void onCreatePreferences(Bundle bundle, String s) {
         addPreferencesFromResource(R.xml.pref_app);

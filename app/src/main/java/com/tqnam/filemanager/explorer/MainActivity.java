@@ -1,6 +1,8 @@
 package com.tqnam.filemanager.explorer;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -11,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import com.quangnam.baseframework.BaseActivity;
+import com.quangnam.baseframework.BaseDataFragment;
 import com.quangnam.baseframework.BaseFragmentInterface;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
@@ -24,21 +27,30 @@ import com.tqnam.filemanager.utils.UIUtils;
 
 public class MainActivity extends BaseActivity implements ViewPager.OnPageChangeListener, ExplorerBaseFragment.ExplorerBaseFunction {
 
+    private Handler mHandler;
     private ViewHolder mViewHolder;
+    private FragmentDataStorage mDataFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        init();
+        init(savedInstanceState);
+    }
+
+    @Override
+    public BaseDataFragment getDataFragment() {
+        return mDataFragment;
     }
 
     /**
      * Init function for activity.
      * Inflate view and Fragment
      */
-    private void init() {
+    private void init(Bundle savedInstanceState) {
+        mHandler = new Handler(Looper.getMainLooper());
+
         mViewHolder = new ViewHolder();
 
         mViewHolder.mToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -62,13 +74,13 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
         });
 
         // Init data fragment
-        FragmentDataStorage fragmentDataStorage = (FragmentDataStorage) getSupportFragmentManager()
+        mDataFragment = (FragmentDataStorage) getSupportFragmentManager()
                 .findFragmentByTag(FragmentDataStorage.TAG);
 
-        if (fragmentDataStorage == null) {
-            fragmentDataStorage = new FragmentDataStorage();
+        if (mDataFragment == null) {
+            mDataFragment = new FragmentDataStorage();
             getSupportFragmentManager().beginTransaction()
-                    .add(fragmentDataStorage, FragmentDataStorage.TAG)
+                    .add(mDataFragment, FragmentDataStorage.TAG)
                     .commit();
         }
         //
@@ -109,8 +121,9 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 
         if (fragment != null &&
                 fragment instanceof BaseFragmentInterface) {
-            ((BaseFragmentInterface) fragment).requestFocus();
+            requestFocusFragment((BaseFragmentInterface) fragment);
         }
+
     }
 
     @Override
@@ -139,18 +152,28 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 
         @Override
         public Fragment getItem(int position) {
-            Fragment fragment = null;
+            final Fragment fragment;
 
             switch (position) {
                 case INDEX_LOCAL_FILE_FRAGMENT:
-                    fragment = new ListFileFragment();
-                    mViewHolder.mFragmentListFile = (ListFileFragment) fragment;
+                    fragment = HostFragment.newInstance();
+
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            ListFileFragment list = ListFileFragment.newInstance("/");
+                            mViewHolder.mFragmentListFile = list;
+
+                            ((HostFragment) fragment).addFragmentPage(list, ListFileFragment.TAG);
+                        }
+                    });
 
                     break;
                 case INDEX_PREF_FRAGMENT:
                     fragment = new PreferenceFragment();
                     break;
                 default:
+                    fragment = null;
                     break;
             }
 

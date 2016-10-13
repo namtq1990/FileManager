@@ -10,4 +10,18 @@ import com.tqnam.filemanager.model.ItemExplorer;
 public interface ExplorerView {
     void onOpenItem(ItemExplorer item);
     Context getContext();
+    ExplorerPresenter getPresenter();
+
+    String getQuery();
+    void setQuery(String query);
+
+    String getRootPath();
+
+    void setRootPath(String path);
+
+    ExplorerPresenter.OpenType getOpenType();
+
+    void setOpenType(ExplorerPresenter.OpenType openType);
+
+    void onQueryFile(final String query);
 }

@@ -1,6 +1,9 @@
 package com.quangnam.baseframework;
 
+import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+
+import java.util.Stack;
 
 import rx.subscriptions.CompositeSubscription;
 
@@ -13,18 +16,50 @@ import rx.subscriptions.CompositeSubscription;
 public class BaseActivity extends AppCompatActivity {
 
     private CompositeSubscription mLocalSubs = new CompositeSubscription();
-    private BaseFragmentInterface mFocusFragment;
+    private Stack<BaseFragmentInterface> mRequestActiveList;
 
-    public BaseFragmentInterface getFocusFragment() {
-        return mFocusFragment;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mRequestActiveList = new Stack<>();
     }
 
-    protected void setFocusFragment(BaseFragmentInterface fragment) {
-        if (mFocusFragment != null) {
-            mFocusFragment.clearFocus();
-        }
+    public BaseFragmentInterface getFocusFragment() {
+        return mRequestActiveList.isEmpty() ? null : mRequestActiveList.peek();
+    }
 
-        mFocusFragment = fragment;
+//    protected void setFocusFragment(BaseFragmentInterface fragment) {
+//        if (mFocusFragment != null) {
+//            mFocusFragment.clearFocus();
+//        }
+//
+//        mFocusFragment = fragment;
+//    }
+
+    public void requestFocusFragment(BaseFragmentInterface fragment) {
+        int priority = mRequestActiveList.indexOf(fragment);
+        if (priority == -1) {
+            mRequestActiveList.push(fragment);
+        } else {
+            removeFocusRequest(fragment);
+            mRequestActiveList.push(fragment);
+        }
+    }
+
+    protected void popupFocusFragment() {
+        mRequestActiveList.pop();
+    }
+
+    public void removeFocusRequest(BaseFragmentInterface fragment) {
+        mRequestActiveList.remove(fragment);
+    }
+
+    public int getPriorityFocusIndex(BaseFragmentInterface fragment) {
+        return mRequestActiveList.indexOf(fragment);
+    }
+
+    public void requestAtPriority(int priority, BaseFragmentInterface fragment) {
+        mRequestActiveList.add(priority, fragment);
     }
 
     @Override
@@ -35,8 +70,10 @@ public class BaseActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (mFocusFragment instanceof OnBackPressedListener) {
-            ((OnBackPressedListener) mFocusFragment).onBackPressed();
+        BaseFragmentInterface fragment = getFocusFragment();
+
+        if (fragment instanceof OnBackPressedListener) {
+            ((OnBackPressedListener) fragment).onBackPressed();
         } else {
             super.onBackPressed();
         }
@@ -51,6 +88,10 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     public interface OnBackPressedListener {
-        void onBackPressed();
+        /**
+         * Function handler onBack press in fragment
+         * @return true if fragment handled this event
+         */
+        boolean onBackPressed();
     }
 }

@@ -3,6 +3,8 @@ package com.tqnam.filemanager.model;
 import android.net.Uri;
 import android.os.Parcelable;
 
+import java.util.List;
+
 /**
  * Created by tqnam on 10/28/2015.
  */
@@ -48,5 +50,5 @@ public interface ItemExplorer extends Parcelable {
 
     int getFileType();
 
-
+    List<ItemExplorer> getChild();
 }

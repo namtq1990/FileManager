@@ -4,9 +4,13 @@ import android.net.Uri;
 import android.os.Parcel;
 import android.webkit.MimeTypeMap;
 
+import com.quangnam.baseframework.exception.SystemException;
+import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ItemExplorer;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by tqnam on 10/28/2015.
@@ -73,6 +77,23 @@ public class FileItem extends File implements ItemExplorer {
         }
 
         return ItemExplorer.FILE_TYPE_NORMAL;
+    }
+
+    @Override
+    public List<ItemExplorer> getChild() {
+        List<ItemExplorer> childs = new ArrayList<>();
+        File[] list = listFiles();
+
+        if (list != null) {
+            for (File item : list) {
+                childs.add(new FileItem(item.getAbsolutePath()));
+            }
+        } else {
+            throw new SystemException(ErrorCode.RK_EXPLORER_OPEN_ERROR,
+                    "Cannot open folder " + getPath() + ", check permission");
+        }
+
+        return childs;
     }
 
     @Override

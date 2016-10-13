@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import com.quangnam.baseframework.exception.SystemException;
 import com.squareup.picasso.Picasso;
@@ -13,8 +14,10 @@ import com.tqnam.filemanager.explorer.ExplorerView;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ExplorerModel;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.utils.FileUtil;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import rx.Observable;
@@ -49,7 +52,7 @@ public class FileExplorerPresenter implements ExplorerPresenter {
 
     @Override
     public Observable<ItemExplorer> onBackPressed() {
-        if (mModel.mParentPath != null) {
+        if (mModel.mParentPath != null || !mModel.mCurLocation.equals(mView.getRootPath())) {
             FileItem parentFolder = new FileItem(mModel.mParentPath);
             return openDirectory(parentFolder);
         }
@@ -83,23 +86,17 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                         }
 
                         if (folder.isDirectory()) {
-                            File[] list = folder.listFiles();
+                            if (getOpenOption() == OpenOption.EXPLORER) {
 
-                            if (list != null) {
-                                mModel.mCurLocation = item.getPath();
-                                mModel.clearItem();
+                                List<ItemExplorer> list = FileUtil.open((FileItem) item);
 
-                                for (File file : list) {
-                                    mModel.addItem(new FileItem(file.getAbsolutePath()));
+                                if (list != null) {
+                                    mModel.mCurLocation = item.getPath();
+                                    mModel.setList(list);
+                                    mModel.sort();
+                                    mModel.resetDisplayList();
+                                    mModel.mParentPath = item.getParentPath();
                                 }
-
-                                mModel.sort();
-                                mModel.mParentPath = item.getParentPath();
-
-                                mModel.resetDisplayList();
-                            } else {
-                                throw new SystemException(ErrorCode.RK_EXPLORER_OPEN_ERROR,
-                                        "Cannot open folder " + item + ", check permission");
                             }
 
                         } else {
@@ -167,33 +164,72 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public Observable<Void> quickQueryFile(final String query) {
+    public Observable<List<ItemExplorer>> quickQueryFile(final String query) {
         return Observable.just(query)
-                .map(new Func1<String, Void>() {
+                .map(new Func1<String, List<ItemExplorer>>() {
                     @Override
-                    public Void call(String s) {
+                    public List<ItemExplorer> call(String s) {
+                        mModel.resetDisplayList();
+                        FileUtil.filter(mModel.getDisplayedItem(), s);
 
-                        if (s.equals("")) {
-                            mModel.resetDisplayList();
-                            return null;
-                        } else {
-                            mModel.clearDisplayItem();
-
-                            for (int i = 0;i < mModel.getTotalItem();i++) {
-                                ItemExplorer item = mModel.getItemAt(i);
-                                if (item.getDisplayName().contains(query))
-                                    mModel.addDisplayItem(item);
-                            }
-                        }
-
-                        return null;
+                        return mModel.getDisplayedItem();
                     }
                 });
     }
 
     @Override
-    public Observable<Void> queryFile(String query) {
-        return null;
+    public Observable<List<ItemExplorer>> quickQueryFile(final String query, final String path) {
+        if (path.equals(mModel.mCurLocation)) {
+            return quickQueryFile(query);
+        }
+
+        return Observable.just(query)
+                .map(new Func1<String, List<ItemExplorer>>() {
+                    @Override
+                    public List<ItemExplorer> call(String query) {
+                        List<ItemExplorer> list = FileUtil.open(path);
+                        FileUtil.filter(list, query);
+
+                        return list;
+                    }
+                });
+    }
+
+    @Override
+    public Observable<List<ItemExplorer>> queryFile(final String path, final String query) {
+        return Observable.just(query)
+                .map(new Func1<String, List<ItemExplorer>>() {
+                    @Override
+                    public List<ItemExplorer> call(String s) {
+                        if (TextUtils.isEmpty(query))
+                            return null;
+
+                        List<ItemExplorer> list = FileUtil.search(path, query);
+//                        switch (getOpenOption()) {
+//                            case EXPLORER:
+//
+//                        }
+                        mModel.setList(list);
+                        mModel.resetDisplayList();
+
+                        return list;
+                    }
+                });
+    }
+
+    @Override
+    public String getCurLocation() {
+        return mModel.mCurLocation;
+    }
+
+    @Override
+    public void setCurLocation(String path) {
+        mModel.mCurLocation = path;
+    }
+
+    @Override
+    public ItemExplorer getCurFolder() {
+        return new FileItem(getCurLocation());
     }
 
     @Override
@@ -204,6 +240,26 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     @Override
     public ItemExplorer getItemDisplayedAt(int position) {
         return mModel.getItemDisplayedAt(position);
+    }
+
+    @Override
+    public OpenType getOpenType() {
+        return OpenType.LOCAL;
+    }
+
+    @Override
+    public void setOpenType(OpenType openType) {
+        //TODO implements
+    }
+
+    @Override
+    public OpenOption getOpenOption() {
+        return mView.getQuery() == null ? OpenOption.EXPLORER : OpenOption.SEARCH;
+    }
+
+    @Override
+    public void setOpenOption(OpenOption openOption) {
+        // TODO implements
     }
 
 }

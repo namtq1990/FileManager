@@ -5,6 +5,7 @@ import android.os.Bundle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by quangnam on 11/7/15.
@@ -74,6 +75,10 @@ public class ExplorerModel {
 
     public ArrayList<ItemExplorer> getList() {
         return mListItem;
+    }
+
+    public void setList(List<ItemExplorer> list) {
+        mListItem = (ArrayList<ItemExplorer>) list;
     }
 
     public void addItem(ItemExplorer item) {

@@ -74,7 +74,6 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRestoreFocus(true);
 
         if (savedInstanceState != null) {
             mItem = savedInstanceState.getParcelable(ARG_ITEM);
@@ -87,12 +86,14 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
         //TODO move preview to Debug version
         if (Config.DEBUG) {
             mPreview = new Preview(inflater.getContext());
-            loadPreview();
+            loadPreview((BaseActivity) inflater.getContext());
 
             mPreview.setOnStateChangeListener(this);
             mPreview.setOnRemoveListener(this);
             mPreview.setOnClickListener(this);
-            requestFocus();
+
+            BaseActivity activity = (BaseActivity) inflater.getContext();
+            activity.requestFocusFragment(this);
         }
 
         return mPreview;
@@ -104,25 +105,21 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
         outState.putParcelable(ARG_ITEM, mItem);
     }
 
-    public void loadPreview() {
+    public void loadPreview(BaseActivity activity) {
         if (Config.DEBUG) {
             //TODO move preview feature to Debug version
-            FragmentDataStorage dataFragment = (FragmentDataStorage) getFragmentManager()
-                    .findFragmentByTag(FragmentDataStorage.TAG);
+            FragmentDataStorage dataFragment = (FragmentDataStorage) activity.getDataFragment();
             Observable<Object> observable = dataFragment.getObservableManager().getLoaderObservable();
 
             if (mLoadDataSubscription != null) {
                 mLoadDataSubscription.unsubscribe();
             }
 
-            BaseActivity activity = (BaseActivity) getActivity();
             if (activity != null) {
                 mLoadDataSubscription = observable.subscribe(mLoadDataAction);
                 activity.getLocalSubscription().add(mLoadDataSubscription);
             }
         } else {
-            Activity activity = Application.getInstance().getCurActivity();
-
             if (activity != null) {
                 String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(mItem.getExtension());
 
@@ -144,16 +141,20 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
 
     @Override
     public void onStateChanged(int oldState, int newState) {
+        BaseActivity activity = (BaseActivity) getActivity();
+
         if (newState == Preview.STATE_MAXIMUM) {
-            requestFocus();
+            activity.requestFocusFragment(this);
         } else {
-            popBackFocus();
+            activity.removeFocusRequest(this);
         }
     }
 
     @Override
-    public void onBackPressed() {
+    public boolean onBackPressed() {
         mPreview.minimize();
+
+        return true;
     }
 
     @Override

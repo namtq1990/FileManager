@@ -9,8 +9,6 @@ import android.support.v4.app.FragmentActivity;
  * Interface to active with {@link (BaseActivity)}
  */
 public interface BaseFragmentInterface {
-    String ARG_OLD_FOCUS_TAG = "OldFocusTag";
-    String ARG_IS_RESTORE_FOCUS = "isRestoreFocus";
 
     Context getAppContext();
 
@@ -32,16 +30,5 @@ public interface BaseFragmentInterface {
      * Use this function to define max time to animate, setup with default animation.
      */
     long getTimeAnimate();
-
-    void requestFocus();
-
-    void clearFocus();
-
-    /**
-     * Check if when this fragment is destroyed, old focus should be replace
-     */
-    boolean isRestoreFocus();
-
-    void setRestoreFocus(boolean isRestoreFocus);
 
 }
