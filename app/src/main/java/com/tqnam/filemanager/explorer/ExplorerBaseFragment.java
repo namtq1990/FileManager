@@ -31,6 +31,7 @@ import android.widget.Toast;
 
 import com.quangnam.baseframework.BaseActivity;
 import com.quangnam.baseframework.BaseFragment;
+import com.quangnam.baseframework.BaseFragmentInterface;
 import com.quangnam.baseframework.exception.SystemException;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
@@ -53,7 +54,7 @@ import rx.functions.Func1;
 public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView,
         MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.OpenRenameDialogListnener,
         ExplorerItemAdapter.OnOpenItemActionListener, BaseActivity.OnBackPressedListener,
-        DialogRenameFragment.RenameDialogListener
+        DialogRenameFragment.RenameDialogListener, BaseActivity.OnFocusFragmentChanged
 {
     public static final String ARG_QUERY = "query";
     public static final String ARG_ROOT_PATH = "root_path";
@@ -154,10 +155,12 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
+        ((BaseActivity) getActivity()).removeFocusListener(this);
         mViewHolder.mSearchView.setOnQueryTextFocusChangeListener(null);
         mViewHolder.mSearchView.setOnQueryTextListener(null);
         mViewHolder = null;
+
+        super.onDestroyView();
     }
 
     /**
@@ -169,6 +172,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 //        ExplorerModel model = genModel();
 //        mPresenter = genPresenter();
         BaseActivity activity = (BaseActivity) getActivity();
+        activity.addFocusListener(this);
         mDataFragment = (FragmentDataStorage) activity.getDataFragment();
 
         if (savedInstanceState == null) {
@@ -435,6 +439,28 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             return true;
         } else {
             return mPresenter.getCurLocation().equals(getRootPath());
+        }
+    }
+
+    protected boolean isFragmentFocusing(BaseFragmentInterface curFocus) {
+        if (curFocus instanceof HostFragment) {
+            Fragment curPage = ((HostFragment) curFocus).getChildFragmentManager()
+                    .findFragmentById(R.id.fragment_container);
+            if (curPage == this)
+                return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void onFocusFragmentChange(BaseFragmentInterface oldFragment, BaseFragmentInterface newFragment) {
+        if (isFragmentFocusing(newFragment)) {
+            ((MainActivity) getActivity()).showAddButton();
+            mViewHolder.mSearchMenu.setVisible(true);
+        } else {
+            ((MainActivity) getActivity()).hideAddButton();
+            mViewHolder.mSearchMenu.setVisible(false);
         }
     }
 
