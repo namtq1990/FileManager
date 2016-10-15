@@ -34,8 +34,9 @@ public class HostFragment extends BaseFragment implements BaseActivity.OnBackPre
         super.onResume();
 
         if (needRequestFocus()) {
-            BaseActivity activity = (BaseActivity) getActivity();
-            activity.requestFocusFragment(this);
+//            BaseActivity activity = (BaseActivity) getActivity();
+//            activity.requestFocusFragment(this);
+            requestFocusFragment((BaseActivity) getActivity());
         }
     }
 

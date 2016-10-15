@@ -65,16 +65,18 @@ public class MenuAddItemFragment extends BaseFragment {
         super.onResume();
 
         showMenu();
-        BaseActivity activity = (BaseActivity) getActivity();
-        activity.requestFocusFragment(this);
+//        BaseActivity activity = (BaseActivity) getActivity();
+//        activity.requestFocusFragment(this);
+        requestFocusFragment((BaseActivity) getActivity());
     }
 
     @Override
     public void onPause() {
         super.onPause();
 
-        BaseActivity activity = (BaseActivity) getActivity();
-        activity.removeFocusRequest(this);
+//        BaseActivity activity = (BaseActivity) getActivity();
+//        activity.removeFocusRequest(this);
+        removeFocusRequest((BaseActivity) getActivity());
     }
 
     @Override

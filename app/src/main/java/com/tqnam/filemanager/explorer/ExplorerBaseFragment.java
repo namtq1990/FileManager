@@ -345,14 +345,16 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     }
 
     public void requestFocus() {
-        BaseActivity activity = (BaseActivity) getActivity();
-        activity.requestFocusFragment(this);
+//        BaseActivity activity = (BaseActivity) getActivity();
+//        activity.requestFocusFragment(this);
+        requestFocusFragment((BaseActivity) getActivity());
         ((ExplorerBaseFunction) getActivity()).showAddButton();
     }
 
     public void clearFocus() {
-        BaseActivity activity = (BaseActivity) getActivity();
-        activity.removeFocusRequest(this);
+//        BaseActivity activity = (BaseActivity) getActivity();
+//        activity.removeFocusRequest(this);
+        removeFocusRequest((BaseActivity) getActivity());
         ((ExplorerBaseFunction) getActivity()).hideAddButton();
     }
 
@@ -457,10 +459,10 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public void onFocusFragmentChange(BaseFragmentInterface oldFragment, BaseFragmentInterface newFragment) {
         if (isFragmentFocusing(newFragment)) {
             ((MainActivity) getActivity()).showAddButton();
-            mViewHolder.mSearchMenu.setVisible(true);
+            if (mViewHolder.mSearchMenu != null) mViewHolder.mSearchMenu.setVisible(true);
         } else {
             ((MainActivity) getActivity()).hideAddButton();
-            mViewHolder.mSearchMenu.setVisible(false);
+            if (mViewHolder.mSearchView != null) mViewHolder.mSearchMenu.setVisible(false);
         }
     }
 

@@ -38,7 +38,7 @@ public class BaseActivity extends AppCompatActivity {
 //        mFocusFragment = fragment;
 //    }
 
-    public void requestFocusFragment(BaseFragmentInterface fragment) {
+    void requestFocusFragment(BaseFragmentInterface fragment) {
         BaseFragmentInterface oldFragment = getFocusFragment();
 
         int priority = mRequestActiveList.indexOf(fragment);
@@ -54,12 +54,12 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
-    protected void popupFocusFragment() {
+    void popupFocusFragment() {
         BaseFragmentInterface curFocus = mRequestActiveList.pop();
         onFocusFragmentChange(curFocus, getFocusFragment());
     }
 
-    public void removeFocusRequest(BaseFragmentInterface fragment) {
+    void removeFocusRequest(BaseFragmentInterface fragment) {
         BaseFragmentInterface curFocusFragment = getFocusFragment();
         mRequestActiveList.remove(fragment);
 
@@ -68,11 +68,11 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
-    public int getPriorityFocusIndex(BaseFragmentInterface fragment) {
+    int getPriorityFocusIndex(BaseFragmentInterface fragment) {
         return mRequestActiveList.indexOf(fragment);
     }
 
-    public void requestAtPriority(int priority, BaseFragmentInterface fragment) {
+    void requestAtPriority(int priority, BaseFragmentInterface fragment) {
         BaseFragmentInterface curFocus = getFocusFragment();
         mRequestActiveList.add(priority, fragment);
 
@@ -137,6 +137,11 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     public interface OnFocusFragmentChanged {
+        /**
+         * Listener when focus fragment changed
+         * @param oldFragment old focus fragment, nullable
+         * @param newFragment new focus fragment, nullable
+         */
         void onFocusFragmentChange(BaseFragmentInterface oldFragment, BaseFragmentInterface newFragment);
     }
 }

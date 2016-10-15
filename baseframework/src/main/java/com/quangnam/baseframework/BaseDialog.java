@@ -22,6 +22,26 @@ public class BaseDialog extends DialogFragment implements BaseFragmentInterface 
         mAppContext = context.getApplicationContext();
     }
 
+    public void requestFocusFragment(BaseActivity activity) {
+        activity.requestFocusFragment(this);
+    }
+
+    public void popupFocusFragment(BaseActivity activity) {
+        activity.popupFocusFragment();
+    }
+
+    public void removeFocusRequest(BaseActivity activity) {
+        activity.removeFocusRequest(this);
+    }
+
+    public int getPriorityFocusIndex(BaseActivity activity) {
+        return activity.getPriorityFocusIndex(this);
+    }
+
+    public void requestAtPriority(BaseActivity activity, int priority) {
+        activity.requestAtPriority(priority, this);
+    }
+
     @Override
     public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
         Animation anim = super.onCreateAnimation(transit, enter, nextAnim);

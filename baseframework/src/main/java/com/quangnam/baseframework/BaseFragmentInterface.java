@@ -31,4 +31,13 @@ public interface BaseFragmentInterface {
      */
     long getTimeAnimate();
 
+    void requestFocusFragment(BaseActivity activity);
+
+    void popupFocusFragment(BaseActivity activity);
+
+    void removeFocusRequest(BaseActivity activity);
+
+    int getPriorityFocusIndex(BaseActivity activity);
+
+    void requestAtPriority(BaseActivity activity, int priority);
 }
