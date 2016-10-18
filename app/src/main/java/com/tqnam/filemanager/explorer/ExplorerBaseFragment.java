@@ -59,7 +59,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public static final String ARG_QUERY = "query";
     public static final String ARG_ROOT_PATH = "root_path";
     private static final String ARG_QUICK_QUERY = "query_text";
-
     //    private Animator               mOpenAnimType;
     protected Action1<Throwable> mActionError = new Action1<Throwable>() {
         @Override
@@ -94,6 +93,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             }
         }
     };
+    private boolean mIsShownMenu;
     private ExplorerPresenter   mPresenter;
     private FragmentDataStorage mDataFragment;
     private ViewHolder mViewHolder;
@@ -110,6 +110,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        mIsShownMenu = true;
 //        mDataFragment = (FragmentDataStorage) getFragmentManager().findFragmentByTag(FragmentDataStorage.TAG);
 
         mPresenter = genPresenter();
@@ -298,7 +299,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             }
         });
 
-
+        mViewHolder.mSearchMenu.setVisible(mIsShownMenu);
         //region Add animation to search field, consider default fadeIn and translate
         // -----------------------------------------------------------------------------------------
 
@@ -459,9 +460,11 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public void onFocusFragmentChange(BaseFragmentInterface oldFragment, BaseFragmentInterface newFragment) {
         if (isFragmentFocusing(newFragment)) {
             ((MainActivity) getActivity()).showAddButton();
+            mIsShownMenu = true;
             if (mViewHolder.mSearchMenu != null) mViewHolder.mSearchMenu.setVisible(true);
         } else {
             ((MainActivity) getActivity()).hideAddButton();
+            mIsShownMenu = false;
             if (mViewHolder.mSearchView != null) mViewHolder.mSearchMenu.setVisible(false);
         }
     }
@@ -566,13 +569,13 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         getArguments().putString(ARG_ROOT_PATH, path);
     }
 
-    public void refreshView() {
-        mViewHolder.mAdapter.notifyDataSetChanged();
-    }
-
 //    public void setOpenOption(ExplorerPresenter.OpenOption openOption) {
 //        mPresenter.setOpenOption(openOption);
 //    }
+
+    public void refreshView() {
+        mViewHolder.mAdapter.notifyDataSetChanged();
+    }
 
     @Override
     public ExplorerPresenter.OpenType getOpenType() {
