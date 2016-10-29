@@ -2,6 +2,7 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -47,7 +48,8 @@
             android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:src="@drawable/folder_fab"
             android:visibility="gone"
-            app:fabSize="mini"/>
+            app:fabSize="mini"
+            tools:visibility="visible"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/btn_add_file"
@@ -57,7 +59,8 @@
             android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:src="@drawable/file_fab"
             android:visibility="gone"
-            app:fabSize="mini"/>
+            app:fabSize="mini"
+            tools:visibility="visible"/>
     </LinearLayout>
 
     <LinearLayout
@@ -80,7 +83,8 @@
             android:background="@drawable/bg_border"
             android:gravity="center"
             android:text="ADD FOLDER"
-            android:visibility="gone"/>
+            android:visibility="gone"
+            tools:visibility="visible"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -92,7 +96,8 @@
             android:background="@drawable/bg_border"
             android:gravity="center"
             android:text="ADD FILE"
-            android:visibility="gone"/>
+            android:visibility="gone"
+            tools:visibility="visible"/>
 
     </LinearLayout>
 

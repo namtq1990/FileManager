@@ -1,5 +1,6 @@
 package com.tqnam.filemanager.explorer;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -9,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
@@ -42,6 +44,19 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
     @Override
     public BaseDataFragment getDataFragment() {
         return mDataFragment;
+    }
+
+    public String getLocalHomePath() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        String key_pref_homepath = getString(R.string.pref_local_home_path);
+        String homePath = pref.getString(key_pref_homepath, null);
+        if (homePath == null) {
+            homePath = "/";
+            pref.edit().putString(key_pref_homepath, homePath)
+                    .apply();
+        }
+
+        return homePath;
     }
 
     /**
@@ -85,32 +100,33 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
         }
         //
 
-//        Observable<Boolean> obsMenuVisibility = RxView.layoutChanges(mViewHolder.mMenuAddItem)
-//                .flatMap(new Func1<Void, Observable<Boolean>>() {
-//                    @Override
-//                    public Observable<Boolean> call(Void aVoid) {
-//                        return Observable.just(View.VISIBLE == mViewHolder.mMenuAddItem.getVisibility());
-//                    }
-//                })
-//                .distinctUntilChanged();
-//        obsMenuVisibility.subscribe(new Action1<Boolean>() {
-//            @Override
-//            public void call(Boolean aBoolean) {
-//                if (aBoolean) {
-//                    mViewHolder.mBtnAddFile.animate().rotation(45)
-//                            .setDuration(100)
-//                            .start();
-//                } else {
-//                    mViewHolder.mBtnAddFile.animate().rotation(0)
-//                            .setDuration(100)
-//                            .start();
-//                }
-//            }
-//        });
+        //        Observable<Boolean> obsMenuVisibility = RxView.layoutChanges(mViewHolder.mMenuAddItem)
+        //                .flatMap(new Func1<Void, Observable<Boolean>>() {
+        //                    @Override
+        //                    public Observable<Boolean> call(Void aVoid) {
+        //                        return Observable.just(View.VISIBLE == mViewHolder.mMenuAddItem.getVisibility());
+        //                    }
+        //                })
+        //                .distinctUntilChanged();
+        //        obsMenuVisibility.subscribe(new Action1<Boolean>() {
+        //            @Override
+        //            public void call(Boolean aBoolean) {
+        //                if (aBoolean) {
+        //                    mViewHolder.mBtnAddFile.animate().rotation(45)
+        //                            .setDuration(100)
+        //                            .start();
+        //                } else {
+        //                    mViewHolder.mBtnAddFile.animate().rotation(0)
+        //                            .setDuration(100)
+        //                            .start();
+        //                }
+        //            }
+        //        });
     }
 
     @Override
-    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+    }
 
     @Override
     public void onPageSelected(int position) {
@@ -121,14 +137,15 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 
         if (fragment != null &&
                 fragment instanceof BaseFragmentInterface) {
-//            requestFocusFragment((BaseFragmentInterface) fragment);
+            //            requestFocusFragment((BaseFragmentInterface) fragment);
             ((BaseFragmentInterface) fragment).requestFocusFragment(this);
         }
 
     }
 
     @Override
-    public void onPageScrollStateChanged(int state) {}
+    public void onPageScrollStateChanged(int state) {
+    }
 
     public void showAddButton() {
         mViewHolder.mBtnAddFile.show();
@@ -145,7 +162,7 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
     private class PageAdapter extends FragmentPagerAdapter {
 
         static final int INDEX_LOCAL_FILE_FRAGMENT = 0;
-        static final int INDEX_PREF_FRAGMENT       = 1;
+        static final int INDEX_PREF_FRAGMENT = 1;
 
         public PageAdapter(FragmentManager fm) {
             super(fm);
@@ -162,7 +179,7 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            ListFileFragment list = ListFileFragment.newInstance("/");
+                            ListFileFragment list = ListFileFragment.newInstance(getLocalHomePath());
                             mViewHolder.mFragmentListFile = list;
 
                             ((HostFragment) fragment).addFragmentPage(list, ListFileFragment.TAG);
@@ -201,11 +218,11 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
     }
 
     private class ViewHolder {
-        ListFileFragment     mFragmentListFile;
-        Toolbar              mToolbar;
-        TabLayout            mTab;
-        ViewPager            mPager;
-        PageAdapter          mAdapter;
+        ListFileFragment mFragmentListFile;
+        Toolbar mToolbar;
+        TabLayout mTab;
+        ViewPager mPager;
+        PageAdapter mAdapter;
         FloatingActionButton mBtnAddFile;
     }
 }

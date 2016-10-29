@@ -441,7 +441,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         if (getOpenOption() == ExplorerPresenter.OpenOption.SEARCH) {
             return true;
         } else {
-            return mPresenter.getCurLocation().equals(getRootPath());
+            return mPresenter.getCurLocation() == null
+                    || mPresenter.getCurLocation().equals(getRootPath());
         }
     }
 
