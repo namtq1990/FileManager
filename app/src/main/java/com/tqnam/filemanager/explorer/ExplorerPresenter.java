@@ -28,6 +28,8 @@ public interface ExplorerPresenter {
     Observable<Bitmap> loadImage(ItemExplorer item);
     Observable<Void> renameItem(ItemExplorer item, String newLabel);
     Observable<ItemExplorer> reload();
+    Observable<Void> createFile(String filename);
+    Observable<Void> createFolder(String filename);
 
     Observable<List<ItemExplorer>> quickQueryFile(String query);
     Observable<List<ItemExplorer>> quickQueryFile(String query, String path);

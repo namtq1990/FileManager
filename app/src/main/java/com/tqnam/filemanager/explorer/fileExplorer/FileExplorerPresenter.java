@@ -164,6 +164,42 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
+    public Observable<Void> createFile(final String filename) {
+        return Observable.just(filename)
+                .flatMap(new Func1<String, Observable<ItemExplorer>>() {
+                    @Override
+                    public Observable<ItemExplorer> call(String s) {
+                        FileUtil.createFile(mModel.mCurLocation, filename);
+                        return reload();
+                    }
+                })
+                .map(new Func1<ItemExplorer, Void>() {
+                    @Override
+                    public Void call(ItemExplorer itemExplorer) {
+                        return null;
+                    }
+                });
+    }
+
+    @Override
+    public Observable<Void> createFolder(final String filename) {
+        return Observable.just(filename)
+                .flatMap(new Func1<String, Observable<ItemExplorer>>() {
+                    @Override
+                    public Observable<ItemExplorer> call(String s) {
+                        FileUtil.createFolder(mModel.mCurLocation, filename);
+                        return reload();
+                    }
+                })
+                .map(new Func1<ItemExplorer, Void>() {
+                    @Override
+                    public Void call(ItemExplorer itemExplorer) {
+                        return null;
+                    }
+                });
+    }
+
+    @Override
     public Observable<List<ItemExplorer>> quickQueryFile(final String query) {
         return Observable.just(query)
                 .map(new Func1<String, List<ItemExplorer>>() {

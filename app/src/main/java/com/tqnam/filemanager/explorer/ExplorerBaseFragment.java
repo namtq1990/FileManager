@@ -570,6 +570,25 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         getArguments().putString(ARG_ROOT_PATH, path);
     }
 
+    public void createFile(String name) {
+        mPresenter.createFile(name).subscribe(new Action1<Void>() {
+            @Override
+            public void call(Void aVoid) {
+                refreshView();
+            }
+        }, mActionError);
+    }
+
+    public void createFolder(String name) {
+        mPresenter.createFolder(name)
+                .subscribe(new Action1<Void>() {
+                    @Override
+                    public void call(Void aVoid) {
+                        refreshView();
+                    }
+                }, mActionError);
+    }
+
 //    public void setOpenOption(ExplorerPresenter.OpenOption openOption) {
 //        mPresenter.setOpenOption(openOption);
 //    }

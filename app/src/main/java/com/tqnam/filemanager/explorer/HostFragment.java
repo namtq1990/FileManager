@@ -53,6 +53,10 @@ public class HostFragment extends BaseFragment implements BaseActivity.OnBackPre
         }
     }
 
+    public Fragment getCurPage() {
+        return getChildFragmentManager().findFragmentById(R.id.fragment_container);
+    }
+
     private boolean isHostEmpty() {
         return getChildFragmentManager().getFragments() == null || getChildFragmentManager().getFragments().isEmpty();
     }
@@ -64,7 +68,7 @@ public class HostFragment extends BaseFragment implements BaseActivity.OnBackPre
 
     @Override
     public boolean onBackPressed() {
-        Fragment fragment = getChildFragmentManager().findFragmentById(R.id.fragment_container);
+        Fragment fragment = getCurPage();
         if (!(fragment instanceof BaseActivity.OnBackPressedListener)
                 || !((BaseActivity.OnBackPressedListener) fragment).onBackPressed()) {
             getChildFragmentManager().popBackStack();

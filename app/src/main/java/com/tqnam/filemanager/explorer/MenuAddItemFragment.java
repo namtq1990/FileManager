@@ -1,7 +1,7 @@
 package com.tqnam.filemanager.explorer;
 
-import android.animation.LayoutTransition;
 import android.animation.ObjectAnimator;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -24,6 +24,7 @@ public class MenuAddItemFragment extends BaseFragment {
     public static final String TAG = "MenuAddItem";
 
     private ViewHolder mHolder;
+    private MenuFABListener mListener;
 
     @Nullable
     @Override
@@ -31,33 +32,57 @@ public class MenuAddItemFragment extends BaseFragment {
         mHolder = new ViewHolder();
         RelativeLayout rootView = (RelativeLayout) inflater.inflate(R.layout.fragment_menu_add_item, container, false);
         mHolder.mBtnAdd = (FloatingActionButton) rootView.findViewById(R.id.btn_add);
+        mHolder.mBtnAddFile = (FloatingActionButton) rootView.findViewById(R.id.btn_add_file);
+        mHolder.mBtnAddFolder = (FloatingActionButton) rootView.findViewById(R.id.btn_add_folder);
         mHolder.mBackground = rootView.findViewById(R.id.background);
-        mHolder.mMenu = (ViewGroup) rootView.findViewById(R.id.menu_add_item);
-        mHolder.mMenuLabel = (ViewGroup) rootView.findViewById(R.id.menu_add_item_label);
-
-        LayoutTransition transition = new LayoutTransition();
-        mHolder.mMenu.setLayoutTransition(transition);
-        mHolder.mMenuLabel.setLayoutTransition(transition);
+        mHolder.mMenu = (ViewGroup) rootView.findViewById(R.id.fab_menu);
 
         mHolder.mBtnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                getFragmentManager().beginTransaction()
-//                        .remove(MenuAddItemFragment.this)
-//                        .commit();
-                getFragmentManager().popBackStack();
+              dismiss();
             }
         });
 
         rootView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                getFragmentManager().popBackStack();
+                dismiss();
                 return true;
             }
         });
 
+        mHolder.mBtnAddFolder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+
+                if (mListener != null) {
+                    mListener.onAddFolderSelected();
+                }
+            }
+        });
+        mHolder.mBtnAddFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+
+                if (mListener != null) {
+                    mListener.onAddFileSelected();
+                }
+            }
+        });
+
         return rootView;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        if (context instanceof MenuFABListener) {
+            mListener = (MenuFABListener) context;
+        }
     }
 
     @Override
@@ -91,6 +116,10 @@ public class MenuAddItemFragment extends BaseFragment {
         super.onDestroy();
     }
 
+    public void dismiss() {
+        getFragmentManager().popBackStack();
+    }
+
     private void showMenu() {
         mHolder.mBtnAdd.animate()
                 .setDuration(getContext().getResources().getInteger(android.R.integer.config_shortAnimTime))
@@ -103,7 +132,6 @@ public class MenuAddItemFragment extends BaseFragment {
                 .start();
         for (int i = 0;i < mHolder.mMenu.getChildCount();i++) {
             mHolder.mMenu.getChildAt(i).setVisibility(View.VISIBLE);
-            mHolder.mMenuLabel.getChildAt(i).setVisibility(View.VISIBLE);
         }
     }
 
@@ -118,7 +146,6 @@ public class MenuAddItemFragment extends BaseFragment {
 
         for (int i = 0;i < mHolder.mMenu.getChildCount();i++) {
             mHolder.mMenu.getChildAt(i).setVisibility(View.INVISIBLE);
-            mHolder.mMenuLabel.getChildAt(i).setVisibility(View.INVISIBLE);
         }
     }
 
@@ -135,10 +162,16 @@ public class MenuAddItemFragment extends BaseFragment {
 
     }
 
+    public interface MenuFABListener {
+        void onAddFileSelected();
+        void onAddFolderSelected();
+    }
+
     private class ViewHolder {
         View mBackground;
         FloatingActionButton mBtnAdd;
+        FloatingActionButton mBtnAddFile;
+        FloatingActionButton mBtnAddFolder;
         ViewGroup mMenu;
-        ViewGroup mMenuLabel;
     }
 }

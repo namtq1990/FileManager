@@ -27,7 +27,13 @@ import com.tqnam.filemanager.utils.UIUtils;
  * First design for file explorer, may be add setting, too.
  */
 
-public class MainActivity extends BaseActivity implements ViewPager.OnPageChangeListener, ExplorerBaseFragment.ExplorerBaseFunction {
+public class MainActivity extends BaseActivity implements ViewPager.OnPageChangeListener,
+        ExplorerBaseFragment.ExplorerBaseFunction, MenuAddItemFragment.MenuFABListener,
+        EnterTextDialogFragment.EnterTextDialogListener
+{
+
+    private static final String KEY_FILE = "file";
+    private static final String KEY_FOLDER = "folder";
 
     private Handler mHandler;
     private ViewHolder mViewHolder;
@@ -130,13 +136,9 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 
     @Override
     public void onPageSelected(int position) {
-        String tag = UIUtils.getViewPagerTag(mViewHolder.mPager.getId(),
-                mViewHolder.mAdapter.getItemId(position));
+        Fragment fragment = getCurSelectedPage();
 
-        Fragment fragment = getSupportFragmentManager().findFragmentByTag(tag);
-
-        if (fragment != null &&
-                fragment instanceof BaseFragmentInterface) {
+        if (fragment != null) {
             //            requestFocusFragment((BaseFragmentInterface) fragment);
             ((BaseFragmentInterface) fragment).requestFocusFragment(this);
         }
@@ -157,6 +159,64 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 
     public void hideAddButton() {
         mViewHolder.mBtnAddFile.setVisibility(View.GONE);
+    }
+
+    public void showAddFileDialog() {
+        EnterTextDialogFragment fragment = EnterTextDialogFragment.newInstance("New File",
+                "Enter file name",
+                KEY_FILE);
+        fragment.show(getSupportFragmentManager(), EnterTextDialogFragment.TAG);
+    }
+
+    public void showAddFolderDialog() {
+        EnterTextDialogFragment fragment = EnterTextDialogFragment.newInstance("New Folder",
+                "Enter folder name",
+                KEY_FOLDER);
+        fragment.show(getSupportFragmentManager(), EnterTextDialogFragment.TAG);
+    }
+
+    @Override
+    public void onAddFileSelected() {
+        showAddFileDialog();
+    }
+
+    @Override
+    public void onAddFolderSelected() {
+        showAddFolderDialog();
+    }
+
+    public Fragment getCurSelectedPage() {
+        int curID = mViewHolder.mPager.getCurrentItem();
+        return (Fragment) getSupportFragmentManager()
+                .findFragmentByTag(UIUtils.getViewPagerTag(R.id.pager, curID));
+    }
+
+    public Fragment getCurFragmentInHostIfExist() {
+        Fragment hostFragment = getCurSelectedPage();
+
+        if (hostFragment instanceof HostFragment) {
+            return ((HostFragment) hostFragment).getCurPage();
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void onSubmit(String key, String content) {
+        Fragment fragment = getCurFragmentInHostIfExist();
+
+        if (fragment instanceof ExplorerBaseFragment) {
+            if (key.equals(KEY_FILE)) {
+                ((ExplorerBaseFragment) fragment).createFile(content);
+            } else if (key.equals(KEY_FOLDER)) {
+                ((ExplorerBaseFragment) fragment).createFolder(content);
+            }
+        }
+    }
+
+    @Override
+    public void onCancel(String key, String content) {
+        // Nothing to do
     }
 
     private class PageAdapter extends FragmentPagerAdapter {

@@ -22,6 +22,10 @@ public class ErrorCode {
 
     public static final int RK_EXPLORER_OPEN_ERROR = 102;
 
+    public static final int RK_EXPLORER_FILE_EXISTED = 103;
+
+    public static final int RK_EXPLORER_PERMISSION = 104;
+
     public static final int RK_RENAME_ERR = 110;
 
     //    public static String generateError(String message, int errorcode) {
