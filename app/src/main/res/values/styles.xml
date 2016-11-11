@@ -21,6 +21,12 @@
         <item name="colorAccent">@android:color/holo_red_dark</item>
         <item name="actionModeBackground">?colorPrimary</item>
         <item name="windowActionModeOverlay">true</item>
+        <item name="drawerArrowStyle">@style/DrawerArrowToggle</item>
+    </style>
+
+    <style name="DrawerArrowToggle" parent="Widget.AppCompat.DrawerArrowToggle">
+        <item name="spinBars">true</item>
+        <item name="color">@color/white</item>
     </style>
 
     <style name="ToolbarTheme">

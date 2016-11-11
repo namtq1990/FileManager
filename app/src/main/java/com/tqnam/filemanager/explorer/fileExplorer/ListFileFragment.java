@@ -52,6 +52,12 @@ public class ListFileFragment extends ExplorerBaseFragment {
     }
 
     @Override
+    public void openFolder(String path) {
+        getPresenter().openDirectory(new FileItem(path))
+                .subscribe(mActionOpen, mActionError);
+    }
+
+    @Override
     public void onQueryFile(final String query) {
         if (getOpenOption() == ExplorerPresenter.OpenOption.EXPLORER) {
             ListFileFragment fragment = ListFileFragment.newInstance(getPresenter().getCurLocation(), query);

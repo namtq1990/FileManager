@@ -550,6 +550,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         mDataFragment.getData().putString(ARG_QUICK_QUERY, query);
     }
 
+    public abstract void openFolder(String path);
+
     @Override
     public String getQuery() {
         return getArguments().getString(ARG_QUERY);
