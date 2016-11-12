@@ -1,28 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
     >
 
     <item
         android:id="@+id/action_copy"
         android:icon="@drawable/ic_content_copy"
-        android:showAsAction="always"
-        android:title="@string/action_copy"/>
+        android:title="@string/action_copy"
+        app:showAsAction="always"/>
 
     <item
         android:id="@+id/action_cut"
         android:icon="@drawable/ic_content_cut"
-        android:showAsAction="always"
-        android:title="@string/action_cut" />
+        android:title="@string/action_cut"
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/action_archive"
         android:icon="@drawable/ic_archive"
-        android:showAsAction="withText"
-        android:title="@string/action_archive" />
+        android:title="@string/action_archive"
+        app:showAsAction="withText" />
 
     <item
         android:id="@+id/action_del"
         android:icon="@drawable/ic_delete"
-        android:showAsAction="always"
-        android:title="@string/action_remove"/>
+        android:title="@string/action_remove"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_property"
+        android:title="@string/action_property"
+        app:showAsAction="collapseActionView"/>
 </menu>

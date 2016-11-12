@@ -6,5 +6,12 @@
     <string name="err_unknown">Oop! Something happened</string>
     <string name="drawer_action_open">Open Drawer menu</string>
     <string name="drawer_action_close">Close drawer menu</string>
+    <string name="permission_read">Read</string>
+    <string name="permission_write">Write</string>
+    <string name="permission_execute">Execute</string>
+    <string name="information_location">Location:&#160;</string>
+    <string name="information_size">Size:&#160;</string>
+    <string name="information_mod_date">Date Modified:&#160;</string>
+    <string name="information_file">File:</string>
 
 </resources>

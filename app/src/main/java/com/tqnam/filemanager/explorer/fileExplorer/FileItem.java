@@ -10,6 +10,7 @@ import com.tqnam.filemanager.model.ItemExplorer;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -50,6 +51,16 @@ public class FileItem extends File implements ItemExplorer {
     @Override
     public String getParentPath() {
         return getParent();
+    }
+
+    @Override
+    public long getSize() {
+        return super.length();
+    }
+
+    @Override
+    public Date getModifiedTime() {
+        return new Date(super.lastModified());
     }
 
     @Override

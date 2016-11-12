@@ -27,7 +27,7 @@ import com.quangnam.baseframework.BaseFragmentInterface;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
 import com.tqnam.filemanager.preference.PreferenceFragment;
-import com.tqnam.filemanager.utils.UIUtils;
+import com.tqnam.filemanager.utils.ViewUtils;
 
 import java.util.ArrayList;
 
@@ -263,7 +263,7 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
     public Fragment getCurSelectedPage() {
         int curID = mViewHolder.mPager.getCurrentItem();
         return getSupportFragmentManager()
-                .findFragmentByTag(UIUtils.getViewPagerTag(R.id.pager, curID));
+                .findFragmentByTag(ViewUtils.getViewPagerTag(R.id.pager, curID));
     }
 
     @Nullable

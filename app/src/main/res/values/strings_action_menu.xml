@@ -4,4 +4,5 @@
     <string name="action_cut">CUT ITEMS</string>
     <string name="action_archive">COMPRESS ITEMS</string>
     <string name="action_remove">REMOVE ITEMS</string>
+    <string name="action_property">VIEW PROPERTY</string>
 </resources>

@@ -39,6 +39,7 @@ import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.model.ItemInformation;
 
 import java.util.List;
 
@@ -52,8 +53,8 @@ import rx.functions.Func1;
  * Base fragment for explorer view, may be file explorer, ftp explorer, ...
  */
 public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView,
-        MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.OpenRenameDialogListnener,
-        ExplorerItemAdapter.OnOpenItemActionListener, BaseActivity.OnBackPressedListener,
+        MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.ExplorerItemAdapterListener,
+        BaseActivity.OnBackPressedListener,
         DialogRenameFragment.RenameDialogListener, BaseActivity.OnFocusFragmentChanged
 {
     public static final String ARG_QUERY = "query";
@@ -141,7 +142,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     @Override
     public void onResume() {
         super.onResume();
-        BaseActivity activity = (BaseActivity) getActivity();
+//        BaseActivity activity = (BaseActivity) getActivity();
 
 //        if (activity.getFocusFragment() == null) {
 //            requestFocus();
@@ -230,8 +231,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         mViewHolder.mList.setLayoutManager(layoutManager);
         mViewHolder.mList.setHasFixedSize(true);
 
-        mViewHolder.mAdapter.setRenameListener(this);
-        mViewHolder.mAdapter.setOpenItemListener(this);
+        mViewHolder.mAdapter.setListener(this);
 
     }
 
@@ -487,6 +487,13 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                         .add(mPresenter.reload().subscribe(mActionOpen, mActionError));
             }
         }, mActionError));
+    }
+
+    @Override
+    public void onViewProperty(ItemExplorer[] listSelected) {
+        ItemInformation information = new ItemInformation(listSelected);
+        InformationDialogFragment fragment = InformationDialogFragment.newInstance(information);
+        fragment.show(getFragmentManager(), InformationDialogFragment.TAG);
     }
 
     @Override

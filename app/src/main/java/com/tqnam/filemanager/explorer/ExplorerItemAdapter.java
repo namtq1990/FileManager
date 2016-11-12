@@ -44,8 +44,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     private SparseBooleanArray       mSelectedList;
     private ActionMode               mActionMode;
     private ExplorerPresenter        mPresenter;
-    private OpenRenameDialogListnener mRenameListener;
-    private OnOpenItemActionListener mOpenItemListener;
+    private ExplorerItemAdapterListener mListener;
 
 //    private View.OnClickListener mItemClickListener = new View.OnClickListener() {
 //        @Override
@@ -85,6 +84,21 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_property:
+                    int length = mSelectedList.size();
+                    ItemExplorer[] selectedList = new ItemExplorer[length];
+                    for (int i = 0; i < length; i++) {
+                        int key = mSelectedList.keyAt(i);
+                        selectedList[i] = mPresenter.getItemDisplayedAt(key);
+                    }
+
+                    mListener.onViewProperty(selectedList);
+                    break;
+            }
+
+            mActionMode.finish();
+
             return true;
         }
 
@@ -118,6 +132,10 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
 
     }
 
+    private void clearSelection() {
+        mSelectedList.clear();
+    }
+
     public void updateUI(View view, int state) {
 
         if (mState == state)
@@ -129,7 +147,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                 notifyItemChanged(mSelectedList.keyAt(i));
             }
 
-            mSelectedList.clear();
+            clearSelection();
         }
 
         switch (state) {
@@ -165,12 +183,8 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         }
     }
 
-    public void setRenameListener(OpenRenameDialogListnener listener) {
-        mRenameListener = listener;
-    }
-
-    public void setOpenItemListener(OnOpenItemActionListener listener) {
-        mOpenItemListener = listener;
+    public void setListener(ExplorerItemAdapterListener listener) {
+        mListener = listener;
     }
 
     @Override
@@ -223,12 +237,10 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         return mPresenter.getItemDisplayCount();
     }
 
-    public interface OpenRenameDialogListnener {
-        void openRenameDialog(String item, int position);
-    }
-
-    public interface OnOpenItemActionListener {
+    public interface ExplorerItemAdapterListener {
         void onOpenAction(int position);
+        void openRenameDialog(String item, int position);
+        void onViewProperty(ItemExplorer[] listSelected);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -239,8 +251,8 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
 
             @Override
             public boolean onLongClick(View v) {
-                if (mRenameListener != null) {
-                    mRenameListener.openRenameDialog(((TextView) v).getText().toString(), getAdapterPosition());
+                if (mListener != null) {
+                    mListener.openRenameDialog(((TextView) v).getText().toString(), getAdapterPosition());
                 }
 
                 return false;
@@ -273,9 +285,9 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                                             break;
                                         }
                                         case STATE_NORMAL: {
-                                            if (mOpenItemListener != null) {
+                                            if (mListener != null) {
                                                 GridViewItem item = (GridViewItem) itemView;
-                                                mOpenItemListener.onOpenAction(item.getPosition());
+                                                mListener.onOpenAction(item.getPosition());
                                             }
                                             break;
                                         }

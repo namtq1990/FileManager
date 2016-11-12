@@ -3,6 +3,7 @@ package com.tqnam.filemanager.model;
 import android.net.Uri;
 import android.os.Parcelable;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -45,6 +46,16 @@ public interface ItemExplorer extends Parcelable {
     String getExtension();
 
     String getParentPath();
+
+    long getSize();
+
+    Date getModifiedTime();
+
+    boolean canRead();
+
+    boolean canWrite();
+
+    boolean canExecute();
 
     Uri getUri();
 

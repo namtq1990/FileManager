@@ -44,12 +44,12 @@ public class HostFragment extends BaseFragment implements BaseActivity.OnBackPre
         if (isHostEmpty()) {
             getChildFragmentManager().beginTransaction()
                     .add(R.id.fragment_container, page, tag)
-                    .commit();
+                    .commitAllowingStateLoss();
         } else {
             getChildFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, page, tag)
                     .addToBackStack(null)
-                    .commit();
+                    .commitAllowingStateLoss();
         }
     }
 
