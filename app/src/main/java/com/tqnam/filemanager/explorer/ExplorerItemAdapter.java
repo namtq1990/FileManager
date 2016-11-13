@@ -46,27 +46,6 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     private ExplorerPresenter        mPresenter;
     private ExplorerItemAdapterListener mListener;
 
-//    private View.OnClickListener mItemClickListener = new View.OnClickListener() {
-//        @Override
-//        public void onClick(final View v) {
-//
-//            switch (mState) {
-//                case STATE_MULTI_SELECT: {
-//                    GridViewItem item = (GridViewItem) v;
-//                    setItemChecked(item, !item.isChecked());
-//                    break;
-//                }
-//                case STATE_NORMAL: {
-//                    if (mOpenItemListener != null) {
-//                        GridViewItem item = (GridViewItem) v;
-//                        mOpenItemListener.onOpenAction(item.getPosition());
-//                    }
-//                    break;
-//                }
-//            }
-//        }
-//    };
-
     private ActionMode.Callback mActionCallback        = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -106,20 +85,6 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         public void onDestroyActionMode(ActionMode mode) {
             mActionMode = null;
             updateUI(null, ExplorerItemAdapter.STATE_NORMAL);
-            mSelectedList.clear();
-        }
-    };
-    private OnLongClickListener mItemLongClickListener = new OnLongClickListener() {
-        @Override
-        public boolean onLongClick(View v) {
-            GridViewItem item = (GridViewItem) v;
-            setItemChecked(item, true);
-
-            if (mState != STATE_MULTI_SELECT) {
-                updateUI(v, STATE_MULTI_SELECT);
-            }
-
-            return true;
         }
     };
 
@@ -133,6 +98,9 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     }
 
     private void clearSelection() {
+        for (int i = 0; i < mSelectedList.size(); i++) {
+            notifyItemChanged(mSelectedList.keyAt(i));
+        }
         mSelectedList.clear();
     }
 
@@ -141,16 +109,15 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         if (mState == state)
             return;
 
-        if (mState == STATE_MULTI_SELECT) {
-            // Handler destroy multi select state
-            for (int i = 0; i < mSelectedList.size(); i++) {
-                notifyItemChanged(mSelectedList.keyAt(i));
-            }
+        int oldState = mState;
+        mState = state;
 
+        if (oldState == STATE_MULTI_SELECT) {
+            // Handler destroy multi select state
             clearSelection();
         }
 
-        switch (state) {
+        switch (mState) {
             case STATE_NORMAL:
 //                if (view != null) {
 //                }
@@ -162,24 +129,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                     activity.startSupportActionMode(mActionCallback);
                 }
 
-
                 break;
-        }
-
-        mState = state;
-    }
-
-    public void setItemChecked(GridViewItem item, boolean checked) {
-        item.setChecked(checked);
-
-        if (checked) {
-            mSelectedList.append(item.getPosition(), true);
-        } else {
-            mSelectedList.delete(item.getPosition());
-        }
-
-        if (mSelectedList.size() == 0) {
-            mActionMode.finish();
         }
     }
 
@@ -198,7 +148,6 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     public void onBindViewHolder(ViewHolder holder, int position) {
 
         ItemExplorer item = mPresenter.getItemDisplayedAt(position);
-        holder.panel.setPosition(position);
         if (item != null) {
             holder.label.setText(item.getDisplayName());
 
@@ -225,11 +174,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             }
         }
 
-        if (mSelectedList.get(position)) {
-            holder.panel.setChecked(true);
-        } else {
-            holder.panel.setChecked(false);
-        }
+        holder.panel.setChecked(mSelectedList.get(position));
     }
 
     @Override
@@ -258,6 +203,18 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                 return false;
             }
         };
+        private OnLongClickListener mItemLongClickListener = new OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                setItemChecked(true);
+
+                if (mState != STATE_MULTI_SELECT) {
+                    updateUI(v, STATE_MULTI_SELECT);
+                }
+
+                return true;
+            }
+        };
 
         public ViewHolder(final View itemView) {
             super(itemView);
@@ -266,9 +223,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             panel = (GridViewItem) itemView;
 
             label.setOnLongClickListener(mTextViewLongClick);
-//            panel.setOnClickListener(mItemClickListener);
             panel.setOnLongClickListener(mItemLongClickListener);
-            panel.setTag(R.string.item_key_tag_viewholder, this);
 
             BaseActivity activity = (BaseActivity) itemView.getContext();
             activity.getLocalSubscription().add(
@@ -281,13 +236,12 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                                     switch (mState) {
                                         case STATE_MULTI_SELECT: {
                                             GridViewItem item = (GridViewItem) itemView;
-                                            setItemChecked(item, !item.isChecked());
+                                            setItemChecked(!item.isChecked());
                                             break;
                                         }
                                         case STATE_NORMAL: {
                                             if (mListener != null) {
-                                                GridViewItem item = (GridViewItem) itemView;
-                                                mListener.onOpenAction(item.getPosition());
+                                                mListener.onOpenAction(getAdapterPosition());
                                             }
                                             break;
                                         }
@@ -296,10 +250,24 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                             }, new Action1<Throwable>() {
                                 @Override
                                 public void call(Throwable throwable) {
-                                    Common.Log("error when open item " + ((GridViewItem) itemView).getPosition());
+                                    Common.Log("error when open item " + getAdapterPosition());
                                     throwable.printStackTrace();
                                 }
                             }));
+        }
+
+        public void setItemChecked(boolean checked) {
+            panel.setChecked(checked);
+
+            if (checked) {
+                mSelectedList.append(getAdapterPosition(), true);
+            } else {
+                mSelectedList.delete(getAdapterPosition());
+            }
+
+            if (mSelectedList.size() == 0) {
+                mActionMode.finish();
+            }
         }
 
     }

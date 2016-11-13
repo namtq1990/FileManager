@@ -14,7 +14,6 @@ import com.tqnam.filemanager.explorer.ExplorerItemAdapter;
  */
 public class GridViewItem extends RelativeLayout implements Checkable {
 
-    private int mPosition;
     private boolean mChecked;
 
     public GridViewItem(Context context) {
@@ -27,14 +26,6 @@ public class GridViewItem extends RelativeLayout implements Checkable {
 
     public GridViewItem(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-    }
-
-    public int getPosition() {
-        return mPosition;
-    }
-
-    public void setPosition(int position) {
-        mPosition = position;
     }
 
     /**
@@ -63,7 +54,6 @@ public class GridViewItem extends RelativeLayout implements Checkable {
 
         setSelected(checked);
         mChecked = checked;
-
     }
 
     /**

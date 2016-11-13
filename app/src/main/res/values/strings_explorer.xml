@@ -3,5 +3,4 @@
     <string name="explorer_err_permission">Don\'t have permission to access file</string>
     <string name="hint_search">Search all item in this folder</string>
     <string name="hint_rename">Please enter new name</string>
-    <string name="item_key_tag_viewholder">key_tag_viewholder</string>
 </resources>
