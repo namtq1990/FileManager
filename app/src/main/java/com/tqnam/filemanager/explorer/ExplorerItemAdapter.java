@@ -1,10 +1,11 @@
 package com.tqnam.filemanager.explorer;
 
 import android.content.Context;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.RecyclerView;
-import android.util.SparseBooleanArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,10 +19,12 @@ import android.widget.TextView;
 
 import com.jakewharton.rxbinding.view.RxView;
 import com.quangnam.baseframework.BaseActivity;
+import com.quangnam.baseframework.SaveBundleListener;
 import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.utils.SparseBooleanArrayParcelable;
 import com.tqnam.filemanager.view.GridViewItem;
 
 import java.util.concurrent.TimeUnit;
@@ -32,16 +35,18 @@ import rx.functions.Action1;
 /**
  * Adapter for explorer, must be combined with GridViewItem
  */
-public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapter.ViewHolder> {
+public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapter.ViewHolder> implements SaveBundleListener {
 
     public static final int STATE_NORMAL       = 0;
     //    public static final int STATE_EDIT         = 1;
     public static final int STATE_MULTI_SELECT = 2;
+    private static final String ARG_STATE = ExplorerItemAdapter.class.getSimpleName() + ".state";
+    private static final String ARG_SELECTED_LIST = ExplorerItemAdapter.class.getSimpleName() + ".selected_list";
     public static int mDefaultThemeBackgroundID;
-
     int mState = STATE_NORMAL;
 
-    private SparseBooleanArray       mSelectedList;
+    private Context mContext;
+    private SparseBooleanArrayParcelable mSelectedList;
     private ActionMode               mActionMode;
     private ExplorerPresenter        mPresenter;
     private ExplorerItemAdapterListener mListener;
@@ -84,13 +89,14 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             mActionMode = null;
-            updateUI(null, ExplorerItemAdapter.STATE_NORMAL);
+            updateView(null, ExplorerItemAdapter.STATE_NORMAL);
         }
     };
 
     public ExplorerItemAdapter(Context context, ExplorerPresenter presenter) {
+        mContext = context;
         mPresenter = presenter;
-        mSelectedList = new SparseBooleanArray(getItemCount());
+        mSelectedList = new SparseBooleanArrayParcelable();
         TypedValue typedValueAttr = new TypedValue();
         context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, typedValueAttr, true);
         mDefaultThemeBackgroundID = typedValueAttr.resourceId;
@@ -104,7 +110,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         mSelectedList.clear();
     }
 
-    public void updateUI(View view, int state) {
+    public void updateView(@Nullable View view, int state) {
 
         if (mState == state)
             return;
@@ -124,8 +130,8 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
 
                 break;
             case STATE_MULTI_SELECT:
-                if (mActionMode == null && view != null) {
-                    AppCompatActivity activity = (AppCompatActivity) view.getContext();
+                if (mActionMode == null) {
+                    AppCompatActivity activity = (AppCompatActivity) mContext;
                     activity.startSupportActionMode(mActionCallback);
                 }
 
@@ -182,6 +188,20 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         return mPresenter.getItemDisplayCount();
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle state) {
+        state.putInt(ARG_STATE, mState);
+        state.putParcelable(ARG_SELECTED_LIST, mSelectedList);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        mSelectedList = savedInstanceState.getParcelable(ARG_SELECTED_LIST);
+        int state = savedInstanceState.getInt(ARG_STATE);
+
+        updateView(null, state);
+    }
+
     public interface ExplorerItemAdapterListener {
         void onOpenAction(int position);
         void openRenameDialog(String item, int position);
@@ -209,7 +229,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                 setItemChecked(true);
 
                 if (mState != STATE_MULTI_SELECT) {
-                    updateUI(v, STATE_MULTI_SELECT);
+                    updateView(v, STATE_MULTI_SELECT);
                 }
 
                 return true;
@@ -271,4 +291,6 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         }
 
     }
+
+
 }

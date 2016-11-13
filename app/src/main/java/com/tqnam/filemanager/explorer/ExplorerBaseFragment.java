@@ -125,7 +125,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         View rootView = inflater.inflate(R.layout.fragment_item_list, container, false);
 
         initializeData(savedInstanceState);
-        initializeView(rootView);
+        initializeView(rootView, savedInstanceState);
 
         return rootView;
     }
@@ -220,7 +220,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     /**
      * Setup UI for fragment
      */
-    private void initializeView(View rootView) {
+    private void initializeView(View rootView, Bundle savedState) {
         mViewHolder = new ViewHolder();
         mViewHolder.mAdapter = new ExplorerItemAdapter(rootView.getContext(), mPresenter);
 
@@ -233,12 +233,16 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
         mViewHolder.mAdapter.setListener(this);
 
+        if (savedState != null) {
+            mViewHolder.mAdapter.onRestoreInstanceState(savedState);
+        }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         mPresenter.onSaveInstanceState(outState);
+        mViewHolder.mAdapter.onSaveInstanceState(outState);
     }
 
     @Override

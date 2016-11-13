@@ -1,8 +1,8 @@
 package com.tqnam.filemanager.explorer;
 
 import android.graphics.Bitmap;
-import android.os.Bundle;
 
+import com.quangnam.baseframework.SaveBundleListener;
 import com.tqnam.filemanager.model.ItemExplorer;
 
 import java.util.List;
@@ -12,10 +12,7 @@ import rx.Observable;
 /**
  * Created by tqnam on 10/28/2015.
  */
-public interface ExplorerPresenter {
-
-    void onRestoreInstanceState(Bundle savedInstanceState);
-    void onSaveInstanceState(Bundle bundle);
+public interface ExplorerPresenter extends SaveBundleListener {
     Observable<ItemExplorer> onBackPressed();
 
     /**
