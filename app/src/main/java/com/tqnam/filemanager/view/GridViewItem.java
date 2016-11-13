@@ -61,7 +61,6 @@ public class GridViewItem extends RelativeLayout implements Checkable {
             }
         }
 
-        ExplorerItemAdapter.ViewHolder holder = (ExplorerItemAdapter.ViewHolder) getTag(R.string.item_key_tag_viewholder);
         setSelected(checked);
         mChecked = checked;
 

@@ -1,6 +1,5 @@
 package com.tqnam.filemanager.explorer;
 
-import android.app.Dialog;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -10,7 +9,6 @@ import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
@@ -74,18 +72,18 @@ public class InformationDialogFragment extends BaseDialog {
 
         updateRoot();
 
-        rootView.post(new Runnable() {
-            @Override
-            public void run() {
-                // Make dialog fullscreen in width side
-                if (getDialog() != null) {
-                    Dialog dialog = getDialog();
-                    final WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
-                    params.width = WindowManager.LayoutParams.MATCH_PARENT;
-                    getDialog().getWindow().setAttributes(params);
-                }
-            }
-        });
+//        rootView.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                // Make dialog fullscreen in width side
+//                if (getDialog() != null) {
+//                    Dialog dialog = getDialog();
+//                    final WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+//                    params.width = WindowManager.LayoutParams.MATCH_PARENT;
+//                    getDialog().getWindow().setAttributes(params);
+//                }
+//            }
+//        });
 
         return rootView;
     }

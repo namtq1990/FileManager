@@ -48,8 +48,10 @@
         tools:text="Date Modified: 12 Dec 2000, 00:00:00"/>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:minWidth="350dp"
         android:orientation="horizontal">
 
         <android.support.v7.widget.AppCompatCheckBox

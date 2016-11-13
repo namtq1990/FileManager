@@ -97,7 +97,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                     break;
             }
 
-            mActionMode.finish();
+//            mActionMode.finish();
 
             return true;
         }
