@@ -88,7 +88,7 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                         if (folder.isDirectory()) {
                             if (getOpenOption() == OpenOption.EXPLORER) {
 
-                                List<ItemExplorer> list = FileUtil.open((FileItem) item);
+                                List<FileItem> list = FileUtil.open((FileItem) item);
 
                                 if (list != null) {
                                     mModel.mCurLocation = item.getPath();
@@ -200,9 +200,9 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public Observable<List<ItemExplorer>> quickQueryFile(final String query) {
+    public Observable<List<? extends ItemExplorer>> quickQueryFile(final String query) {
         return Observable.just(query)
-                .map(new Func1<String, List<ItemExplorer>>() {
+                .map(new Func1<String, List<? extends ItemExplorer>>() {
                     @Override
                     public List<ItemExplorer> call(String s) {
                         mModel.resetDisplayList();
@@ -214,16 +214,16 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public Observable<List<ItemExplorer>> quickQueryFile(final String query, final String path) {
+    public Observable<List<? extends ItemExplorer>> quickQueryFile(final String query, final String path) {
         if (path.equals(mModel.mCurLocation)) {
             return quickQueryFile(query);
         }
 
         return Observable.just(query)
-                .map(new Func1<String, List<ItemExplorer>>() {
+                .map(new Func1<String, List<? extends ItemExplorer>>() {
                     @Override
-                    public List<ItemExplorer> call(String query) {
-                        List<ItemExplorer> list = FileUtil.open(path);
+                    public List<? extends ItemExplorer> call(String query) {
+                        List<FileItem> list = FileUtil.open(path);
                         FileUtil.filter(list, query);
 
                         return list;

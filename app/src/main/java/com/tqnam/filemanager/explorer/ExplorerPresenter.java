@@ -28,8 +28,8 @@ public interface ExplorerPresenter extends SaveBundleListener {
     Observable<Void> createFile(String filename);
     Observable<Void> createFolder(String filename);
 
-    Observable<List<ItemExplorer>> quickQueryFile(String query);
-    Observable<List<ItemExplorer>> quickQueryFile(String query, String path);
+    Observable<List<? extends ItemExplorer>> quickQueryFile(String query);
+    Observable<List<? extends ItemExplorer>> quickQueryFile(String query, String path);
     Observable<List<ItemExplorer>> queryFile(String path, String query);
 
     String getCurLocation();

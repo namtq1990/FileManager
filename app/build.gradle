@@ -33,6 +33,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+
 }
 
 dependencies {
@@ -41,6 +42,11 @@ dependencies {
     }
     compile 'com.android.support:design:24.1.1'
     compile 'com.android.support:recyclerview-v7:24.1.1'
+    compile 'com.android.support:gridlayout-v7:24.1.1'
+    compile ('com.bignerdranch.android:expandablerecyclerview:2.1.1') {
+        exclude module: 'recyclerview-v7'
+        exclude module: 'appcompat-v7'
+    }
     compile 'com.jakewharton:butterknife:8.4.0'
     apt 'com.jakewharton:butterknife-compiler:8.4.0'
     compile 'io.reactivex:rxandroid:1.1.0'

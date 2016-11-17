@@ -6,7 +6,7 @@ import android.widget.Checkable;
 import android.widget.RelativeLayout;
 
 import com.tqnam.filemanager.R;
-import com.tqnam.filemanager.explorer.ExplorerItemAdapter;
+import com.tqnam.filemanager.explorer.adapter.ExplorerItemAdapter;
 
 /**
  * Created by quangnam on 11/13/15.

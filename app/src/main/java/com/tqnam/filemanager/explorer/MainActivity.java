@@ -25,6 +25,7 @@ import com.quangnam.baseframework.BaseActivity;
 import com.quangnam.baseframework.BaseDataFragment;
 import com.quangnam.baseframework.BaseFragmentInterface;
 import com.tqnam.filemanager.R;
+import com.tqnam.filemanager.explorer.adapter.DrawerMenuAdapter;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
 import com.tqnam.filemanager.preference.PreferenceFragment;
 import com.tqnam.filemanager.utils.ViewUtils;
@@ -330,6 +331,7 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 
         static final int INDEX_LOCAL_FILE_FRAGMENT = 0;
         static final int INDEX_PREF_FRAGMENT = 1;
+        static final int INDEX_OPERATOR_FRAGMENT = 2;
 
         public PageAdapter(FragmentManager fm) {
             super(fm);
@@ -357,6 +359,9 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
                 case INDEX_PREF_FRAGMENT:
                     fragment = new PreferenceFragment();
                     break;
+                case INDEX_OPERATOR_FRAGMENT:
+                    fragment = OperatorManagerFragment.newInstance();
+                    break;
                 default:
                     fragment = null;
                     break;
@@ -367,7 +372,7 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 
         @Override
         public int getCount() {
-            return 2;
+            return 3;
         }
 
         @Override

@@ -38,6 +38,10 @@ public class FileItem extends File implements ItemExplorer {
         super(path);
     }
 
+    public FileItem(String path, String name) {
+        super(path, name);
+    }
+
     @Override
     public String getDisplayName() {
         return getName();
@@ -55,7 +59,32 @@ public class FileItem extends File implements ItemExplorer {
 
     @Override
     public long getSize() {
-        return super.length();
+        if (!isDirectory()) {
+            return super.length();
+        }
+
+        // get Size if it's directory
+        final List<File> dirs=new ArrayList<>();
+        dirs.add(this);
+
+        long result=0;
+        while(!dirs.isEmpty())
+        {
+            final File dir=dirs.remove(0);
+            if(!dir.exists())
+                continue;
+            final File[] listFiles=dir.listFiles();
+            if(listFiles==null||listFiles.length==0)
+                continue;
+            for(final File child : listFiles)
+            {
+                result+=child.length();
+                if(child.isDirectory())
+                    dirs.add(child);
+            }
+        }
+
+        return result;
     }
 
     @Override
@@ -91,9 +120,9 @@ public class FileItem extends File implements ItemExplorer {
     }
 
     @Override
-    public List<ItemExplorer> getChild() {
-        List<ItemExplorer> childs = new ArrayList<>();
+    public List<FileItem> getChild() {
         File[] list = listFiles();
+        List<FileItem> childs = new ArrayList<>(list == null ? 0 : list.length);
 
         if (list != null) {
             for (File item : list) {

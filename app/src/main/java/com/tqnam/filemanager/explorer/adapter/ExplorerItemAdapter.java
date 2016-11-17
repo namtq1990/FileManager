@@ -1,4 +1,4 @@
-package com.tqnam.filemanager.explorer;
+package com.tqnam.filemanager.explorer.adapter;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -23,6 +23,7 @@ import com.quangnam.baseframework.SaveBundleListener;
 import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
+import com.tqnam.filemanager.explorer.ExplorerPresenter;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.utils.SparseBooleanArrayParcelable;
 import com.tqnam.filemanager.view.GridViewItem;
@@ -48,7 +49,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     private Context mContext;
     private SparseBooleanArrayParcelable mSelectedList;
     private ActionMode               mActionMode;
-    private ExplorerPresenter        mPresenter;
+    private ExplorerPresenter mPresenter;
     private ExplorerItemAdapterListener mListener;
 
     private ActionMode.Callback mActionCallback        = new ActionMode.Callback() {

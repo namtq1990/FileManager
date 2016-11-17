@@ -16,13 +16,14 @@ import java.util.List;
  * Created by quangnam on 10/6/16.
  */
 public class FileUtil {
+    public static final int BUFF_SIZE = 1024 * 16;
 
-    public static List<ItemExplorer> open(String path) {
+    public static List<FileItem> open(String path) {
         FileItem folder = new FileItem(path);
         return open(folder);
     }
 
-    public static List<ItemExplorer> open(FileItem file) {
+    public static List<FileItem> open(FileItem file) {
         if (file.isDirectory()) {
             return file.getChild();
 
@@ -99,7 +100,7 @@ public class FileUtil {
         return file;
     }
 
-    public static List<ItemExplorer> filter(List<ItemExplorer> list, String query) {
+    public static List<? extends ItemExplorer> filter(List<? extends ItemExplorer> list, String query) {
         if (TextUtils.isEmpty(query))
             return list;
 
@@ -118,10 +119,10 @@ public class FileUtil {
         if (!file.isDirectory())
             return null;
 
-        List<ItemExplorer> childs = file.getChild();
+        List<? extends ItemExplorer> childs = file.getChild();
         List<ItemExplorer> result = new ArrayList<>(childs);
 
-        result = filter(result, query);
+        filter(result, query);
 
         for (ItemExplorer child : childs) {
             List<ItemExplorer> childFilteredList = search(child, query);
@@ -135,4 +136,5 @@ public class FileUtil {
     public static List<ItemExplorer> search(String path, String query) {
         return search(new FileItem(path), query);
     }
+
 }

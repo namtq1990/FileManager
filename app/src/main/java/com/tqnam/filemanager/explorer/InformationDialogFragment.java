@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 import com.quangnam.baseframework.BaseDialog;
 import com.tqnam.filemanager.R;
-import com.tqnam.filemanager.explorer.fileExplorer.SimpleArrayAdapter;
+import com.tqnam.filemanager.explorer.adapter.SimpleArrayAdapter;
 import com.tqnam.filemanager.model.ItemInformation;
 import com.tqnam.filemanager.utils.ViewUtils;
 

@@ -77,7 +77,7 @@ public class ExplorerModel {
         return mListItem;
     }
 
-    public void setList(List<ItemExplorer> list) {
+    public void setList(List<? extends ItemExplorer> list) {
         mListItem = (ArrayList<ItemExplorer>) list;
     }
 

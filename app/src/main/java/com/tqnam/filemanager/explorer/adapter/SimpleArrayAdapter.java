@@ -1,4 +1,4 @@
-package com.tqnam.filemanager.explorer.fileExplorer;
+package com.tqnam.filemanager.explorer.adapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;

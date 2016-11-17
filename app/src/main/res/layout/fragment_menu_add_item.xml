@@ -24,6 +24,7 @@
         android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:layout_marginTop="0dp"
         android:tint="@color/white"
+        app:backgroundTint="@color/primary_red"
         app:fabSize="normal"
         app:srcCompat="@drawable/ic_add"/>
 
@@ -66,6 +67,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:src="@drawable/folder_fab"
+                app:backgroundTint="@color/primary_red"
                 app:fabSize="mini"/>
 
 
@@ -95,6 +97,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:src="@drawable/file_fab"
+                app:backgroundTint="@color/primary_red"
                 app:fabSize="mini"/>
 
         </LinearLayout>

@@ -30,11 +30,13 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.quangnam.baseframework.BaseActivity;
+import com.quangnam.baseframework.BaseErrorAction;
 import com.quangnam.baseframework.BaseFragment;
 import com.quangnam.baseframework.BaseFragmentInterface;
 import com.quangnam.baseframework.exception.SystemException;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
+import com.tqnam.filemanager.explorer.adapter.ExplorerItemAdapter;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
 import com.tqnam.filemanager.model.ErrorCode;
@@ -61,37 +63,33 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public static final String ARG_ROOT_PATH = "root_path";
     private static final String ARG_QUICK_QUERY = "query_text";
     //    private Animator               mOpenAnimType;
-    protected Action1<Throwable> mActionError = new Action1<Throwable>() {
-        @Override
-        public void call(Throwable e) {
-            SystemException exception;
-            if (!(e instanceof SystemException)) {
-                exception = new SystemException(ErrorCode.RK_UNKNOWN, "", e);
-            } else {
-                exception = (SystemException) e;
-            }
+    protected Action1<Throwable> mActionError = new BaseErrorAction() {
 
-            exception.printStackTrace();
-            int errcode = exception.mErrorcode;
+        @Override
+        public void onError(int errCode, SystemException e) {
+            e.printStackTrace();
             Activity curActivity = getActivitySafe();
 
-            switch (errcode) {
+            switch (errCode) {
                 case ErrorCode.RK_EXPLORER_OPEN_ERROR:
-                    Toast.makeText(curActivity, curActivity.getString(R.string.explorer_err_permission), Toast.LENGTH_LONG)
-                            .show();
+                    showErrorMessage(curActivity.getString(R.string.explorer_err_permission));
                     break;
                 case ErrorCode.RK_RENAME_ERR:
-                    Toast.makeText(curActivity, "Cann't rename file, check permission", Toast.LENGTH_LONG)
-                            .show();
+                    showErrorMessage("Cann't rename file, check permission");
                     break;
                 case ErrorCode.RK_EXPLORER_OPEN_NOTHING:
                 case ErrorCode.RK_EXPLORER_OPEN_WRONG_FUNCTION:
                     Common.Log("Calling wrong function");
                 case ErrorCode.RK_UNKNOWN:
-                    Toast.makeText(curActivity, R.string.err_unknown, Toast.LENGTH_LONG)
-                            .show();
+                    showErrorMessage(curActivity.getString(R.string.error_unknown));
                     break;
             }
+        }
+
+        @Override
+        public void showErrorMessage(String message) {
+            Activity curActivity = getActivitySafe();
+            Toast.makeText(curActivity, message, Toast.LENGTH_SHORT).show();
         }
     };
     private boolean mIsShownMenu;
@@ -158,9 +156,11 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     @Override
     public void onDestroyView() {
         ((BaseActivity) getActivity()).removeFocusListener(this);
-        mViewHolder.mSearchView.setOnQueryTextFocusChangeListener(null);
-        mViewHolder.mSearchView.setOnQueryTextListener(null);
-        mViewHolder = null;
+
+        if (mViewHolder.mSearchView != null) {
+            mViewHolder.mSearchView.setOnQueryTextFocusChangeListener(null);
+            mViewHolder.mSearchView.setOnQueryTextListener(null);
+        }
 
         super.onDestroyView();
     }
@@ -242,7 +242,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         mPresenter.onSaveInstanceState(outState);
-        mViewHolder.mAdapter.onSaveInstanceState(outState);
+        if (mViewHolder != null)
+            mViewHolder.mAdapter.onSaveInstanceState(outState);
     }
 
     @Override
@@ -290,10 +291,10 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                     return false;
                 }
 
-                Observable<List<ItemExplorer>> observable = mPresenter.quickQueryFile(query);
-                observable.subscribe(new Action1<List<ItemExplorer>>() {
+                Observable<List<? extends ItemExplorer>> observable = mPresenter.quickQueryFile(query);
+                observable.subscribe(new Action1<List<? extends ItemExplorer>>() {
                     @Override
-                    public void call(List<ItemExplorer> aVoid) {
+                    public void call(List<? extends ItemExplorer> aVoid) {
                         refreshView();
                         setQuickQuery(query);
                     }

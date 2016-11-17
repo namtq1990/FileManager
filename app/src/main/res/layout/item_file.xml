@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.tqnam.filemanager.view.GridViewItem
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?android:attr/selectableItemBackground"
@@ -10,7 +11,8 @@
     <com.tqnam.filemanager.view.LisImageView
         android:id="@+id/icon_item"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        tools:src="@drawable/folder_icon"/>
 
     <TextView
         android:id="@+id/title_item"
@@ -23,6 +25,7 @@
         android:layout_toRightOf="@id/icon_item"
         android:gravity="center_vertical"
         android:singleLine="false"
-        android:textAppearance="@android:style/TextAppearance.DeviceDefault" />
+        android:textAppearance="@android:style/TextAppearance.DeviceDefault"
+        tools:text="File" />
 
 </com.tqnam.filemanager.view.GridViewItem>

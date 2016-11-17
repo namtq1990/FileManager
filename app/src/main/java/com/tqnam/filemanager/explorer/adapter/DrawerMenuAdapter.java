@@ -1,4 +1,4 @@
-package com.tqnam.filemanager.explorer;
+package com.tqnam.filemanager.explorer.adapter;
 
 import android.content.Context;
 import android.os.Environment;

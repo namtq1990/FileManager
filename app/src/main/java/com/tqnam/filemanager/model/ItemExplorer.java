@@ -61,5 +61,5 @@ public interface ItemExplorer extends Parcelable {
 
     int getFileType();
 
-    List<ItemExplorer> getChild();
+    List<? extends ItemExplorer> getChild();
 }
