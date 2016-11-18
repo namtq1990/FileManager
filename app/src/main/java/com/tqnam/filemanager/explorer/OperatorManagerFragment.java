@@ -21,7 +21,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import rx.Observable;
 
 /**
  * Created by quangnam on 11/16/16.
@@ -52,35 +51,33 @@ public class OperatorManagerFragment extends BaseFragment {
         List<ItemExplorer> files = new ArrayList<>();
         files.add(new FileItem("/Sdcard/Movies"));
         files.add(new FileItem("/Sdcard/Music"));
-        Operator testOperator = new Operator.MultipleItemOperator<ItemExplorer>(files) {
-            @Override
-            public Observable execute(Object... arg) {
-                return Observable.just("Test");
-            }
-
-            @Override
-            public String getSourcePath() {
-                return "/Sdcard";
-            }
-
-            @Override
-            public String getDestinationPath() {
-                return "/Sdcard";
-            }
-
-            @Override
-            public boolean isUpdatable() {
-                return true;
-            }
-        };
-
-        ArrayList<Operator> operators = new ArrayList<>();
-        operators.add(testOperator);
-        operators.add(testOperator);
 
         List<FileItem> input = new ArrayList<>();
         input.add(new FileItem("/storage/emulated/0/Download"));
-        testOperator = new CopyFileOperator(input, "/storage/emulated/0/Subtitles");
+        Operator testOperator = new CopyFileOperator(input, "/storage/emulated/0/Subtitles");
+//        Operator testOperator = new Operator.MultipleItemOperator<ItemExplorer>(files) {
+//            @Override
+//            public Observable execute(Object... arg) {
+//                return Observable.just("Test");
+//            }
+//
+//            @Override
+//            public String getSourcePath() {
+//                return "/Sdcard";
+//            }
+//
+//            @Override
+//            public String getDestinationPath() {
+//                return "/Sdcard";
+//            }
+//
+//            @Override
+//            public boolean isUpdatable() {
+//                return true;
+//            }
+//        };
+
+        ArrayList<Operator> operators = new ArrayList<>();
         operators.add(testOperator);
 
         OperatorAdapter.OperatorList childList = new OperatorAdapter.OperatorList(operators);

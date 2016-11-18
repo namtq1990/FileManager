@@ -5,7 +5,6 @@ import com.quangnam.baseframework.TrackingTime;
 import com.quangnam.baseframework.exception.SystemException;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.utils.FileUtil;
-import com.tqnam.filemanager.utils.OperatorBuilder;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -25,17 +24,15 @@ import rx.schedulers.Schedulers;
  * Created by quangnam on 11/16/16.
  * Project FileManager-master
  */
-public class CopyFileOperator extends Operator.MultipleItemOperator<FileItem> {
+public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
     public static final String TAG = CopyFileOperator.class.getCanonicalName();
-
-    private List<SingleFileCopyOperator> mQueueToExecute;
-    private List<SingleFileCopyOperator> mListExecuting;
-    private List<SingleFileCopyOperator> mListExecuted;
 
 //    private Func1<Throwable, Observable<?>> mRetryWhenError;
     private long mSizeOfListExecuted;
     private CopyFileData mResult;
     private String mDestinationPath;
+    private String mSourcePath;
+    private Func1<Throwable, Observable<?>> mRetryWhenError;
 
     public CopyFileOperator(List<FileItem> data, String destPath) {
         super(data);
@@ -44,71 +41,46 @@ public class CopyFileOperator extends Operator.MultipleItemOperator<FileItem> {
             throw new SystemException("List data is empty. Operator is aborted");
         }
 
-//        FileItem parent = new FileItem(data.get(0).getParent());
         mDestinationPath = destPath;
-
-        mQueueToExecute = new ArrayList<>(data.size());
-        mListExecuted = new ArrayList<>(data.size());
-        mListExecuting = new ArrayList<>(10);
+        mSourcePath = data.get(0).getParentPath();
 
         mResult = new CopyFileData();
         mResult.setOperatorHashcode(hashCode());
 
-        // Traverse over list file tree to create data for mQueueToExecute, mListExecuted and mListExecuting
-        for (FileItem file : data) {
-            SingleFileCopyOperator operator = new SingleFileCopyOperator(file);
-            operator.setDestination(destPath + "/" + file.getDisplayName());
-            mQueueToExecute.add(operator);
-
-            mResult.sizeTotal += file.getSize();
-        }
+        traverse();
+        Log.d("Data traversed: " + mResult);
     }
 
     @Override
     public Observable<CopyFileData> execute(Object... arg) {
         TrackingTime.beginTracking(formatTag(mResult));
-//        ArrayList<Observable<CopyFileData>> listObservables = new ArrayList<>(mFileToExecute.size());
-        Observable<Observable<CopyFileData>> observable = Observable.create(new Observable.OnSubscribe<Observable<CopyFileData>>() {
-            @Override
-            public void call(Subscriber<? super Observable<CopyFileData>> subscriber) {
-                ArrayList<SingleFileCopyOperator> queue = new ArrayList<>(mQueueToExecute);
-                Log.d(TAG, "Start making singleOperator " + queue);
-                for (final SingleFileCopyOperator operator : queue) {
-//                    final SingleFileCopyOperator operator = mQueueToExecute.get(i);
-                    Observable<CopyFileData> execute = operator.execute()
-                            .map(new Func1<Object, CopyFileData>() {
 
-                                @Override
-                                public CopyFileData call(Object o) {
-                                    if (o instanceof UpdatableData)
-                                        return (CopyFileData) o;
+        ArrayList<Observable<CopyFileData>> list = new ArrayList<>(getAllStream().size());
+        for (final Operator<Object> operator : getAllStream()) {
+            Observable<CopyFileData> childObservable = operator.execute()
+                    .map(new Func1<Object, CopyFileData>() {
+                        @Override
+                        public CopyFileData call(Object o) {
+                            if (o instanceof CopyFileData)
+                                return (CopyFileData) o;
 
-                                    Log.d(TAG, "Cann't parse object " + o);
+                            return null;
+                        }
+                    }).doOnSubscribe(new Action0() {
+                        @Override
+                        public void call() {
+                            moveToExecuting(operator);
+                        }
+                    }).doOnCompleted(new Action0() {
+                        @Override
+                        public void call() {
+                            moveToExecuted(operator);
+                        }
+                    });
+            list.add(childObservable);
+        }
 
-                                    return null;
-                                }
-                            });
-
-                    Log.d("Emitting observable");
-                    subscriber.onNext(execute
-                            .doOnSubscribe(new Action0() {
-                                @Override
-                                public void call() {
-                                    moveFromQueueToExecute(operator);
-                                }
-                            })
-                            .doOnCompleted(new Action0() {
-                                @Override
-                                public void call() {
-                                    executedOperator(operator);
-                                }
-                            }));
-                }
-
-                subscriber.onCompleted();
-            }
-        });
-        return Observable.concat(observable)
+        return Observable.concat(Observable.from(list))
                 .map(new Func1<CopyFileData, CopyFileData>() {
                     @Override
                     public CopyFileData call(CopyFileData data) {
@@ -116,10 +88,9 @@ public class CopyFileOperator extends Operator.MultipleItemOperator<FileItem> {
                         long oldSizeCopied = mResult.sizeCopied;
 
                         mResult.sizeCopied = mSizeOfListExecuted + data.sizeCopied;
-//                        mResult.sizeCopied += data.sizeCopied;
 
                         mResult.speed = (mResult.sizeCopied - oldSizeCopied) * 1000 / (float)timeExecuted;
-                        mResult.setProgress((float) (mResult.sizeCopied * 100 / (double)mResult.sizeTotal));
+                        mResult.setProgress((int)((mResult.sizeCopied * 100 + 1) / mResult.sizeTotal));
 
                         TrackingTime.beginTracking(formatTag(mResult));
 
@@ -128,16 +99,23 @@ public class CopyFileOperator extends Operator.MultipleItemOperator<FileItem> {
                 });
     }
 
-    private void moveFromQueueToExecute(SingleFileCopyOperator operator) {
-        mQueueToExecute.remove(operator);
-        if (!mListExecuting.contains(operator)) mListExecuting.add(operator);
+    private void moveToExecuting(Operator operator) {
+        ArrayList<Operator> executingList = getExecutingList();
+        if (!executingList.contains(operator)) executingList.add(operator);
     }
 
-    private void executedOperator(SingleFileCopyOperator operator) {
-        mListExecuting.remove(operator);
-        mListExecuted.add(operator);
+    private void moveToExecuted(Operator operator) {
+        if (!(operator instanceof SingleFileCopyOperator)) {
+            throw new SystemException(ErrorCode.RK_COPY_ERR, "Cann't use operator that's not " + SingleFileCopyOperator.class);
+        }
 
-        mSizeOfListExecuted += operator.mResult.sizeTotal;
+        ArrayList<Operator> executingList = getExecutingList();
+        ArrayList<Operator> executedList = getExecutedList();
+        executingList.remove(operator);
+        if (!executedList.contains(operator)) {
+            mSizeOfListExecuted += ((SingleFileCopyOperator) operator).operatorResult.sizeTotal;
+            executedList.add(operator);
+        }
     }
 
     @Override
@@ -161,7 +139,7 @@ public class CopyFileOperator extends Operator.MultipleItemOperator<FileItem> {
 
     @Override
     public String getSourcePath() {
-        return getData().get(0).getPath();
+        return mSourcePath;
     }
 
     @Override
@@ -170,12 +148,19 @@ public class CopyFileOperator extends Operator.MultipleItemOperator<FileItem> {
     }
 
     public void setRetryFlatMap(Func1<Throwable, Observable<?>> flatMapFunc) {
-        for (SingleFileCopyOperator operator : mQueueToExecute) {
-            operator.setRetryFunction(flatMapFunc);
+        mRetryWhenError = flatMapFunc;
+    }
+
+    @Override
+    public Operator createStreamFromData(FileItem data) {
+        if (!data.isDirectory()) {
+            mResult.sizeTotal += data.length();
         }
-        for (SingleFileCopyOperator operator : mListExecuting) {
-            operator.setRetryFunction(flatMapFunc);
-        }
+
+        SingleFileCopyOperator operator = new SingleFileCopyOperator(data);
+        operator.setDestination(data.getPath().replaceFirst(mSourcePath, mDestinationPath));
+
+        return operator;
     }
 
     public static class CopyFileData extends UpdatableData {
@@ -213,19 +198,18 @@ public class CopyFileOperator extends Operator.MultipleItemOperator<FileItem> {
         }
     }
 
-    public static class SingleFileCopyOperator extends SingleItemOperator<FileItem> {
+    public class SingleFileCopyOperator extends SingleFileOperator<FileItem> {
 
-        CopyFileData mResult;
+        private CopyFileData operatorResult;
         private FileItem mDestination;
-        private Func1<Throwable, Observable<?>> mRetryWhenError;
 
         public SingleFileCopyOperator(FileItem data) {
             super(data);
 
             Log.d("make operation for item: " + data.getAbsolutePath());
 
-            mResult = new CopyFileData();
-            mResult.sizeTotal = data.getSize();
+            operatorResult = new CopyFileData();
+            operatorResult.sizeTotal = data.isDirectory() ? 0 : data.length();
         }
 
         @Override
@@ -242,22 +226,10 @@ public class CopyFileOperator extends Operator.MultipleItemOperator<FileItem> {
                                     new IOException());
                         }
 
-                        mResult.isFinished = true;
-                        Log.d("Emitting " + mResult);
+                        operatorResult.isFinished = true;
+                        Log.d("Emitting Folder: " + operatorResult + ", cur data: " + mResult);
 
-                        return mResult;
-                    }
-                }).flatMap(new Func1<CopyFileData, Observable<CopyFileData>>() {
-                    @Override
-                    public Observable<CopyFileData> call(CopyFileData data) {
-                        if (data.isFinished) {
-                            CopyFileOperator operator = OperatorBuilder.makeCopy(getData().getChild(),
-                                    mDestination.getPath());
-                            operator.setRetryFlatMap(mRetryWhenError);
-
-                            return operator.execute();
-                        }
-                        return null;
+                        return operatorResult;
                     }
                 });
             } else {
@@ -281,17 +253,16 @@ public class CopyFileOperator extends Operator.MultipleItemOperator<FileItem> {
                             while ((byteRead = inputStream.read(buff, 0, buff.length)) > 0) {
                                 //                            TrackingTime.beginTracking(formatTag(result));
                                 outputStream.write(buff);
-                                makeUpdatableData(mResult, byteRead);
-                                if (mResult.sizeCopied - oldCopiedSent > 500000) {
-                                    Log.d("Emitting " + mResult);
-                                    subscriber.onNext(mResult);
-                                    oldCopiedSent = mResult.sizeCopied;
+                                makeUpdatableData(operatorResult, byteRead);
+                                if (operatorResult.sizeCopied - oldCopiedSent > 500000) {
+                                    Log.d("Emitting File: " + operatorResult + ", curData: " + mResult);
+                                    subscriber.onNext(operatorResult);
+                                    oldCopiedSent = operatorResult.sizeCopied;
                                 }
                             }
 
-                            mResult.isFinished = true;
-//                            subscriber.onNext(mResult);
-                            Log.d("COmpleted " + mResult);
+                            operatorResult.isFinished = true;
+                            Log.d("COmpleted " + operatorResult);
                             subscriber.onCompleted();
                         } catch (Exception e) {
                             throw new SystemException(ErrorCode.RK_COPY_ERR, "Error while copying file", e);
@@ -308,12 +279,14 @@ public class CopyFileOperator extends Operator.MultipleItemOperator<FileItem> {
                             }
                         }
                     }
-                }).onBackpressureLatest();
+                }).subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .onBackpressureLatest();
             }
 
             return observable
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribeOn(Schedulers.io())
+//                    .observeOn(AndroidSchedulers.mainThread())
                     .retryWhen(new Func1<Observable<? extends Throwable>, Observable<?>>() {
                         @Override
                         public Observable<?> call(Observable<? extends Throwable> error) {
@@ -334,7 +307,7 @@ public class CopyFileOperator extends Operator.MultipleItemOperator<FileItem> {
 
         @Override
         public String getSourcePath() {
-            return getData().getPath();
+            return getData().getParentPath();
         }
 
         @Override
@@ -344,10 +317,6 @@ public class CopyFileOperator extends Operator.MultipleItemOperator<FileItem> {
 
         public void setDestination(String path) {
             mDestination = new FileItem(path);
-        }
-
-        public void setRetryFunction(Func1<Throwable, Observable<?>> function) {
-            mRetryWhenError = function;
         }
     }
 }

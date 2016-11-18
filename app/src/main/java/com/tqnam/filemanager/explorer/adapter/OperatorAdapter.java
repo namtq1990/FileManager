@@ -190,6 +190,9 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
     }
 
     private void setProgress(ChildViewHolder viewHolder, int progress) {
+        Log.d("Set progress: " + progress);
+        if (progress > 100) progress = 100;
+
         viewHolder.progressBar.setProgress(progress);
         viewHolder.tvProgress.setText(String.format(Locale.ENGLISH, "%1d%%", progress));
     }
@@ -198,10 +201,10 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         if (operator.getData() != null) {
             List<Object> data = new ArrayList<>();
 
-            if (operator instanceof Operator.SingleItemOperator) {
-                data.add(operator.getData());
-            } else if (operator instanceof Operator.MultipleItemOperator){
+            if (operator.getData() instanceof Collection) {
                 data.addAll((Collection<?>) operator.getData());
+            } else {
+                data.add(operator.getData());
             }
 
             SimpleArrayAdapter<Object> adapter = new SimpleArrayAdapter<Object>(data.toArray()) {

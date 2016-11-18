@@ -73,12 +73,12 @@ public class FileItem extends File implements ItemExplorer {
             final File dir=dirs.remove(0);
             if(!dir.exists())
                 continue;
-            final File[] listFiles=dir.listFiles();
-            if(listFiles==null||listFiles.length==0)
+            final File[] listFiles = dir.listFiles();
+            if(listFiles == null || listFiles.length == 0)
                 continue;
             for(final File child : listFiles)
             {
-                result+=child.length();
+                result += child.length();
                 if(child.isDirectory())
                     dirs.add(child);
             }
