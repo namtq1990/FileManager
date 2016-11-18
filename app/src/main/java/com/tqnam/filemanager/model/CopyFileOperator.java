@@ -122,6 +122,21 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
         return true;
     }
 
+    @Override
+    public boolean isCancelable() {
+        return true;
+    }
+
+    @Override
+    public boolean isUndoable() {
+        return true;
+    }
+
+    @Override
+    public boolean isAbleToPause() {
+        return true;
+    }
+
     private String formatTag(CopyFileData data) {
         return TAG + data.hashCode();
     }

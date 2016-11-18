@@ -34,6 +34,7 @@ import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -292,6 +293,8 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         @BindView(R.id.tv_to) TextView tvTo;
         View rootView;
 
+        Operator curOperator;
+
         /**
          * Default constructor.
          *
@@ -324,6 +327,13 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
                         setProgress(this, (int) updatableData.getProgress());
                     }
                 }
+            }
+        }
+
+        @OnClick(R.id.btn_cancel)
+        public void onClickCancel() {
+            if (curOperator != null) {
+                //TODO Cancel operator
             }
         }
     }
