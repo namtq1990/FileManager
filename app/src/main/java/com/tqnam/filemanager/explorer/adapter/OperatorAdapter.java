@@ -3,6 +3,7 @@ package com.tqnam.filemanager.explorer.adapter;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,14 +18,15 @@ import android.widget.TextView;
 import com.bignerdranch.expandablerecyclerview.Adapter.ExpandableRecyclerAdapter;
 import com.bignerdranch.expandablerecyclerview.Model.ParentListItem;
 import com.bignerdranch.expandablerecyclerview.ViewHolder.ChildViewHolder;
+import com.quangnam.baseframework.BaseActivity;
 import com.quangnam.baseframework.Log;
+import com.quangnam.baseframework.exception.SystemException;
 import com.tqnam.filemanager.R;
-import com.tqnam.filemanager.model.CopyFileOperator;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.Operator;
+import com.tqnam.filemanager.utils.DefaultErrorAction;
 import com.tqnam.filemanager.utils.ViewUtils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,6 +48,8 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
     public static final int INDEX_DELETE = 2;
     public static final int INDEX_COMPRESS = 3;
 
+    private BaseActivity mContext;
+
 //    private List<OperatorList> mTotalList;
 
     /**
@@ -58,9 +62,9 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
      *                       displayed in the RecyclerView that this
      *                       adapter is linked to
      */
-    public OperatorAdapter(@NonNull List<OperatorList> parentItemList) {
+    public OperatorAdapter(@NonNull List<OperatorList> parentItemList, Context context) {
         super(parentItemList);
-//        mTotalList = parentItemList;
+        mContext = (BaseActivity) context;
     }
 
     @Override
@@ -118,27 +122,18 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
 
                 return Observable.empty();
             }
-        }).subscribe(viewHolder);
-//                .subscribe(new Subscriber<Operator.UpdatableData>() {
-//            @Override
-//            public void onCompleted() {}
-//
-//            @Override
-//            public void onError(Throwable e) {
-//            }
-//
-//            @Override
-//            public void onNext(Operator.UpdatableData updatableData) {
-//                viewHolder.call(updatableData);
-//                request(1);
-//            }
-//
-//            @Override
-//            public void onStart() {
-//                super.onStart();
-//                request(1);
-//            }
-//        });
+        }).subscribe(viewHolder, new DefaultErrorAction() {
+
+            @Override
+            public void onError(int errCode, SystemException e) {
+                super.onError(errCode, e);
+            }
+
+            @Override
+            public Context getContext() {
+                return mContext;
+            }
+        });
 
         if (operator.isCancelable() && operator.isExecuting()) {
             viewHolder.addMenuButton(viewHolder.btnCancel);
@@ -228,19 +223,23 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
     }
 
     private void setupOperator(Operator operator) {
-        if (operator instanceof CopyFileOperator) {
-            ((CopyFileOperator) operator).setRetryFlatMap(new Func1<Throwable, Observable<?>>() {
-                @Override
-                public Observable<?> call(Throwable throwable) {
-                    if (throwable instanceof IOException) {
-                        // TODO Implement check permission
-                        return Observable.just(null);
-                    }
-
-                    return Observable.error(throwable);
-                }
-            });
-        }
+//        if (operator instanceof CopyFileOperator) {
+//            ((CopyFileOperator) operator).setRetryFlatMap(new Func1<Throwable, Observable<?>>() {
+//                @Override
+//                public Observable<?> call(Throwable throwable) {
+//                    if (throwable instanceof SystemException) {
+//                        int errCode = ((SystemException) throwable).mErrorcode;
+//
+//                        if (errCode == ErrorCode.RK_EXPLORER_PERMISSION) {
+//                        }
+//
+//                        return Observable.just(null);
+//                    }
+//
+//                    return Observable.error(throwable);
+//                }
+//            });
+//        }
     }
 
     public int getParentPosition(int position) {

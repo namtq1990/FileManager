@@ -85,7 +85,7 @@ public class OperatorManagerFragment extends BaseFragment {
         list.add(childList);
 //        list.add(childList);
 
-        mViewHolder.listAdapter = new OperatorAdapter(list);
+        mViewHolder.listAdapter = new OperatorAdapter(list, getActivity());
     }
 
     class ViewHolder {

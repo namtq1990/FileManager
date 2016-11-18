@@ -1,5 +1,7 @@
 package com.tqnam.filemanager.model;
 
+import com.quangnam.baseframework.exception.SystemException;
+
 /**
  * Created by quangnam on 3/3/16.
  * Error code in program
@@ -9,7 +11,7 @@ public class ErrorCode {
     /**
      * unknown error
      */
-    public static final int RK_UNKNOWN = 1;
+    public static final int RK_UNKNOWN = SystemException.RK_UNKNOWN;
 
     public static final int RK_IMAGE_LOADING_ERROR = 2;
 

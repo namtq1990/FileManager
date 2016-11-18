@@ -27,21 +27,17 @@ import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import com.quangnam.baseframework.BaseActivity;
-import com.quangnam.baseframework.BaseErrorAction;
 import com.quangnam.baseframework.BaseFragment;
 import com.quangnam.baseframework.BaseFragmentInterface;
-import com.quangnam.baseframework.exception.SystemException;
-import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.adapter.ExplorerItemAdapter;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
-import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.ItemInformation;
+import com.tqnam.filemanager.utils.DefaultErrorAction;
 
 import java.util.List;
 
@@ -63,33 +59,11 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public static final String ARG_ROOT_PATH = "root_path";
     private static final String ARG_QUICK_QUERY = "query_text";
     //    private Animator               mOpenAnimType;
-    protected Action1<Throwable> mActionError = new BaseErrorAction() {
+    protected Action1<Throwable> mActionError = new DefaultErrorAction() {
 
         @Override
-        public void onError(int errCode, SystemException e) {
-            e.printStackTrace();
-            Activity curActivity = getActivitySafe();
-
-            switch (errCode) {
-                case ErrorCode.RK_EXPLORER_OPEN_ERROR:
-                    showErrorMessage(curActivity.getString(R.string.explorer_err_permission));
-                    break;
-                case ErrorCode.RK_RENAME_ERR:
-                    showErrorMessage("Cann't rename file, check permission");
-                    break;
-                case ErrorCode.RK_EXPLORER_OPEN_NOTHING:
-                case ErrorCode.RK_EXPLORER_OPEN_WRONG_FUNCTION:
-                    Common.Log("Calling wrong function");
-                case ErrorCode.RK_UNKNOWN:
-                    showErrorMessage(curActivity.getString(R.string.error_unknown));
-                    break;
-            }
-        }
-
-        @Override
-        public void showErrorMessage(String message) {
-            Activity curActivity = getActivitySafe();
-            Toast.makeText(curActivity, message, Toast.LENGTH_SHORT).show();
+        public Context getContext() {
+            return getActivitySafe();
         }
     };
     private boolean mIsShownMenu;

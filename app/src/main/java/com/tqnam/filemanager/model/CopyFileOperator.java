@@ -32,7 +32,6 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
     private CopyFileData mResult;
     private String mDestinationPath;
     private String mSourcePath;
-    private Func1<Throwable, Observable<?>> mRetryWhenError;
 
     public CopyFileOperator(List<FileItem> data, String destPath) {
         super(data);
@@ -147,10 +146,6 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
         return mDestinationPath;
     }
 
-    public void setRetryFlatMap(Func1<Throwable, Observable<?>> flatMapFunc) {
-        mRetryWhenError = flatMapFunc;
-    }
-
     @Override
     public Operator createStreamFromData(FileItem data) {
         if (!data.isDirectory()) {
@@ -221,9 +216,17 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
                     public CopyFileData call() throws Exception {
                         boolean isMakeDir = mDestination.mkdir();
                         if (!isMakeDir) {
-                            throw new SystemException(ErrorCode.RK_COPY_ERR,
-                                    "Cann't make directory " + mDestination.getPath(),
-                                    new IOException());
+                            int errCode = ErrorCode.RK_UNKNOWN;
+
+                            if (!mDestination.exists()) {
+                                if (!mDestination.canWrite()) {
+                                    errCode = ErrorCode.RK_EXPLORER_PERMISSION;
+                                }
+
+                                throw new SystemException(errCode,
+                                        "Cann't make directory " + mDestination.getPath(),
+                                        new IOException());
+                            }
                         }
 
                         operatorResult.isFinished = true;
@@ -262,6 +265,7 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
                             }
 
                             operatorResult.isFinished = true;
+                            subscriber.onNext(operatorResult);
                             Log.d("COmpleted " + operatorResult);
                             subscriber.onCompleted();
                         } catch (Exception e) {
@@ -284,15 +288,15 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
                         .onBackpressureLatest();
             }
 
-            return observable
+            return observable;
 //                    .subscribeOn(Schedulers.io())
 //                    .observeOn(AndroidSchedulers.mainThread())
-                    .retryWhen(new Func1<Observable<? extends Throwable>, Observable<?>>() {
-                        @Override
-                        public Observable<?> call(Observable<? extends Throwable> error) {
-                            return error.flatMap(mRetryWhenError);
-                        }
-                    });
+//                    .retryWhen(new Func1<Observable<? extends Throwable>, Observable<?>>() {
+//                        @Override
+//                        public Observable<?> call(Observable<? extends Throwable> error) {
+//                            return error.flatMap(mRetryWhenError);
+//                        }
+//                    });
         }
 
         private CopyFileData makeUpdatableData(CopyFileData data, int byteRead) {
