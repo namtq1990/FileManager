@@ -28,6 +28,7 @@ import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.utils.SparseBooleanArrayParcelable;
 import com.tqnam.filemanager.view.GridViewItem;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import rx.android.schedulers.AndroidSchedulers;
@@ -71,14 +72,11 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.action_property:
-                    int length = mSelectedList.size();
-                    ItemExplorer[] selectedList = new ItemExplorer[length];
-                    for (int i = 0; i < length; i++) {
-                        int key = mSelectedList.keyAt(i);
-                        selectedList[i] = mPresenter.getItemDisplayedAt(key);
-                    }
-
-                    mListener.onViewProperty(selectedList);
+                    mListener.onMenuSelected(item.getItemId());
+                    break;
+                case R.id.action_del:
+                    mListener.onMenuSelected(item.getItemId());
+                    mActionMode.finish();
                     break;
             }
 
@@ -109,6 +107,18 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             notifyItemChanged(mSelectedList.keyAt(i));
         }
         mSelectedList.clear();
+    }
+
+    public ArrayList<ItemExplorer> getSelectedItem() {
+        int length = mSelectedList.size();
+        ArrayList<ItemExplorer> selectedList = new ArrayList<>(length);
+
+        for (int i = 0; i < length; i++) {
+            int key = mSelectedList.keyAt(i);
+            selectedList.add(mPresenter.getItemDisplayedAt(key));
+        }
+
+        return selectedList;
     }
 
     public void updateView(@Nullable View view, int state) {
@@ -206,7 +216,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     public interface ExplorerItemAdapterListener {
         void onOpenAction(int position);
         void openRenameDialog(String item, int position);
-        void onViewProperty(ItemExplorer[] listSelected);
+        void onMenuSelected(int menu);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

@@ -113,7 +113,7 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
 
         setupFileName(viewHolder, operator);
         setupOperator(operator);
-        Observable<Object> observable = operator.execute();
+        Observable<?> observable = operator.execute();
         observable.flatMap(new Func1<Object, Observable<Operator.UpdatableData>>() {
 
             @Override
@@ -336,6 +336,8 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
                 //TODO Cancel operator
             }
         }
+
+        // TODO unbind with operator
     }
 
     public class ParentViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ParentViewHolder {

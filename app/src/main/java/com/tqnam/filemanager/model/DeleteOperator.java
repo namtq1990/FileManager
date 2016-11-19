@@ -19,9 +19,11 @@ import rx.schedulers.Schedulers;
  * Project FileManager-master
  */
 public class DeleteOperator extends Operator.TraverseFileOperator<FileItem> {
-    private static final int UPDATE_TIMESTAMP = 100;
+    private static final int UPDATE_TIMESTAMP = 800;
 
+    private Observable<DeleteFileData> mCurObservable;
     private DeleteFileData mResult;
+
 
     public DeleteOperator(List<FileItem> data) {
         super(data);
@@ -41,35 +43,45 @@ public class DeleteOperator extends Operator.TraverseFileOperator<FileItem> {
 
     @Override
     public Observable<DeleteFileData> execute(Object... arg) {
-        return Observable.interval(UPDATE_TIMESTAMP, TimeUnit.MILLISECONDS).takeUntil(
-                Observable.create(new Observable.OnSubscribe<Long>() {
-                    @Override
-                    public void call(Subscriber<? super Long> subscriber) {
-                        execute();
-                        subscriber.onCompleted();
-                    }
-                })
-                        .subscribeOn(Schedulers.io()))
-                .concatWith(Observable.just(0L))
-                .map(new Func1<Long, DeleteFileData>() {
-                    @Override
-                    public DeleteFileData call(Long aLong) {
-                        Log.d("Mapping data: " + mResult);
-                        mResult.validate();
-                        return mResult;
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread());
+        if (mCurObservable == null)
+            mCurObservable = Observable.interval(UPDATE_TIMESTAMP, TimeUnit.MILLISECONDS).takeUntil(
+                    Observable.create(new Observable.OnSubscribe<Long>() {
+                        @Override
+                        public void call(Subscriber<? super Long> subscriber) {
+                            execute();
+                            subscriber.onCompleted();
+                        }
+                    })
+                            .subscribeOn(Schedulers.io()))
+                    .concatWith(Observable.just(0L))
+                    .map(new Func1<Long, DeleteFileData>() {
+                        @Override
+                        public DeleteFileData call(Long aLong) {
+                            Log.d("Mapping data: " + mResult);
+                            mResult.validate();
+                            return mResult;
+                        }
+                    })
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .share();
+
+        return mCurObservable;
     }
 
     private void execute() {
-        Log.d("Executing...");
+        Log.d("Deleting...");
         ArrayList<Operator> operators = getAllStream();
 
         for (int i = operators.size() - 1; i >= 0; i--) {
             SingleDeleteFile deleteOperator = (SingleDeleteFile) operators.get(i);
             deleteOperator.execute();
             mResult.numOfFileDeleted++;
+
+//            try {
+//                Thread.sleep(3000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
         }
     }
 

@@ -11,10 +11,14 @@ import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
 import com.tqnam.filemanager.explorer.ExplorerView;
+import com.tqnam.filemanager.model.CopyFileOperator;
+import com.tqnam.filemanager.model.DeleteOperator;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ExplorerModel;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.model.Operator;
 import com.tqnam.filemanager.utils.FileUtil;
+import com.tqnam.filemanager.utils.OperatorManager;
 
 import java.io.File;
 import java.util.List;
@@ -251,6 +255,30 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                         return list;
                     }
                 });
+    }
+
+    @Override
+    public Operator<?> deleteOperator(List<ItemExplorer> list) {
+        List<FileItem> listFile = (List<FileItem>) (List<? extends ItemExplorer>) list;
+        DeleteOperator operation = new DeleteOperator(listFile);
+
+        // TODO Check if operator is validated, so add to unvalidatedList
+        mModel.getUnvalidatedList().add(operation);
+
+        return operation;
+    }
+
+    @Override
+    public void setValidated(Operator operator) {
+        int category = OperatorManager.CATEGORY_OTHER;
+        if (operator instanceof DeleteOperator) {
+            category = OperatorManager.CATEGORY_DELETE;
+        } else if (operator instanceof CopyFileOperator) {
+            category = OperatorManager.CATEGORY_COPY;
+        }
+
+        mModel.getUnvalidatedList().remove(operator);
+        mModel.getOperatorManager().addOperator(operator, category);
     }
 
     @Override

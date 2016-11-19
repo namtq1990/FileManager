@@ -2,14 +2,13 @@ package com.tqnam.filemanager.model;
 
 import android.os.Bundle;
 
+import com.tqnam.filemanager.utils.OperatorManager;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Created by quangnam on 11/7/15.
- */
 public class ExplorerModel {
 
     public static final int COMPARE_NAME = 1;
@@ -20,20 +19,24 @@ public class ExplorerModel {
     public static final String ARG_CUR_COMPARE = "cur_compare";
     public static final String ARG_LIST_ITEM = "list_item";
     public static final String ARG_LIST_DISPLAY_ITEM = "list_display";
-
     public String mCurLocation;
     public String mParentPath;
     public int mCurCompare;
-
+    private OperatorManager mOperatorManager;
      // The List item in current location, all item must be same type to restore value
     private ArrayList<ItemExplorer> mListItem;
     // The list that will be display in GUI
     private ArrayList<ItemExplorer> mDisplayedItem;
 
+    private ArrayList<Operator>  mUnvalidatedOperators;
+
     public ExplorerModel() {
         mCurCompare = COMPARE_NAME;
         mListItem = new ArrayList<>();
         mDisplayedItem = new ArrayList<>();
+
+        mOperatorManager = OperatorManager.getInstance();
+        mUnvalidatedOperators = new ArrayList<>();
     }
 
     public void onSavedInstanceState(Bundle savedState) {
@@ -115,5 +118,13 @@ public class ExplorerModel {
 
     public void resetDisplayList() {
         mDisplayedItem = new ArrayList<>(mListItem);
+    }
+
+    public OperatorManager getOperatorManager() {
+        return mOperatorManager;
+    }
+
+    public ArrayList<Operator> getUnvalidatedList() {
+        return mUnvalidatedOperators;
     }
 }

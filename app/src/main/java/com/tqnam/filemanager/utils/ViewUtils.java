@@ -45,4 +45,5 @@ public class ViewUtils {
 
         tv.setText(spanText);
     }
+
 }

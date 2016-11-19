@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 
 import com.quangnam.baseframework.SaveBundleListener;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.model.Operator;
 
 import java.util.List;
 
@@ -31,6 +32,8 @@ public interface ExplorerPresenter extends SaveBundleListener {
     Observable<List<? extends ItemExplorer>> quickQueryFile(String query);
     Observable<List<? extends ItemExplorer>> quickQueryFile(String query, String path);
     Observable<List<ItemExplorer>> queryFile(String path, String query);
+    Operator<?> deleteOperator(List<ItemExplorer> list);
+    void setValidated(Operator operator);
 
     String getCurLocation();
     void setCurLocation(String path);

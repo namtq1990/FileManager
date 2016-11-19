@@ -1,18 +1,13 @@
 package com.tqnam.filemanager.explorer;
 
-import android.animation.Animator;
-import android.animation.AnimatorSet;
-import android.animation.ArgbEvaluator;
 import android.animation.LayoutTransition;
-import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -24,7 +19,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
@@ -35,9 +29,12 @@ import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.adapter.ExplorerItemAdapter;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
+import com.tqnam.filemanager.model.DeleteOperator;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.ItemInformation;
+import com.tqnam.filemanager.model.Operator;
 import com.tqnam.filemanager.utils.DefaultErrorAction;
+import com.tqnam.filemanager.utils.FileUtil;
 
 import java.util.List;
 
@@ -53,10 +50,14 @@ import rx.functions.Func1;
 public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView,
         MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.ExplorerItemAdapterListener,
         BaseActivity.OnBackPressedListener,
-        DialogRenameFragment.RenameDialogListener, BaseActivity.OnFocusFragmentChanged
+        DialogRenameFragment.RenameDialogListener, BaseActivity.OnFocusFragmentChanged,
+        AlertDialogFragment.AlertDialogListener
 {
     public static final String ARG_QUERY = "query";
     public static final String ARG_ROOT_PATH = "root_path";
+    public static final int ACTION_DELETE = 0;
+    public static final int ACTION_COPY = 1;
+    public static final int ACTION_MOVE = 2;
     private static final String ARG_QUICK_QUERY = "query_text";
     //    private Animator               mOpenAnimType;
     protected Action1<Throwable> mActionError = new DefaultErrorAction() {
@@ -108,6 +109,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
         if (childFragment instanceof DialogRenameFragment) {
             ((DialogRenameFragment) childFragment).setListener(this);
+        } else if (childFragment instanceof AlertDialogFragment) {
+            ((AlertDialogFragment) childFragment).setListener(this);
         }
     }
 
@@ -324,19 +327,15 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         }
     }
 
-    public void requestFocus() {
-//        BaseActivity activity = (BaseActivity) getActivity();
-//        activity.requestFocusFragment(this);
-        requestFocusFragment((BaseActivity) getActivity());
-        ((ExplorerBaseFunction) getActivity()).showAddButton();
-    }
-
-    public void clearFocus() {
-//        BaseActivity activity = (BaseActivity) getActivity();
-//        activity.removeFocusRequest(this);
-        removeFocusRequest((BaseActivity) getActivity());
-        ((ExplorerBaseFunction) getActivity()).hideAddButton();
-    }
+//    public void requestFocus() {
+//        requestFocusFragment((BaseActivity) getActivity());
+//        ((ExplorerBaseFunction) getActivity()).showAddButton();
+//    }
+//
+//    public void clearFocus() {
+//        removeFocusRequest((BaseActivity) getActivity());
+//        ((ExplorerBaseFunction) getActivity()).hideAddButton();
+//    }
 
     public boolean onBackPressed() {
 //        mOpenAnimType = animActionOpenUp();
@@ -356,65 +355,65 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         return true;
     }
 
-    private Animator animActionOpenUp() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
-                && getView() != null) {
-            View rootView = getView();
-            Context context = rootView.getContext();
-            int startColor = ContextCompat.getColor(context, R.color.accent_material_dark);
-            int endColor = ContextCompat.getColor(context, R.color.white);
-            int width = rootView.getWidth();
-            int height = rootView.getHeight();
-
-            int startRadius = (int) Math.sqrt(width * width + height * height);
-            AnimatorSet set = new AnimatorSet();
-            Animator anim = ViewAnimationUtils.createCircularReveal(rootView, width, height, startRadius, 0);
-            ObjectAnimator colorAnim = ObjectAnimator.ofObject(rootView, "backgroundColor",
-                    new ArgbEvaluator(), startColor, endColor).setDuration(anim.getDuration());
-            set.play(anim).with(colorAnim);
-            rootView.setVisibility(View.VISIBLE);
-
-            return set;
-        } else {
-            return null;
-        }
-    }
-
-    private Animator animActionOpenIn(View itemView) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
-                && getView() != null) {
-            final View rootView = getView();
-            // TODO need iconview to be child directly of itemView
-            View iconView = itemView.findViewById(R.id.icon_item);
-            int left = itemView.getLeft() + iconView.getLeft();
-            int right = itemView.getLeft() + iconView.getRight();
-            int top = itemView.getTop() + iconView.getTop();
-            int bottom = itemView.getTop() + iconView.getBottom();
-            Context context = rootView.getContext();
-            rootView.setVisibility(View.INVISIBLE);
-            int centerX = (left + right) / 2;
-            int centerY = (top + bottom) / 2;
-            int width = rootView.getWidth();
-            int height = rootView.getHeight();
-            int startRadius = 0;
-            int startColor = ContextCompat.getColor(context, R.color.accent_material_dark);
-            final int endColor = ContextCompat.getColor(context, R.color.white);
-
-            int finalRadius = (int) (Math.sqrt(width * width
-                    + height * height));
-            AnimatorSet set = new AnimatorSet();
-            Animator anim = ViewAnimationUtils.createCircularReveal(rootView, centerX, centerY,
-                    startRadius, finalRadius);
-            ObjectAnimator colorAnim = ObjectAnimator.ofObject(rootView, "backgroundColor",
-                    new ArgbEvaluator(), startColor, endColor).setDuration(anim.getDuration());
-            set.play(anim).with(colorAnim);
-            rootView.setVisibility(View.VISIBLE);
-
-            return set;
-        } else {
-            return null;
-        }
-    }
+//    private Animator animActionOpenUp() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+//                && getView() != null) {
+//            View rootView = getView();
+//            Context context = rootView.getContext();
+//            int startColor = ContextCompat.getColor(context, R.color.accent_material_dark);
+//            int endColor = ContextCompat.getColor(context, R.color.white);
+//            int width = rootView.getWidth();
+//            int height = rootView.getHeight();
+//
+//            int startRadius = (int) Math.sqrt(width * width + height * height);
+//            AnimatorSet set = new AnimatorSet();
+//            Animator anim = ViewAnimationUtils.createCircularReveal(rootView, width, height, startRadius, 0);
+//            ObjectAnimator colorAnim = ObjectAnimator.ofObject(rootView, "backgroundColor",
+//                    new ArgbEvaluator(), startColor, endColor).setDuration(anim.getDuration());
+//            set.play(anim).with(colorAnim);
+//            rootView.setVisibility(View.VISIBLE);
+//
+//            return set;
+//        } else {
+//            return null;
+//        }
+//    }
+//
+//    private Animator animActionOpenIn(View itemView) {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+//                && getView() != null) {
+//            final View rootView = getView();
+//            // TODO need iconview to be child directly of itemView
+//            View iconView = itemView.findViewById(R.id.icon_item);
+//            int left = itemView.getLeft() + iconView.getLeft();
+//            int right = itemView.getLeft() + iconView.getRight();
+//            int top = itemView.getTop() + iconView.getTop();
+//            int bottom = itemView.getTop() + iconView.getBottom();
+//            Context context = rootView.getContext();
+//            rootView.setVisibility(View.INVISIBLE);
+//            int centerX = (left + right) / 2;
+//            int centerY = (top + bottom) / 2;
+//            int width = rootView.getWidth();
+//            int height = rootView.getHeight();
+//            int startRadius = 0;
+//            int startColor = ContextCompat.getColor(context, R.color.accent_material_dark);
+//            final int endColor = ContextCompat.getColor(context, R.color.white);
+//
+//            int finalRadius = (int) (Math.sqrt(width * width
+//                    + height * height));
+//            AnimatorSet set = new AnimatorSet();
+//            Animator anim = ViewAnimationUtils.createCircularReveal(rootView, centerX, centerY,
+//                    startRadius, finalRadius);
+//            ObjectAnimator colorAnim = ObjectAnimator.ofObject(rootView, "backgroundColor",
+//                    new ArgbEvaluator(), startColor, endColor).setDuration(anim.getDuration());
+//            set.play(anim).with(colorAnim);
+//            rootView.setVisibility(View.VISIBLE);
+//
+//            return set;
+//        } else {
+//            return null;
+//        }
+//    }
 
     protected boolean isCloseFragment() {
         if (getOpenOption() == ExplorerPresenter.OpenOption.SEARCH) {
@@ -439,11 +438,11 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     @Override
     public void onFocusFragmentChange(BaseFragmentInterface oldFragment, BaseFragmentInterface newFragment) {
         if (isFragmentFocusing(newFragment)) {
-            ((MainActivity) getActivity()).showAddButton();
+            ((ExplorerBaseFunction) getActivity()).showAddButton();
             mIsShownMenu = true;
             if (mViewHolder.mSearchMenu != null) mViewHolder.mSearchMenu.setVisible(true);
         } else {
-            ((MainActivity) getActivity()).hideAddButton();
+            ((ExplorerBaseFunction) getActivity()).hideAddButton();
             mIsShownMenu = false;
             if (mViewHolder.mSearchView != null) mViewHolder.mSearchMenu.setVisible(false);
         }
@@ -469,10 +468,51 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     }
 
     @Override
-    public void onViewProperty(ItemExplorer[] listSelected) {
-        ItemInformation information = new ItemInformation(listSelected);
-        InformationDialogFragment fragment = InformationDialogFragment.newInstance(information);
-        fragment.show(getFragmentManager(), InformationDialogFragment.TAG);
+    public void onMenuSelected(int menu) {
+        List<ItemExplorer> selectedList = mViewHolder.mAdapter.getSelectedItem();
+
+        switch (menu) {
+            case R.id.action_property:
+                ItemInformation information = new ItemInformation((ItemExplorer[]) selectedList.toArray());
+                InformationDialogFragment fragment = InformationDialogFragment.newInstance(information);
+                fragment.show(getFragmentManager(), InformationDialogFragment.TAG);
+                break;
+            case R.id.action_del:
+                String message = "Do you want to remove these files?"
+                        + "\n"
+                        + FileUtil.formatListTitle(selectedList);
+                AlertDialogFragment.newInstance(ACTION_DELETE,
+                        message)
+                        .show(getChildFragmentManager(), AlertDialogFragment.TAG);
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public void onDialogClick(DialogInterface dialog, int which, int action, Bundle args) {
+        if (which == DialogInterface.BUTTON_NEGATIVE) {
+            mViewHolder.mAdapter.updateView(null, ExplorerItemAdapter.STATE_NORMAL);
+            return;
+        }
+
+        List<ItemExplorer> selectedList = mViewHolder.mAdapter.getSelectedItem();
+
+        switch (action) {
+            case ACTION_DELETE: {
+                DeleteOperator operation = (DeleteOperator) mPresenter.deleteOperator(selectedList);
+                doValidate(operation);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    public void doValidate(Operator operation) {
+        //TODO Show dialog to validate action
+        mPresenter.setValidated(operation);
     }
 
     @Override
@@ -606,7 +646,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     public interface ExplorerBaseFunction {
         void showAddButton();
-
         void hideAddButton();
     }
 

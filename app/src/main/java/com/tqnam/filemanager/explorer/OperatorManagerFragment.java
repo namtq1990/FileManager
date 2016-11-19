@@ -11,13 +11,9 @@ import android.view.ViewGroup;
 import com.quangnam.baseframework.BaseFragment;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.adapter.OperatorAdapter;
-import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
-import com.tqnam.filemanager.model.DeleteOperator;
-import com.tqnam.filemanager.model.ItemExplorer;
-import com.tqnam.filemanager.model.Operator;
+import com.tqnam.filemanager.utils.OperatorManager;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -48,44 +44,50 @@ public class OperatorManagerFragment extends BaseFragment {
     }
 
     private void initData() {
-        Operator testOperator;
-        List<ItemExplorer> files = new ArrayList<>();
-        files.add(new FileItem("/Sdcard/Movies"));
-        files.add(new FileItem("/Sdcard/Music"));
-
-        List<FileItem> input = new ArrayList<>();
-        input.add(new FileItem("/storage/emulated/0/Subtitles/Download"));
-//        testOperator = new CopyFileOperator(input, "/storage/emulated/0/Subtitles");
-        testOperator = new DeleteOperator(input);
-//        Operator testOperator = new Operator.MultipleItemOperator<ItemExplorer>(files) {
-//            @Override
-//            public Observable execute(Object... arg) {
-//                return Observable.just("Test");
-//            }
+//        Operator testOperator;
+//        List<ItemExplorer> files = new ArrayList<>();
+//        files.add(new FileItem("/Sdcard/Movies"));
+//        files.add(new FileItem("/Sdcard/Music"));
 //
-//            @Override
-//            public String getSourcePath() {
-//                return "/Sdcard";
-//            }
+//        List<FileItem> input = new ArrayList<>();
+//        input.add(new FileItem("/storage/emulated/0/Subtitles/Download"));
+////        testOperator = new CopyFileOperator(input, "/storage/emulated/0/Subtitles");
+//        testOperator = new DeleteOperator(input);
+////        Operator testOperator = new Operator.MultipleItemOperator<ItemExplorer>(files) {
+////            @Override
+////            public Observable execute(Object... arg) {
+////                return Observable.just("Test");
+////            }
+////
+////            @Override
+////            public String getSourcePath() {
+////                return "/Sdcard";
+////            }
+////
+////            @Override
+////            public String getDestinationPath() {
+////                return "/Sdcard";
+////            }
+////
+////            @Override
+////            public boolean isUpdatable() {
+////                return true;
+////            }
+////        };
 //
-//            @Override
-//            public String getDestinationPath() {
-//                return "/Sdcard";
-//            }
+//        ArrayList<Operator> operators = new ArrayList<>();
+//        operators.add(testOperator);
 //
-//            @Override
-//            public boolean isUpdatable() {
-//                return true;
-//            }
-//        };
+//        OperatorAdapter.OperatorList childList = new OperatorAdapter.OperatorList(operators);
 
-        ArrayList<Operator> operators = new ArrayList<>();
-        operators.add(testOperator);
-
-        OperatorAdapter.OperatorList childList = new OperatorAdapter.OperatorList(operators);
         ArrayList<OperatorAdapter.OperatorList> list = new ArrayList<>();
-        list.add(childList);
 //        list.add(childList);
+        for (int category : OperatorManager.CATEGORIES) {
+            OperatorAdapter.OperatorList childList = new OperatorAdapter.OperatorList(
+                    OperatorManager.getInstance().getOperatorList(category)
+            );
+            list.add(childList);
+        }
 
         mViewHolder.listAdapter = new OperatorAdapter(list, getActivity());
     }

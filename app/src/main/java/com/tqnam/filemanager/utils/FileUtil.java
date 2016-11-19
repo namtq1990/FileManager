@@ -137,4 +137,16 @@ public class FileUtil {
         return search(new FileItem(path), query);
     }
 
+    public static String formatListTitle(List<? extends ItemExplorer> list) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < list.size(); i++) {
+            sb.append("i. ")
+                    .append(list.get(i).getDisplayName())
+                    .append('\n');
+        }
+
+        return sb.toString();
+    }
+
 }
