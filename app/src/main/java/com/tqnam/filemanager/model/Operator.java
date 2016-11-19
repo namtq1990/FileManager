@@ -6,9 +6,6 @@ import java.util.List;
 
 import rx.Observable;
 
-/**
- * Created by quangnam on 11/14/16.
- */
 public abstract class Operator<T> {
 
     private T mData;
@@ -17,7 +14,7 @@ public abstract class Operator<T> {
         mData = data;
     }
 
-    public abstract Observable<? extends Object> execute(Object... arg);
+    public abstract Observable<?> execute(Object... arg);
 
     public boolean isExecuting() {
         return false;
@@ -88,6 +85,16 @@ public abstract class Operator<T> {
             }
         }
 
+        protected void moveToExecuting(Operator operator) {
+            if (!mExecutingList.contains(operator))
+                mExecutingList.add(operator);
+        }
+
+        protected void moveToExecuted(Operator operator) {
+            mExecutingList.remove(operator);
+            mExecutedList.add(operator);
+        }
+
         public abstract Operator createStreamFromData(T data);
     }
 
@@ -103,7 +110,7 @@ public abstract class Operator<T> {
         private int operatorHashcode;
 
         public boolean isFinished() {
-            return progress == 100;
+            return progress >= 100;
         }
 
         public float getProgress() {
@@ -120,6 +127,14 @@ public abstract class Operator<T> {
 
         public void setOperatorHashcode(int hashcode) {
             operatorHashcode = hashcode;
+        }
+
+        public void validate() {}
+
+        @Override
+        public String toString() {
+            return super.toString()
+                    + "{progress=" + progress + "}";
         }
     }
 

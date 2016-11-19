@@ -55,7 +55,7 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
         TrackingTime.beginTracking(formatTag(mResult));
 
         ArrayList<Observable<CopyFileData>> list = new ArrayList<>(getAllStream().size());
-        for (final Operator<Object> operator : getAllStream()) {
+        for (final Operator<?> operator : getAllStream()) {
             Observable<CopyFileData> childObservable = operator.execute()
                     .map(new Func1<Object, CopyFileData>() {
                         @Override
@@ -89,7 +89,7 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
                         mResult.sizeCopied = mSizeOfListExecuted + data.sizeCopied;
 
                         mResult.speed = (mResult.sizeCopied - oldSizeCopied) * 1000 / (float)timeExecuted;
-                        mResult.setProgress((int)((mResult.sizeCopied * 100 + 1) / mResult.sizeTotal));
+                        mResult.validate();
 
                         TrackingTime.beginTracking(formatTag(mResult));
 
@@ -98,12 +98,7 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
                 });
     }
 
-    private void moveToExecuting(Operator operator) {
-        ArrayList<Operator> executingList = getExecutingList();
-        if (!executingList.contains(operator)) executingList.add(operator);
-    }
-
-    private void moveToExecuted(Operator operator) {
+    protected void moveToExecuted(Operator operator) {
         if (!(operator instanceof SingleFileCopyOperator)) {
             throw new SystemException(ErrorCode.RK_COPY_ERR, "Cann't use operator that's not " + SingleFileCopyOperator.class);
         }
@@ -199,6 +194,11 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
 
         public long getSizeTotal() {
             return sizeTotal;
+        }
+
+        @Override
+        public void validate() {
+            setProgress((int)((sizeCopied * 100 + 1) / sizeTotal));
         }
 
         @Override

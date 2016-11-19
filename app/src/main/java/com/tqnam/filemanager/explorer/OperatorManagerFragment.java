@@ -12,7 +12,7 @@ import com.quangnam.baseframework.BaseFragment;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.adapter.OperatorAdapter;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
-import com.tqnam.filemanager.model.CopyFileOperator;
+import com.tqnam.filemanager.model.DeleteOperator;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.Operator;
 
@@ -48,13 +48,15 @@ public class OperatorManagerFragment extends BaseFragment {
     }
 
     private void initData() {
+        Operator testOperator;
         List<ItemExplorer> files = new ArrayList<>();
         files.add(new FileItem("/Sdcard/Movies"));
         files.add(new FileItem("/Sdcard/Music"));
 
         List<FileItem> input = new ArrayList<>();
-        input.add(new FileItem("/storage/emulated/0/Download"));
-        Operator testOperator = new CopyFileOperator(input, "/storage/emulated/0/Subtitles");
+        input.add(new FileItem("/storage/emulated/0/Subtitles/Download"));
+//        testOperator = new CopyFileOperator(input, "/storage/emulated/0/Subtitles");
+        testOperator = new DeleteOperator(input);
 //        Operator testOperator = new Operator.MultipleItemOperator<ItemExplorer>(files) {
 //            @Override
 //            public Observable execute(Object... arg) {
