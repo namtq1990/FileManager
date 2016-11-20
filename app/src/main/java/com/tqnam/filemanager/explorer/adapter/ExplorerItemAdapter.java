@@ -76,7 +76,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                     break;
                 case R.id.action_del:
                     mListener.onMenuSelected(item.getItemId());
-                    mActionMode.finish();
+//                    mActionMode.finish();
                     break;
             }
 

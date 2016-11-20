@@ -2,6 +2,7 @@ package com.tqnam.filemanager.model;
 
 import com.quangnam.baseframework.Log;
 import com.quangnam.baseframework.exception.SystemException;
+import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 
 import java.util.ArrayList;
@@ -63,25 +64,36 @@ public class DeleteOperator extends Operator.TraverseFileOperator<FileItem> {
                         }
                     })
                     .observeOn(AndroidSchedulers.mainThread())
-                    .share();
+                    .compose(new RxCacheWithoutError<DeleteFileData>(1));
 
         return mCurObservable;
     }
 
     private void execute() {
-        Log.d("Deleting...");
-        ArrayList<Operator> operators = getAllStream();
+        try {
+            Log.d("Deleting...");
+            ArrayList<Operator> operators = getAllStream();
 
-        for (int i = operators.size() - 1; i >= 0; i--) {
-            SingleDeleteFile deleteOperator = (SingleDeleteFile) operators.get(i);
-            deleteOperator.execute();
-            mResult.numOfFileDeleted++;
+            //        try {
+            //            Thread.sleep(3000);
+            //        } catch (InterruptedException e) {
+            //            e.printStackTrace();
+            //        }
+            //
+            //        throw new SystemException("Error!!!");
 
-//            try {
-//                Thread.sleep(3000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+            for (int i = operators.size() - 1; i >= 0; i--) {
+                SingleDeleteFile deleteOperator = (SingleDeleteFile) operators.get(i);
+                deleteOperator.execute();
+                mResult.numOfFileDeleted++;
+            }
+
+            mResult.setError(false);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            mResult.setError(true);
+
+            throw e;
         }
     }
 

@@ -108,6 +108,7 @@ public abstract class Operator<T> {
     public static class UpdatableData {
         private int progress;
         private int operatorHashcode;
+        private boolean isError;
 
         public boolean isFinished() {
             return progress >= 100;
@@ -127,6 +128,14 @@ public abstract class Operator<T> {
 
         public void setOperatorHashcode(int hashcode) {
             operatorHashcode = hashcode;
+        }
+
+        public boolean isError() {
+            return isError;
+        }
+
+        public void setError(boolean error) {
+            isError = error;
         }
 
         public void validate() {}
