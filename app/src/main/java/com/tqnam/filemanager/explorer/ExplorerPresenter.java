@@ -6,6 +6,7 @@ import com.quangnam.baseframework.SaveBundleListener;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.Operator;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import rx.Observable;
@@ -34,6 +35,9 @@ public interface ExplorerPresenter extends SaveBundleListener {
     Observable<List<ItemExplorer>> queryFile(String path, String query);
     Operator<?> deleteOperator(List<ItemExplorer> list);
     void setValidated(Operator operator);
+
+    void saveClipboard(List<ItemExplorer> clipboard);
+    ArrayList<ItemExplorer> getClipboard();
 
     String getCurLocation();
     void setCurLocation(String path);

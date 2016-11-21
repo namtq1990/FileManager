@@ -21,6 +21,7 @@ import com.tqnam.filemanager.utils.FileUtil;
 import com.tqnam.filemanager.utils.OperatorManager;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -279,6 +280,16 @@ public class FileExplorerPresenter implements ExplorerPresenter {
 
         mModel.getUnvalidatedList().remove(operator);
         mModel.getOperatorManager().addOperator(operator, category);
+    }
+
+    @Override
+    public void saveClipboard(List<ItemExplorer> clipboard) {
+        mModel.saveClipboard(clipboard);
+    }
+
+    @Override
+    public ArrayList<ItemExplorer> getClipboard() {
+        return mModel.getClipboard();
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.tqnam.filemanager.explorer;
+package com.tqnam.filemanager.explorer.fragment;
 
 import android.animation.ObjectAnimator;
 import android.content.Context;
@@ -14,6 +14,7 @@ import android.widget.RelativeLayout;
 import com.quangnam.baseframework.BaseActivity;
 import com.quangnam.baseframework.BaseFragment;
 import com.tqnam.filemanager.R;
+import com.tqnam.filemanager.explorer.MainActivity;
 
 /**
  * Created by quangnam on 1/17/16.

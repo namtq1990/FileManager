@@ -1,4 +1,4 @@
-package com.tqnam.filemanager.explorer;
+package com.tqnam.filemanager.explorer.fragment;
 
 import android.animation.LayoutTransition;
 import android.app.Activity;
@@ -26,7 +26,12 @@ import com.quangnam.baseframework.BaseActivity;
 import com.quangnam.baseframework.BaseFragment;
 import com.quangnam.baseframework.BaseFragmentInterface;
 import com.tqnam.filemanager.R;
+import com.tqnam.filemanager.explorer.ExplorerPresenter;
+import com.tqnam.filemanager.explorer.ExplorerView;
 import com.tqnam.filemanager.explorer.adapter.ExplorerItemAdapter;
+import com.tqnam.filemanager.explorer.dialog.AlertDialogFragment;
+import com.tqnam.filemanager.explorer.dialog.DialogRenameFragment;
+import com.tqnam.filemanager.explorer.dialog.InformationDialogFragment;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
 import com.tqnam.filemanager.model.DeleteOperator;
@@ -68,7 +73,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         }
     };
     private boolean mIsShownMenu;
-    private ExplorerPresenter   mPresenter;
+    private ExplorerPresenter mPresenter;
     private FragmentDataStorage mDataFragment;
     private ViewHolder mViewHolder;
     protected Action1<ItemExplorer> mActionOpen = new Action1<ItemExplorer>() {
@@ -227,7 +232,12 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_explorer, menu);
         addActionSearch(menu);
+        addActionPaste(menu);
         super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    private void addActionPaste(Menu menu) {
+        menu.findItem(R.id.action_paste).setVisible(mPresenter.getClipboard() != null);
     }
 
     private void addActionSearch(Menu menu) {
@@ -321,6 +331,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_search:
+                return true;
+            case R.id.action_paste:
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -472,12 +484,13 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         List<ItemExplorer> selectedList = mViewHolder.mAdapter.getSelectedItem();
 
         switch (menu) {
-            case R.id.action_property:
+            case R.id.action_property: {
                 ItemInformation information = new ItemInformation((ItemExplorer[]) selectedList.toArray());
                 InformationDialogFragment fragment = InformationDialogFragment.newInstance(information);
                 fragment.show(getFragmentManager(), InformationDialogFragment.TAG);
                 break;
-            case R.id.action_del:
+            }
+            case R.id.action_del: {
                 String message = "Do you want to remove these files?"
                         + "\n"
                         + FileUtil.formatListTitle(selectedList);
@@ -485,6 +498,11 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                         message)
                         .show(getChildFragmentManager(), AlertDialogFragment.TAG);
                 break;
+            }
+            case R.id.action_copy: {
+
+                break;
+            }
             default:
                 break;
         }

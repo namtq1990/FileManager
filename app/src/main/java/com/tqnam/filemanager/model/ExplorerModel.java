@@ -1,7 +1,9 @@
 package com.tqnam.filemanager.model;
 
 import android.os.Bundle;
+import android.os.Parcelable;
 
+import com.quangnam.baseframework.BaseDataFragment;
 import com.tqnam.filemanager.utils.OperatorManager;
 
 import java.util.ArrayList;
@@ -19,9 +21,13 @@ public class ExplorerModel {
     public static final String ARG_CUR_COMPARE = "cur_compare";
     public static final String ARG_LIST_ITEM = "list_item";
     public static final String ARG_LIST_DISPLAY_ITEM = "list_display";
+    public static final String ARG_CLIPBOARD = "list_clipboard";
+
     public String mCurLocation;
     public String mParentPath;
     public int mCurCompare;
+
+    private BaseDataFragment mDataFragment;
     private OperatorManager mOperatorManager;
      // The List item in current location, all item must be same type to restore value
     private ArrayList<ItemExplorer> mListItem;
@@ -30,11 +36,12 @@ public class ExplorerModel {
 
     private ArrayList<Operator>  mUnvalidatedOperators;
 
-    public ExplorerModel() {
+    public ExplorerModel(BaseDataFragment dataFragment) {
         mCurCompare = COMPARE_NAME;
         mListItem = new ArrayList<>();
         mDisplayedItem = new ArrayList<>();
 
+        mDataFragment = dataFragment;
         mOperatorManager = OperatorManager.getInstance();
         mUnvalidatedOperators = new ArrayList<>();
     }
@@ -126,5 +133,15 @@ public class ExplorerModel {
 
     public ArrayList<Operator> getUnvalidatedList() {
         return mUnvalidatedOperators;
+    }
+
+    public void saveClipboard(List<ItemExplorer> clipboard) {
+        mDataFragment.getData()
+                .putParcelableArrayList(ARG_CLIPBOARD, (ArrayList<? extends Parcelable>) clipboard);
+    }
+
+    public ArrayList<ItemExplorer> getClipboard() {
+        return mDataFragment.getData()
+                .getParcelableArrayList(ARG_CLIPBOARD);
     }
 }

@@ -26,7 +26,13 @@ import com.quangnam.baseframework.BaseDataFragment;
 import com.quangnam.baseframework.BaseFragmentInterface;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.adapter.DrawerMenuAdapter;
+import com.tqnam.filemanager.explorer.dialog.EnterTextDialogFragment;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
+import com.tqnam.filemanager.explorer.fragment.ExplorerBaseFragment;
+import com.tqnam.filemanager.explorer.fragment.FragmentDataStorage;
+import com.tqnam.filemanager.explorer.fragment.HostFragment;
+import com.tqnam.filemanager.explorer.fragment.MenuAddItemFragment;
+import com.tqnam.filemanager.explorer.fragment.OperatorManagerFragment;
 import com.tqnam.filemanager.preference.PreferenceFragment;
 import com.tqnam.filemanager.utils.ViewUtils;
 
@@ -56,6 +62,81 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
         setContentView(R.layout.activity_main);
 
         init(savedInstanceState);
+
+//        final RxCacheWithoutError<Object> mapper = new RxCacheWithoutError<>(1);
+//        mapper.setForceReplay(true);
+//        final Observable<Object> observable = Observable.create(
+//                new Observable.OnSubscribe<Object>() {
+//                    @Override
+//                    public void call(Subscriber<? super Object> subscriber) {
+//
+//                        for (int i = 0; i < 10; i++) {
+//                            Log.d("Producing: " + i);
+//                            subscriber.onNext(i);
+//
+//                            try {
+//                                Thread.sleep(1000);
+//                            } catch (InterruptedException e) {
+//                                e.printStackTrace();
+//                            }
+//
+//                        }
+//                        subscriber.onCompleted();
+//                    }
+//                }
+//        ).subscribeOn(Schedulers.computation())
+//                .doOnSubscribe(new Action0() {
+//                    @Override
+//                    public void call() {
+//                        Log.d("Subscribed");
+//                    }
+//                })
+//                .doOnUnsubscribe(new Action0() {
+//                    @Override
+//                    public void call() {
+//                        Log.d("Unsubscribed");
+//                    }
+//                })
+//                .doOnError(new Action1<Throwable>() {
+//                    @Override
+//                    public void call(Throwable throwable) {
+//                        throwable.printStackTrace();
+//                    }
+//                })
+//                .doOnTerminate(new Action0() {
+//                    @Override
+//                    public void call() {
+//                        Log.d("Terminated");
+//                    }
+//                })
+//                .compose(mapper);
+//
+//        final Action1<Object> action = new Action1<Object>() {
+//            @Override
+//            public void call(Object o) {
+//                Log.d("onNext: " + o);
+//            }
+//        };
+//        final Action1<Throwable> error = new Action1<Throwable>() {
+//            @Override
+//            public void call(Throwable throwable) {
+//                Log.d("Error happened");
+//            }
+//        };
+//        final Subscription subscription = observable.subscribe(action, error);
+//
+//        mHandler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                subscription.unsubscribe();
+//            }
+//        }, 5000);
+//        mHandler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                observable.subscribe(action, error);
+//            }
+//        }, 3000);
     }
 
     @Override

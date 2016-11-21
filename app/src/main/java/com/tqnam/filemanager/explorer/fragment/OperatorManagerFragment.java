@@ -1,4 +1,4 @@
-package com.tqnam.filemanager.explorer;
+package com.tqnam.filemanager.explorer.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;

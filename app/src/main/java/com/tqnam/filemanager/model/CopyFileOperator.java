@@ -113,11 +113,6 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
     }
 
     @Override
-    public boolean isUpdatable() {
-        return true;
-    }
-
-    @Override
     public boolean isCancelable() {
         return true;
     }
@@ -154,6 +149,11 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
     @Override
     public String getDestinationPath() {
         return mDestinationPath;
+    }
+
+    @Override
+    public UpdatableData getUpdateData() {
+        return mResult;
     }
 
     @Override
@@ -332,6 +332,11 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
         @Override
         public String getDestinationPath() {
             return mDestination.getPath();
+        }
+
+        @Override
+        public UpdatableData getUpdateData() {
+            return operatorResult;
         }
 
         public void setDestination(String path) {

@@ -108,8 +108,8 @@ public class DeleteOperator extends Operator.TraverseFileOperator<FileItem> {
     }
 
     @Override
-    public boolean isUpdatable() {
-        return true;
+    public UpdatableData getUpdateData() {
+        return mResult;
     }
 
     @Override
@@ -151,6 +151,11 @@ public class DeleteOperator extends Operator.TraverseFileOperator<FileItem> {
 
         @Override
         public String getDestinationPath() {
+            return null;
+        }
+
+        @Override
+        public UpdatableData getUpdateData() {
             return null;
         }
     }

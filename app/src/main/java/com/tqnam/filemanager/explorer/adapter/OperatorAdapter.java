@@ -36,8 +36,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import rx.Observable;
+import rx.Subscription;
 import rx.functions.Action1;
-import rx.functions.Func1;
 
 /**
  * Created by quangnam on 11/15/16.
@@ -112,29 +112,7 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         final ChildViewHolder viewHolder = (ChildViewHolder) childViewHolder;
 
         setupFileName(viewHolder, operator);
-        setupOperator(operator);
-        Observable<?> observable = operator.execute();
-        observable.flatMap(new Func1<Object, Observable<Operator.UpdatableData>>() {
-
-            @Override
-            public Observable<Operator.UpdatableData> call(Object o) {
-                if (o instanceof Operator.UpdatableData)
-                    return Observable.just((Operator.UpdatableData) o);
-
-                return Observable.empty();
-            }
-        }).subscribe(viewHolder, new DefaultErrorAction() {
-
-            @Override
-            public void onError(int errCode, SystemException e) {
-                super.onError(errCode, e);
-            }
-
-            @Override
-            public Context getContext() {
-                return mContext;
-            }
-        });
+        setupStream(operator, viewHolder);
 
         if (operator.isCancelable() && operator.isExecuting()) {
             viewHolder.addMenuButton(viewHolder.btnCancel);
@@ -158,7 +136,7 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         }
         if (operator.isUpdatable()) {
             viewHolder.progressBar.setVisibility(View.VISIBLE);
-            setProgress(viewHolder, 50);
+            setProgress(viewHolder, 0);
         } else {
             viewHolder.progressBar.setVisibility(View.INVISIBLE);
         }
@@ -223,24 +201,35 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         }
     }
 
-    private void setupOperator(Operator operator) {
-//        if (operator instanceof CopyFileOperator) {
-//            ((CopyFileOperator) operator).setRetryFlatMap(new Func1<Throwable, Observable<?>>() {
-//                @Override
-//                public Observable<?> call(Throwable throwable) {
-//                    if (throwable instanceof SystemException) {
-//                        int errCode = ((SystemException) throwable).mErrorcode;
-//
-//                        if (errCode == ErrorCode.RK_EXPLORER_PERMISSION) {
-//                        }
-//
-//                        return Observable.just(null);
-//                    }
-//
-//                    return Observable.error(throwable);
-//                }
-//            });
-//        }
+    private void setupStream(Operator operator, ChildViewHolder viewHolder) {
+        Observable<?> observable = null;
+        if (operator.isUpdatable()) {
+            Operator.UpdatableData data = operator.getUpdateData();
+            if (data.isError()) {
+                observable = Observable.just(data);
+            }
+        }
+        if (observable == null) {
+            observable = operator.execute();
+        }
+
+        viewHolder.curOperator = operator;
+        if (viewHolder.curSubscription != null
+                && viewHolder.curSubscription.isUnsubscribed()) {
+            viewHolder.curSubscription.unsubscribe();
+        }
+        viewHolder.curSubscription = observable.subscribe(viewHolder, new DefaultErrorAction() {
+
+            @Override
+            public void onError(int errCode, SystemException e) {
+                super.onError(errCode, e);
+            }
+
+            @Override
+            public Context getContext() {
+                return mContext;
+            }
+        });
     }
 
     public int getParentPosition(int position) {
@@ -277,7 +266,7 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         }
     }
 
-    public class ChildViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ChildViewHolder implements Action1<Operator.UpdatableData> {
+    public class ChildViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ChildViewHolder implements Action1<Object> {
 
         @BindView(R.id.prog_execute)
         ProgressBar progressBar;
@@ -294,6 +283,7 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         View rootView;
 
         Operator curOperator;
+        Subscription curSubscription;
 
         /**
          * Default constructor.
@@ -315,7 +305,13 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         }
 
         @Override
-        public void call(Operator.UpdatableData updatableData) {
+        public void call(Object o) {
+            if (o instanceof Operator.UpdatableData) {
+                update((Operator.UpdatableData) o);
+            }
+        }
+
+        public void update(Operator.UpdatableData updatableData) {
             Log.d("Updated data: " + updatableData);
             int position = getAdapterPosition();
             Object o = getListItem(position);

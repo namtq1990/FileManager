@@ -14,11 +14,13 @@ public class RxCacheWithoutError<T> implements Observable.Transformer<T, T> {
 
     private Observable<T> cache = null;
     private Observable<T> inProgress = null;
+    private boolean isForceReplay;
 
     private int mBufferSize;
 
     public RxCacheWithoutError(int bufferSize) {
         mBufferSize = bufferSize;
+        setForceReplay(false);
     }
 
     private Observable<T> createWhenObserverSubscribes(Observable<T> source)
@@ -26,28 +28,33 @@ public class RxCacheWithoutError<T> implements Observable.Transformer<T, T> {
 //        singlePermit.acquireUninterruptibly();
 
         Observable<T> cached = cache;
-        if (cached != null) {
+        if (cached != null && !isForceReplay) {
 //            singlePermit.release();
             return cached;
         }
 
-        inProgress = source
-                .doOnCompleted(new Action0() {
-                    @Override
-                    public void call() {
-                        onSuccess();
-                    }
-                })
-                .doOnTerminate(new Action0() {
-                    @Override
-                    public void call() {
-                        onTermination();
-                    }
-                });
-        inProgress = mBufferSize == 0 ? inProgress.cache() : inProgress.cache(mBufferSize);
-//        inProgress = inProgress.error
+        if (inProgress == null) {
+            inProgress = source
+                    .doOnCompleted(new Action0() {
+                        @Override
+                        public void call() {
+                            onSuccess();
+                        }
+                    })
+                    .doOnTerminate(new Action0() {
+                        @Override
+                        public void call() {
+                            onTermination();
+                        }
+                    });
+            inProgress = mBufferSize == 0 ? inProgress.cache() : inProgress.cache(mBufferSize);
+        }
 
         return inProgress;
+    }
+
+    public void setForceReplay(boolean forceReplay) {
+        isForceReplay = forceReplay;
     }
 
     private void onSuccess() {

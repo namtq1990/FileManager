@@ -2,9 +2,10 @@ package com.tqnam.filemanager.explorer.fileExplorer;
 
 import android.os.Bundle;
 
+import com.quangnam.baseframework.BaseActivity;
 import com.tqnam.filemanager.R;
-import com.tqnam.filemanager.explorer.ExplorerBaseFragment;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
+import com.tqnam.filemanager.explorer.fragment.ExplorerBaseFragment;
 import com.tqnam.filemanager.model.ExplorerModel;
 import com.tqnam.filemanager.model.ItemExplorer;
 
@@ -45,7 +46,8 @@ public class ListFileFragment extends ExplorerBaseFragment {
 
     @Override
     protected ExplorerPresenter genPresenter() {
-        ExplorerPresenter presenter = new FileExplorerPresenter(this, new ExplorerModel());
+        ExplorerPresenter presenter = new FileExplorerPresenter(this,
+                new ExplorerModel(((BaseActivity) getActivity()).getDataFragment()));
         presenter.setOpenType(ExplorerPresenter.OpenType.LOCAL);
 
         return presenter;

@@ -1,4 +1,4 @@
-package com.tqnam.filemanager.explorer;
+package com.tqnam.filemanager.explorer.dialog;
 
 import android.app.Dialog;
 import android.content.DialogInterface;

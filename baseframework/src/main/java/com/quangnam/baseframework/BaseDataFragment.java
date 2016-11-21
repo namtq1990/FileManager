@@ -13,24 +13,19 @@ import rx.subscriptions.CompositeSubscription;
 public class BaseDataFragment extends BaseFragment {
     public static final String TAG = BaseDataFragment.class.getSimpleName();
 
-    private static final String ARG_DATA = "data_saved";
 
-    private Bundle mData;
     private HashMap<String, Object> mOtherData;
     private CompositeSubscription mSubscriptions;
+
+    public BaseDataFragment() {
+        Bundle arg = new Bundle();
+        setArguments(arg);
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-
-        mData = new Bundle();
-        if (savedInstanceState != null) {
-            Bundle data = savedInstanceState.getBundle(ARG_DATA);
-            if (data != null) {
-                mData.putAll(data);
-            }
-        }
 
         mOtherData = new HashMap<>();
         mSubscriptions = new CompositeSubscription();
@@ -42,14 +37,8 @@ public class BaseDataFragment extends BaseFragment {
         mSubscriptions.unsubscribe();
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBundle(ARG_DATA, mData);
-    }
-
     public Bundle getData() {
-        return mData;
+        return getArguments();
     }
 
     public HashMap<String, Object> getOtherData() {

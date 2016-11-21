@@ -33,7 +33,7 @@ public abstract class Operator<T> {
     }
 
     public boolean isUpdatable() {
-        return false;
+        return getUpdateData() != null;
     }
 
     public abstract String getSourcePath();
@@ -43,6 +43,8 @@ public abstract class Operator<T> {
     public T getData() {
         return mData;
     }
+
+    public abstract UpdatableData getUpdateData();
 
     public abstract static class TraverseFileOperator<T extends ItemExplorer> extends Operator<List<T>> {
 

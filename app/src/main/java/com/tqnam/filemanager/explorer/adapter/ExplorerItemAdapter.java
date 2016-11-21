@@ -72,12 +72,11 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.action_property:
-                    mListener.onMenuSelected(item.getItemId());
-                    break;
+                case R.id.action_copy:
                 case R.id.action_del:
                     mListener.onMenuSelected(item.getItemId());
-//                    mActionMode.finish();
                     break;
+
             }
 
 //            mActionMode.finish();
