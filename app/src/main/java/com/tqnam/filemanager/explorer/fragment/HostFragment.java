@@ -40,6 +40,12 @@ public class HostFragment extends BaseFragment implements BaseActivity.OnBackPre
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        removeFocusRequest((BaseActivity) getActivity());
+    }
+
     public void addFragmentPage(Fragment page, String tag) {
         if (isHostEmpty()) {
             getChildFragmentManager().beginTransaction()

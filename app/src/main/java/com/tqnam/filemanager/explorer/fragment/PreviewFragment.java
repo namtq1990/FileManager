@@ -25,7 +25,6 @@ import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.view.Preview;
 
-import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
 
@@ -110,16 +109,7 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
         if (Config.DEBUG) {
             //TODO move preview feature to Debug version
             FragmentDataStorage dataFragment = (FragmentDataStorage) activity.getDataFragment();
-            Observable<Object> observable = dataFragment.getObservableManager().getLoaderObservable();
 
-            if (mLoadDataSubscription != null) {
-                mLoadDataSubscription.unsubscribe();
-            }
-
-            if (activity != null) {
-                mLoadDataSubscription = observable.subscribe(mLoadDataAction);
-                activity.getLocalSubscription().add(mLoadDataSubscription);
-            }
         } else {
             if (activity != null) {
                 String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(mItem.getExtension());

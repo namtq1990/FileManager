@@ -6,9 +6,17 @@ import android.support.v7.preference.PreferenceFragmentCompat;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import rx.Subscription;
+import rx.subscriptions.CompositeSubscription;
+
 public abstract class BasePreferenceFragment extends PreferenceFragmentCompat implements BaseFragmentInterface {
 
     private Context mAppContext;
+    private CompositeSubscription mSubscription;
+
+    public BasePreferenceFragment() {
+        mSubscription = new CompositeSubscription();
+    }
 
     @Override
     public FragmentActivity getActivitySafe() {
@@ -20,6 +28,12 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat im
     public void onAttach(Context context) {
         super.onAttach(context);
         mAppContext = context.getApplicationContext();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mSubscription.unsubscribe();
     }
 
     public void requestFocusFragment(BaseActivity activity) {
@@ -40,6 +54,11 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat im
 
     public void requestAtPriority(BaseActivity activity, int priority) {
         activity.requestAtPriority(priority, this);
+    }
+
+    @Override
+    public void subscribe(Subscription subscription) {
+        mSubscription.add(subscription);
     }
 
     @Override

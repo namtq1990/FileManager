@@ -6,9 +6,17 @@ import android.support.v4.app.FragmentActivity;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import rx.Subscription;
+import rx.subscriptions.CompositeSubscription;
+
 public class BaseDialog extends DialogFragment implements BaseFragmentInterface {
 
     private Context mAppContext;
+    private CompositeSubscription mSubscriptions;
+
+    public BaseDialog() {
+        mSubscriptions = new CompositeSubscription();
+    }
 
     @Override
     public FragmentActivity getActivitySafe() {
@@ -20,6 +28,12 @@ public class BaseDialog extends DialogFragment implements BaseFragmentInterface 
     public void onAttach(Context context) {
         super.onAttach(context);
         mAppContext = context.getApplicationContext();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mSubscriptions.unsubscribe();
     }
 
     public void requestFocusFragment(BaseActivity activity) {
@@ -40,6 +54,11 @@ public class BaseDialog extends DialogFragment implements BaseFragmentInterface 
 
     public void requestAtPriority(BaseActivity activity, int priority) {
         activity.requestAtPriority(priority, this);
+    }
+
+    @Override
+    public void subscribe(Subscription subscription) {
+        mSubscriptions.add(subscription);
     }
 
     @Override

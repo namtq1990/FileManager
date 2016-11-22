@@ -8,7 +8,7 @@ import android.support.v4.app.FragmentActivity;
  * Created by quangnam on 1/31/16.
  * Interface to active with {@link (BaseActivity)}
  */
-public interface BaseFragmentInterface {
+public interface BaseFragmentInterface extends AutoUnsubscribe {
 
     Context getAppContext();
 
@@ -40,4 +40,5 @@ public interface BaseFragmentInterface {
     int getPriorityFocusIndex(BaseActivity activity);
 
     void requestAtPriority(BaseActivity activity, int priority);
+
 }

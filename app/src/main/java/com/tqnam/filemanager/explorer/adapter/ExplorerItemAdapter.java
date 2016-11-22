@@ -212,7 +212,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             panel.setOnLongClickListener(mItemLongClickListener);
 
             BaseActivity activity = (BaseActivity) itemView.getContext();
-            activity.getLocalSubscription().add(
+            activity.subscribe(
                     RxView.clicks(itemView).throttleLast(350, TimeUnit.MILLISECONDS)
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribeOn(AndroidSchedulers.mainThread())

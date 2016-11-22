@@ -1,7 +1,6 @@
 package com.tqnam.filemanager.explorer;
 
-import android.graphics.Bitmap;
-
+import com.quangnam.baseframework.AutoUnsubscribe;
 import com.quangnam.baseframework.SaveBundleListener;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.Operator;
@@ -11,9 +10,6 @@ import java.util.List;
 
 import rx.Observable;
 
-/**
- * Created by tqnam on 10/28/2015.
- */
 public interface ExplorerPresenter extends SaveBundleListener {
     Observable<ItemExplorer> onBackPressed();
 
@@ -24,7 +20,6 @@ public interface ExplorerPresenter extends SaveBundleListener {
      */
     Observable<ItemExplorer> openItem(int position);
     Observable<ItemExplorer> openDirectory(ItemExplorer path);
-    Observable<Bitmap> loadImage(ItemExplorer item);
     Observable<Void> renameItem(ItemExplorer item, String newLabel);
     Observable<ItemExplorer> reload();
     Observable<Void> createFile(String filename);
@@ -61,5 +56,33 @@ public interface ExplorerPresenter extends SaveBundleListener {
     public enum OpenOption {
         EXPLORER,
         SEARCH
+    }
+
+    public interface View extends AutoUnsubscribe {
+        void onOpenItem(ItemExplorer item);
+        ExplorerPresenter getPresenter();
+
+        String getQuery();
+        void setQuery(String query);
+
+        String getRootPath();
+
+        void setRootPath(String path);
+
+        void refreshView();
+
+        void showError(String message);
+
+        void showError(int message);
+
+        void showMessage(String message);
+
+        void showMessage(int message);
+
+        ExplorerPresenter.OpenType getOpenType();
+
+        void setOpenType(ExplorerPresenter.OpenType openType);
+
+        void onQueryFile(final String query);
     }
 }

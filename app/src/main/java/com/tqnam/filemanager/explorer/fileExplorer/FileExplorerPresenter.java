@@ -1,17 +1,12 @@
 package com.tqnam.filemanager.explorer.fileExplorer;
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.quangnam.baseframework.exception.SystemException;
-import com.squareup.picasso.Picasso;
+import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.squareup.picasso.Target;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
-import com.tqnam.filemanager.explorer.ExplorerView;
 import com.tqnam.filemanager.model.CopyFileOperator;
 import com.tqnam.filemanager.model.DeleteOperator;
 import com.tqnam.filemanager.model.ErrorCode;
@@ -22,15 +17,13 @@ import com.tqnam.filemanager.utils.DefaultErrorAction;
 import com.tqnam.filemanager.utils.FileUtil;
 import com.tqnam.filemanager.utils.OperatorManager;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import rx.Observable;
+import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.subjects.PublishSubject;
 
 /**
  * Created by tqnam on 10/28/2015.
@@ -38,11 +31,11 @@ import rx.subjects.PublishSubject;
  */
 public class FileExplorerPresenter implements ExplorerPresenter {
 
-    private ExplorerView  mView;
+    private View  mView;
     private ExplorerModel mModel;
     private Target mCurTarget;
 
-    public FileExplorerPresenter(ExplorerView view, ExplorerModel model) {
+    public FileExplorerPresenter(View view, ExplorerModel model) {
         mView = view;
         mModel = model;
     }
@@ -116,52 +109,31 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public Observable<Bitmap> loadImage(ItemExplorer item) {
-        final PublishSubject<Bitmap> observable = PublishSubject.create();
-        Uri uri = item.getUri();
-        mCurTarget = new Target() {
-            @Override
-            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                mCurTarget = null;
-                observable.onNext(bitmap);
-                observable.onCompleted();
-            }
-
-            @Override
-            public void onBitmapFailed(Drawable errorDrawable) {
-                observable.onError(new SystemException(ErrorCode.RK_IMAGE_LOADING_ERROR,
-                        "Image loading error"));
-                mCurTarget = null;
-            }
-
-            @Override
-            public void onPrepareLoad(Drawable placeHolderDrawable) {}
-        };
-
-        Picasso.with(mView.getContext().getApplicationContext())
-                .load(uri)
-                .into(mCurTarget);
-
-        return observable.cache(1);
-    }
-
-    @Override
     public Observable<Void> renameItem(final ItemExplorer item, final String newLabel) {
 
-        return Observable.fromCallable(new Callable<Void>() {
+        return Observable.create(new Observable.OnSubscribe<Void>() {
+
             @Override
-            public Void call() throws Exception {
+            public void call(Subscriber<? super Void> subscriber) {
                 FileItem file = (FileItem) item;
-                File newFile = new File(file.getParent(), newLabel);
-                boolean isRenameSuccess = ((FileItem) item).renameTo(newFile);
+                FileItem newFile = new FileItem(file.getParent(), newLabel);
+                boolean isRenameSuccess = file.renameTo(newFile);
 
                 if (!isRenameSuccess) {
-                    throw new SystemException(ErrorCode.RK_RENAME_ERR, "Cann't rename file " + item);
+                    throw new SystemException(ErrorCode.RK_RENAME_ERR, "Can't rename file " + item);
                 }
 
-                return null;
+                int index = mModel.getList().indexOf(file);
+                if (index != -1) mModel.getList().set(index, newFile);
+                index = mModel.getDisplayedItem().indexOf(file);
+                if (index != -1) mModel.getDisplayedItem().set(index, newFile);
+
+                subscriber.onNext(null);
+                subscriber.onCompleted();
             }
-        });
+
+        }
+        ).compose(new RxCacheWithoutError<Void>(1));
     }
 
     @Override
@@ -286,8 +258,10 @@ public class FileExplorerPresenter implements ExplorerPresenter {
         int category = OperatorManager.CATEGORY_OTHER;
         if (operator instanceof DeleteOperator) {
             category = OperatorManager.CATEGORY_DELETE;
+            mView.showMessage("Deleting...");
         } else if (operator instanceof CopyFileOperator) {
             category = OperatorManager.CATEGORY_COPY;
+            mView.showMessage("Copying...");
         }
 
         mModel.getUnvalidatedList().remove(operator);
@@ -303,8 +277,13 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                 }, new DefaultErrorAction() {
 
                     @Override
-                    public Context getContext() {
-                        return mView.getContext();
+                    public void showErrorMessage(String message) {
+                        mView.showError(message);
+                    }
+
+                    @Override
+                    public void showErrorMessage(int stringID) {
+                        mView.showError(stringID);
                     }
                 });
     }

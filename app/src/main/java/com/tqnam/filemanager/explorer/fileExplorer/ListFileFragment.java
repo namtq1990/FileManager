@@ -45,18 +45,20 @@ public class ListFileFragment extends ExplorerBaseFragment {
     }
 
     @Override
-    protected ExplorerPresenter genPresenter() {
-        ExplorerPresenter presenter = new FileExplorerPresenter(this,
-                new ExplorerModel(((BaseActivity) getActivity()).getDataFragment()));
-        presenter.setOpenType(ExplorerPresenter.OpenType.LOCAL);
-
-        return presenter;
-    }
-
-    @Override
     public void openFolder(String path) {
         getPresenter().openDirectory(new FileItem(path))
                 .subscribe(mActionOpen, mActionError);
+    }
+
+    @Override
+    public ExplorerPresenter getPresenter() {
+        if (mPresenter == null) {
+            mPresenter = new FileExplorerPresenter(this,
+                    new ExplorerModel(((BaseActivity) getActivity()).getDataFragment()));
+            mPresenter.setOpenType(ExplorerPresenter.OpenType.LOCAL);
+        }
+
+        return mPresenter;
     }
 
     @Override

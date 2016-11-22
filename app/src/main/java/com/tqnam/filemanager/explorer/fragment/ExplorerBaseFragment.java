@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
@@ -22,13 +21,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.quangnam.baseframework.BaseActivity;
 import com.quangnam.baseframework.BaseFragment;
 import com.quangnam.baseframework.BaseFragmentInterface;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
-import com.tqnam.filemanager.explorer.ExplorerView;
 import com.tqnam.filemanager.explorer.adapter.ExplorerItemAdapter;
 import com.tqnam.filemanager.explorer.dialog.AlertDialogFragment;
 import com.tqnam.filemanager.explorer.dialog.DialogRenameFragment;
@@ -55,7 +54,7 @@ import rx.functions.Func1;
  * Created by quangnam on 11/12/15.
  * Base fragment for explorer view, may be file explorer, ftp explorer, ...
  */
-public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerView,
+public abstract class ExplorerBaseFragment extends BaseFragment implements ExplorerPresenter.View,
         MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.ExplorerItemAdapterListener,
         BaseActivity.OnBackPressedListener,
         DialogRenameFragment.RenameDialogListener, BaseActivity.OnFocusFragmentChanged,
@@ -75,8 +74,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             return getActivitySafe();
         }
     };
+    protected ExplorerPresenter mPresenter;
     private boolean mIsShownMenu;
-    private ExplorerPresenter mPresenter;
     private FragmentDataStorage mDataFragment;
     private ViewHolder mViewHolder;
     protected Action1<ItemExplorer> mActionOpen = new Action1<ItemExplorer>() {
@@ -144,8 +143,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         }
     };
 
-    protected abstract ExplorerPresenter genPresenter();
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -153,7 +150,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         mIsShownMenu = true;
 //        mDataFragment = (FragmentDataStorage) getFragmentManager().findFragmentByTag(FragmentDataStorage.TAG);
 
-        mPresenter = genPresenter();
+        mPresenter = getPresenter();
         if (savedInstanceState != null) {
             mPresenter.onRestoreInstanceState(savedInstanceState);
         }
@@ -221,17 +218,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         mDataFragment = (FragmentDataStorage) activity.getDataFragment();
 
         if (savedInstanceState == null) {
-//            mPresenter.onRestoreInstanceState(savedInstanceState);
-//        } else {
-//            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getAppContext());
-//            String key_pref_homepath = getAppContext().getString(R.string.pref_local_home_path);
-//            String homePath = PreferenceManager.getDefaultSharedPreferences(getAppContext())
-//                    .getString(key_pref_homepath, null);
-//            if (homePath == null) {
-//                homePath = "/";
-//                pref.edit().putString(key_pref_homepath, homePath)
-//                        .apply();
-//            }
             String homePath = getRootPath();
 
             Observable<ItemExplorer> observable;
@@ -256,7 +242,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                         }
                     }, mActionError);
 
-            activity.getLocalSubscription().add(subscription);
+            subscribe(subscription);
         }
     }
 
@@ -406,6 +392,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             case R.id.action_paste:
                 List<ItemExplorer> listSelected = mPresenter.getClipboard();
                 CopyFileOperator operator = (CopyFileOperator) mPresenter.copyCurFolderOperator(listSelected);
+                mPresenter.saveClipboard(null);
+
                 doValidate(operator);
 
                 item.setVisible(false);
@@ -484,8 +472,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             Observable<ItemExplorer> observable = mPresenter.onBackPressed();
             if (observable != null) {
                 // Can back-able so back to parent folder
-                BaseActivity activity = (BaseActivity) getActivity();
-                activity.getLocalSubscription().add(observable.subscribe(mActionOpen,
+                subscribe(observable.subscribe(mActionOpen,
                         mActionError));
             }
         }
@@ -518,7 +505,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         if (isFragmentFocusing(newFragment)) {
             ((ExplorerBaseFunction) getActivity()).showAddButton();
             mIsShownMenu = true;
-            if (mViewHolder.mSearchMenu != null) mViewHolder.mSearchMenu.setVisible(true);
+            getActivity().supportInvalidateOptionsMenu();
         } else {
             ((ExplorerBaseFunction) getActivity()).hideAddButton();
             mIsShownMenu = false;
@@ -534,13 +521,11 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     }
 
     public void onRename(ItemExplorer item, String label) {
-        BaseActivity activity = (BaseActivity) getActivity();
         Observable<Void> observable = mPresenter.renameItem(item, label);
-        activity.getLocalSubscription().add(observable.subscribe(new Action1<Void>() {
+        subscribe(observable.subscribe(new Action1<Void>() {
             @Override
             public void call(Void aVoid) {
-                ((BaseActivity) getActivity()).getLocalSubscription()
-                        .add(mPresenter.reload().subscribe(mActionOpen, mActionError));
+                refreshView();
             }
         }, mActionError));
     }
@@ -586,8 +571,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     @Override
     public void onOpenAction(int position) {
 //        mOpenAnimType = animActionOpenIn(mViewHolder.mList.findViewHolderForAdapterPosition(position).itemView);
-        BaseActivity activity = (BaseActivity) getActivity();
-        activity.getLocalSubscription().add(mPresenter.openItem(position)
+        subscribe(mPresenter.openItem(position)
                 .subscribe(mActionOpen, mActionError));
     }
 
@@ -615,8 +599,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
         switch (fileType) {
             case ItemExplorer.FILE_TYPE_IMAGE:
-                Observable<Bitmap> observable = mPresenter.loadImage(item);
-                mDataFragment.getObservableManager().updateLoaderObservable(observable);
 
 //                break;
             default:
@@ -695,6 +677,26 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     }
 
     @Override
+    public void showError(String message) {
+        Toast.makeText(getActivitySafe(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void showError(int message) {
+        Toast.makeText(getActivitySafe(), getAppContext().getString(message), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void showMessage(int message) {
+        Toast.makeText(getActivitySafe(), getAppContext().getString(message), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void showMessage(String message) {
+        Toast.makeText(getActivitySafe(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
     public ExplorerPresenter.OpenType getOpenType() {
         return mPresenter.getOpenType();
     }
@@ -702,11 +704,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     @Override
     public void setOpenType(ExplorerPresenter.OpenType openType) {
         mPresenter.setOpenType(openType);
-    }
-
-    @Override
-    public ExplorerPresenter getPresenter() {
-        return mPresenter;
     }
 
     public ExplorerPresenter.OpenOption getOpenOption() {

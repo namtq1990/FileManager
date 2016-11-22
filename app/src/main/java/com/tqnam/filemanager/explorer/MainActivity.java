@@ -147,7 +147,8 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 
     @Override
     public BaseDataFragment getDataFragment() {
-        return mDataFragment;
+        return mDataFragment != null ? mDataFragment : (BaseDataFragment) getSupportFragmentManager()
+                .findFragmentByTag(BaseDataFragment.TAG);
     }
 
     public String getLocalHomePath() {
@@ -254,12 +255,12 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 
     private void initData() {
         mDataFragment = (FragmentDataStorage) getSupportFragmentManager()
-                .findFragmentByTag(FragmentDataStorage.TAG);
+                .findFragmentByTag(BaseDataFragment.TAG);
 
         if (mDataFragment == null) {
             mDataFragment = new FragmentDataStorage();
             getSupportFragmentManager().beginTransaction()
-                    .add(mDataFragment, FragmentDataStorage.TAG)
+                    .add(mDataFragment, BaseDataFragment.TAG)
                     .commit();
         }
 

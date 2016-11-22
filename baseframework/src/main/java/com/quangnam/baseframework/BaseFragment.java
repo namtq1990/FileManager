@@ -5,6 +5,9 @@ import android.support.v4.app.FragmentActivity;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import rx.Subscription;
+import rx.subscriptions.CompositeSubscription;
+
 /**
  * Created by quangnam on 11/12/15.
  * <p/>
@@ -14,6 +17,11 @@ import android.view.animation.AnimationUtils;
 public class BaseFragment extends android.support.v4.app.Fragment implements BaseFragmentInterface {
 
     private Context mAppContext;
+    private CompositeSubscription mSubscription;
+
+    public BaseFragment() {
+        mSubscription = new CompositeSubscription();
+    }
 
     @Override
     public FragmentActivity getActivitySafe() {
@@ -25,6 +33,12 @@ public class BaseFragment extends android.support.v4.app.Fragment implements Bas
     public void onAttach(Context context) {
         super.onAttach(context);
         mAppContext = context.getApplicationContext();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mSubscription.unsubscribe();
     }
 
     public void requestFocusFragment(BaseActivity activity) {
@@ -45,6 +59,11 @@ public class BaseFragment extends android.support.v4.app.Fragment implements Bas
 
     public void requestAtPriority(BaseActivity activity, int priority) {
         activity.requestAtPriority(priority, this);
+    }
+
+    @Override
+    public void subscribe(Subscription subscription) {
+        mSubscription.add(subscription);
     }
 
     @Override

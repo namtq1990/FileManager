@@ -296,7 +296,7 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         }
 
         void removeMenuButton(AppCompatImageButton button) {
-            button.setVisibility(View.INVISIBLE);
+//            button.setVisibility(View.GONE);
         }
 
         void addMenuButton(AppCompatImageButton button) {

@@ -5,8 +5,6 @@ import android.support.annotation.Nullable;
 
 import java.util.HashMap;
 
-import rx.subscriptions.CompositeSubscription;
-
 /**
  * Created by quangnam on 5/13/16.
  */
@@ -15,7 +13,6 @@ public class BaseDataFragment extends BaseFragment {
 
 
     private HashMap<String, Object> mOtherData;
-    private CompositeSubscription mSubscriptions;
 
     public BaseDataFragment() {
         Bundle arg = new Bundle();
@@ -28,13 +25,6 @@ public class BaseDataFragment extends BaseFragment {
         setRetainInstance(true);
 
         mOtherData = new HashMap<>();
-        mSubscriptions = new CompositeSubscription();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mSubscriptions.unsubscribe();
     }
 
     public Bundle getData() {
@@ -45,7 +35,4 @@ public class BaseDataFragment extends BaseFragment {
         return mOtherData;
     }
 
-    public CompositeSubscription getSubscriptions() {
-        return mSubscriptions;
-    }
 }
