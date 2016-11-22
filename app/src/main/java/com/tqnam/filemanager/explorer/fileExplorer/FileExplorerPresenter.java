@@ -1,5 +1,6 @@
 package com.tqnam.filemanager.explorer.fileExplorer;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -17,6 +18,7 @@ import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ExplorerModel;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.Operator;
+import com.tqnam.filemanager.utils.DefaultErrorAction;
 import com.tqnam.filemanager.utils.FileUtil;
 import com.tqnam.filemanager.utils.OperatorManager;
 
@@ -270,6 +272,16 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
+    public Operator<?> copyCurFolderOperator(List<ItemExplorer> listSelected) {
+        List<FileItem> listFile = (List<FileItem>) (List<? extends ItemExplorer>) listSelected;
+        CopyFileOperator operator = new CopyFileOperator(listFile, mModel.mCurLocation);
+
+        mModel.getUnvalidatedList().add(operator);
+
+        return operator;
+    }
+
+    @Override
     public void setValidated(Operator operator) {
         int category = OperatorManager.CATEGORY_OTHER;
         if (operator instanceof DeleteOperator) {
@@ -280,6 +292,21 @@ public class FileExplorerPresenter implements ExplorerPresenter {
 
         mModel.getUnvalidatedList().remove(operator);
         mModel.getOperatorManager().addOperator(operator, category);
+
+        operator.execute()
+                .concatWith(openDirectory(getCurFolder()))
+                .subscribe(new Action1<Object>() {
+                    @Override
+                    public void call(Object o) {
+                        mView.refreshView();
+                    }
+                }, new DefaultErrorAction() {
+
+                    @Override
+                    public Context getContext() {
+                        return mView.getContext();
+                    }
+                });
     }
 
     @Override

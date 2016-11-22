@@ -5,10 +5,9 @@
 
     <item
         android:id="@+id/action_paste"
-        android:enabled="false"
         android:icon="@drawable/ic_content_paste"
         android:title="Paste"
-        app:showAsAction="always"
+        app:showAsAction="ifRoom"
         />
 
     <item

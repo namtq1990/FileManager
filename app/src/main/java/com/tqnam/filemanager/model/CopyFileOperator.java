@@ -3,6 +3,7 @@ package com.tqnam.filemanager.model;
 import com.quangnam.baseframework.Log;
 import com.quangnam.baseframework.TrackingTime;
 import com.quangnam.baseframework.exception.SystemException;
+import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.utils.FileUtil;
 
@@ -11,7 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -26,12 +27,13 @@ import rx.schedulers.Schedulers;
  */
 public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
     public static final String TAG = CopyFileOperator.class.getCanonicalName();
+    private static final int UPDATE_TIME = 800;
 
-//    private Func1<Throwable, Observable<?>> mRetryWhenError;
-    private long mSizeOfListExecuted;
+    private Observable<CopyFileData> mCurObservable;
     private CopyFileData mResult;
     private String mDestinationPath;
     private String mSourcePath;
+    private long mLastEmitSize;
 
     public CopyFileOperator(List<FileItem> data, String destPath) {
         super(data);
@@ -52,63 +54,62 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
 
     @Override
     public Observable<CopyFileData> execute(Object... arg) {
-        TrackingTime.beginTracking(formatTag(mResult));
+        if (mCurObservable == null) {
+            TrackingTime.beginTracking(formatTag(mResult));
 
-        ArrayList<Observable<CopyFileData>> list = new ArrayList<>(getAllStream().size());
-        for (final Operator<?> operator : getAllStream()) {
-            Observable<CopyFileData> childObservable = operator.execute()
-                    .map(new Func1<Object, CopyFileData>() {
+            mCurObservable = Observable.interval(UPDATE_TIME, TimeUnit.MILLISECONDS)
+                    .takeUntil(
+                            Observable.create(new Observable.OnSubscribe<Void>() {
+                                @Override
+                                public void call(Subscriber<? super Void> subscriber) {
+                                    execute();
+                                    subscriber.onCompleted();
+                                }
+                            })
+                                    .subscribeOn(Schedulers.io())
+                    )
+                    .concatWith(Observable.just(0L))
+                    .map(new Func1<Long, CopyFileData>() {
                         @Override
-                        public CopyFileData call(Object o) {
-                            if (o instanceof CopyFileData)
-                                return (CopyFileData) o;
+                        public CopyFileData call(Long aLong) {
+                            long time = TrackingTime.endTracking(formatTag(mResult));
+                            mResult.speed = (mResult.sizeCopied - mLastEmitSize) * 1000 / (float) (time == 0 ? UPDATE_TIME : time);
+                            mLastEmitSize = mResult.sizeCopied;
+                            mResult.validate();
+                            TrackingTime.beginTracking(formatTag(mResult));
 
-                            return null;
+                            return mResult;
                         }
-                    }).doOnSubscribe(new Action0() {
+                    })
+                    .doOnCompleted(new Action0() {
                         @Override
                         public void call() {
-                            moveToExecuting(operator);
+                            TrackingTime.endTracking(formatTag(mResult));
                         }
-                    }).doOnCompleted(new Action0() {
-                        @Override
-                        public void call() {
-                            moveToExecuted(operator);
-                        }
-                    });
-            list.add(childObservable);
+                    })
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .compose(new RxCacheWithoutError<CopyFileData>(1));
         }
 
-        return Observable.concat(Observable.from(list))
-                .map(new Func1<CopyFileData, CopyFileData>() {
-                    @Override
-                    public CopyFileData call(CopyFileData data) {
-                        long timeExecuted = TrackingTime.endTracking(formatTag(mResult));
-                        long oldSizeCopied = mResult.sizeCopied;
-
-                        mResult.sizeCopied = mSizeOfListExecuted + data.sizeCopied;
-
-                        mResult.speed = (mResult.sizeCopied - oldSizeCopied) * 1000 / (float)timeExecuted;
-                        mResult.validate();
-
-                        TrackingTime.beginTracking(formatTag(mResult));
-
-                        return mResult;
-                    }
-                });
+        return mCurObservable;
     }
 
-    protected void moveToExecuted(Operator operator) {
-        if (!(operator instanceof SingleFileCopyOperator)) {
-            throw new SystemException(ErrorCode.RK_COPY_ERR, "Cann't use operator that's not " + SingleFileCopyOperator.class);
-        }
+    private void execute() {
+        try {
+            Log.d("Copying...");
+            ArrayList<Operator> list = getAllStream();
 
-        ArrayList<Operator> executingList = getExecutingList();
-        ArrayList<Operator> executedList = getExecutedList();
-        executingList.remove(operator);
-        if (!executedList.contains(operator)) {
-            mSizeOfListExecuted += ((SingleFileCopyOperator) operator).operatorResult.sizeTotal;
-            executedList.add(operator);
+            for (Operator operator : list) {
+                SingleFileCopyOperator copyOperator = (SingleFileCopyOperator) operator;
+                copyOperator.execute(false);
+            }
+
+            mResult.setError(false);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            mResult.setError(true);
+
+            throw e;
         }
     }
 
@@ -198,7 +199,7 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
 
         @Override
         public void validate() {
-            setProgress((int)((sizeCopied * 100 + 1) / sizeTotal));
+            setProgress((int)(sizeTotal == 0 ? 0 : (sizeCopied * 100 + 1) / sizeTotal));
         }
 
         @Override
@@ -210,118 +211,75 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
 
     public class SingleFileCopyOperator extends SingleFileOperator<FileItem> {
 
-        private CopyFileData operatorResult;
         private FileItem mDestination;
 
         public SingleFileCopyOperator(FileItem data) {
             super(data);
 
             Log.d("make operation for item: " + data.getAbsolutePath());
-
-            operatorResult = new CopyFileData();
-            operatorResult.sizeTotal = data.isDirectory() ? 0 : data.length();
         }
 
         @Override
         public Observable execute(Object... arg) {
-            Observable<CopyFileData> observable;
-            if (getData().isDirectory()) {
-                observable = Observable.fromCallable(new Callable<CopyFileData>() {
-                    @Override
-                    public CopyFileData call() throws Exception {
-                        boolean isMakeDir = mDestination.mkdir();
-                        if (!isMakeDir) {
-                            int errCode = ErrorCode.RK_UNKNOWN;
-
-                            if (!mDestination.exists()) {
-                                if (!mDestination.canWrite()) {
-                                    errCode = ErrorCode.RK_EXPLORER_PERMISSION;
-                                }
-
-                                throw new SystemException(errCode,
-                                        "Cann't make directory " + mDestination.getPath(),
-                                        new IOException());
-                            }
-                        }
-
-                        operatorResult.isFinished = true;
-                        Log.d("Emitting Folder: " + operatorResult + ", cur data: " + mResult);
-
-                        return operatorResult;
-                    }
-                });
-            } else {
-                return Observable.create(new Observable.OnSubscribe<CopyFileData>() {
-
-                    @Override
-                    public void call(Subscriber<? super CopyFileData> subscriber) {
-                        if (getDestinationPath() == null) {
-                            throw new SystemException(ErrorCode.RK_COPY_ERR, "Hasn't set destination path");
-                        }
-                        FileInputStream inputStream = null;
-                        FileOutputStream outputStream = null;
-
-                        try {
-                            inputStream = new FileInputStream(getData());
-                            outputStream = new FileOutputStream(mDestination);
-                            byte[] buff = new byte[FileUtil.BUFF_SIZE];
-                            int byteRead;
-                            long oldCopiedSent = 0;
-
-                            while ((byteRead = inputStream.read(buff, 0, buff.length)) > 0) {
-                                //                            TrackingTime.beginTracking(formatTag(result));
-                                outputStream.write(buff);
-                                makeUpdatableData(operatorResult, byteRead);
-                                if (operatorResult.sizeCopied - oldCopiedSent > 500000) {
-                                    Log.d("Emitting File: " + operatorResult + ", curData: " + mResult);
-                                    subscriber.onNext(operatorResult);
-                                    oldCopiedSent = operatorResult.sizeCopied;
-                                }
-                            }
-
-                            operatorResult.isFinished = true;
-                            subscriber.onNext(operatorResult);
-                            Log.d("COmpleted " + operatorResult);
-                            subscriber.onCompleted();
-                        } catch (Exception e) {
-                            throw new SystemException(ErrorCode.RK_COPY_ERR, "Error while copying file", e);
-                        } finally {
-                            try {
-                                if (inputStream != null) {
-                                    inputStream.close();
-                                }
-                                if (outputStream != null) {
-                                    outputStream.close();
-                                }
-                            } catch (Exception e) {
-                                throw new SystemException(ErrorCode.RK_COPY_ERR, "Error while close stream", e);
-                            }
-                        }
-                    }
-                }).subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .onBackpressureLatest();
-            }
-
-            return observable;
-//                    .subscribeOn(Schedulers.io())
-//                    .observeOn(AndroidSchedulers.mainThread())
-//                    .retryWhen(new Func1<Observable<? extends Throwable>, Observable<?>>() {
-//                        @Override
-//                        public Observable<?> call(Observable<? extends Throwable> error) {
-//                            return error.flatMap(mRetryWhenError);
-//                        }
-//                    });
+            return null;
         }
 
-        private CopyFileData makeUpdatableData(CopyFileData data, int byteRead) {
-//            long time = TrackingTime.endTracking(formatTag(data)) / 1000; // Format time in second
-//            data.sizeTotal = mTotalSize;
-            data.sizeCopied += byteRead;
-//            data.speed = (float) byteRead / time;
-            data.isFinished = false;
+        private void execute(boolean isOverwrite) {
+            if (mDestination.exists() && !isOverwrite) {
+                throw new SystemException(ErrorCode.RK_EXPLORER_FILE_EXISTED,
+                        "Can't copy file because file " + mDestination + " existed");
+            }
+            FileItem source = getData();
 
-            return data;
+            if (source.isDirectory()) {
+                if (!mDestination.exists()) {
+                    boolean isMakeDir = mDestination.mkdir();
+
+                    if (!isMakeDir) {
+                        int errCode = ErrorCode.RK_COPY_ERR;
+
+                        if (!mDestination.exists()) {
+                            if (!mDestination.canWrite()) {
+                                errCode = ErrorCode.RK_EXPLORER_PERMISSION;
+                            }
+
+                            throw new SystemException(errCode,
+                                    "Cann't copy directory " + mDestination.getPath(),
+                                    new IOException());
+                        }
+                    }
+                }
+            } else {
+                FileInputStream inputStream = null;
+                FileOutputStream outputStream = null;
+
+                try {
+                    inputStream = new FileInputStream(source);
+                    outputStream = new FileOutputStream(mDestination, isOverwrite);
+                    byte[] buff = new byte[FileUtil.BUFF_SIZE];
+                    int byteRead;
+
+                    while ((byteRead = inputStream.read(buff, 0, buff.length)) > 0) {
+                        outputStream.write(buff);
+                        mResult.sizeCopied += byteRead;
+                    }
+
+                    Log.d("COmpleted " + mDestination);
+                } catch (Exception e) {
+                    throw new SystemException(ErrorCode.RK_COPY_ERR, "Error while copying file", e);
+                } finally {
+                    try {
+                        if (inputStream != null) {
+                            inputStream.close();
+                        }
+                        if (outputStream != null) {
+                            outputStream.close();
+                        }
+                    } catch (Exception e) {
+                        throw new SystemException(ErrorCode.RK_COPY_ERR, "Error while close stream", e);
+                    }
+                }
+            }
         }
 
         @Override
@@ -336,7 +294,7 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
 
         @Override
         public UpdatableData getUpdateData() {
-            return operatorResult;
+            return null;
         }
 
         public void setDestination(String path) {

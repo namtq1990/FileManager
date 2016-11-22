@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -34,6 +35,7 @@ import com.tqnam.filemanager.explorer.dialog.DialogRenameFragment;
 import com.tqnam.filemanager.explorer.dialog.InformationDialogFragment;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
+import com.tqnam.filemanager.model.CopyFileOperator;
 import com.tqnam.filemanager.model.DeleteOperator;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.ItemInformation;
@@ -41,6 +43,7 @@ import com.tqnam.filemanager.model.Operator;
 import com.tqnam.filemanager.utils.DefaultErrorAction;
 import com.tqnam.filemanager.utils.FileUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import rx.Observable;
@@ -60,9 +63,9 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 {
     public static final String ARG_QUERY = "query";
     public static final String ARG_ROOT_PATH = "root_path";
-    public static final int ACTION_DELETE = 0;
-    public static final int ACTION_COPY = 1;
-    public static final int ACTION_MOVE = 2;
+    public static final int ACTION_DELETE_VALIDATE = 0;
+    public static final int ACTION_COPY_VALIDATE = 1;
+    public static final int ACTION_MOVE_VALIDATE = 2;
     private static final String ARG_QUICK_QUERY = "query_text";
     //    private Animator               mOpenAnimType;
     protected Action1<Throwable> mActionError = new DefaultErrorAction() {
@@ -80,6 +83,64 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         @Override
         public void call(ItemExplorer item) {
             onOpenItem(item);
+        }
+    };
+    private ActionMode.Callback mActionCallback        = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.action_select_item, menu);
+
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            mViewHolder.mActionMode = mode;
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            List<ItemExplorer> selectedList = mViewHolder.mAdapter.getSelectedItem();
+
+            switch (item.getItemId()) {
+                case R.id.action_property: {
+                    ItemInformation information = new ItemInformation(
+                            selectedList.toArray(new ItemExplorer[selectedList.size()])
+                    );
+                    InformationDialogFragment fragment = InformationDialogFragment.newInstance(information);
+                    fragment.show(getFragmentManager(), InformationDialogFragment.TAG);
+                    break;
+                }
+                case R.id.action_del: {
+                    String message = "Do you want to remove these files?"
+                            + "\n"
+                            + FileUtil.formatListTitle(selectedList);
+                    AlertDialogFragment.newInstance(ACTION_DELETE_VALIDATE,
+                            message)
+                            .show(getChildFragmentManager(), AlertDialogFragment.TAG);
+
+                    break;
+                }
+                case R.id.action_copy: {
+                    mPresenter.saveClipboard(new ArrayList<>(selectedList));
+                    getActivity().supportInvalidateOptionsMenu();
+                    hideContextMenu();
+
+                    break;
+                }
+                default:
+                    break;
+            }
+
+            return true;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            mViewHolder.mActionMode = null;
+            mViewHolder.mAdapter.updateView(null, ExplorerItemAdapter.STATE_NORMAL);
         }
     };
 
@@ -327,18 +388,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_search:
-                return true;
-            case R.id.action_paste:
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
 //    public void requestFocus() {
 //        requestFocusFragment((BaseActivity) getActivity());
 //        ((ExplorerBaseFunction) getActivity()).showAddButton();
@@ -349,22 +398,21 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 //        ((ExplorerBaseFunction) getActivity()).hideAddButton();
 //    }
 
-    public boolean onBackPressed() {
-//        mOpenAnimType = animActionOpenUp();
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_search:
+                return true;
+            case R.id.action_paste:
+                List<ItemExplorer> listSelected = mPresenter.getClipboard();
+                CopyFileOperator operator = (CopyFileOperator) mPresenter.copyCurFolderOperator(listSelected);
+                doValidate(operator);
 
-        if (isCloseFragment()) {
-            getFragmentManager().popBackStack();
-        } else {
-            Observable<ItemExplorer> observable = mPresenter.onBackPressed();
-            if (observable != null) {
-                // Can back-able so back to parent folder
-                BaseActivity activity = (BaseActivity) getActivity();
-                activity.getLocalSubscription().add(observable.subscribe(mActionOpen,
-                        mActionError));
-            }
+                item.setVisible(false);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-
-        return true;
     }
 
 //    private Animator animActionOpenUp() {
@@ -427,6 +475,24 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 //        }
 //    }
 
+    public boolean onBackPressed() {
+//        mOpenAnimType = animActionOpenUp();
+
+        if (isCloseFragment()) {
+            getFragmentManager().popBackStack();
+        } else {
+            Observable<ItemExplorer> observable = mPresenter.onBackPressed();
+            if (observable != null) {
+                // Can back-able so back to parent folder
+                BaseActivity activity = (BaseActivity) getActivity();
+                activity.getLocalSubscription().add(observable.subscribe(mActionOpen,
+                        mActionError));
+            }
+        }
+
+        return true;
+    }
+
     protected boolean isCloseFragment() {
         if (getOpenOption() == ExplorerPresenter.OpenOption.SEARCH) {
             return true;
@@ -480,31 +546,14 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     }
 
     @Override
-    public void onMenuSelected(int menu) {
-        List<ItemExplorer> selectedList = mViewHolder.mAdapter.getSelectedItem();
+    public void showContextMenu() {
+        ((AppCompatActivity) getActivity()).startSupportActionMode(mActionCallback);
+    }
 
-        switch (menu) {
-            case R.id.action_property: {
-                ItemInformation information = new ItemInformation((ItemExplorer[]) selectedList.toArray());
-                InformationDialogFragment fragment = InformationDialogFragment.newInstance(information);
-                fragment.show(getFragmentManager(), InformationDialogFragment.TAG);
-                break;
-            }
-            case R.id.action_del: {
-                String message = "Do you want to remove these files?"
-                        + "\n"
-                        + FileUtil.formatListTitle(selectedList);
-                AlertDialogFragment.newInstance(ACTION_DELETE,
-                        message)
-                        .show(getChildFragmentManager(), AlertDialogFragment.TAG);
-                break;
-            }
-            case R.id.action_copy: {
-
-                break;
-            }
-            default:
-                break;
+    @Override
+    public void hideContextMenu() {
+        if (mViewHolder.mActionMode != null) {
+            mViewHolder.mActionMode.finish();
         }
     }
 
@@ -518,9 +567,10 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         List<ItemExplorer> selectedList = mViewHolder.mAdapter.getSelectedItem();
 
         switch (action) {
-            case ACTION_DELETE: {
+            case ACTION_DELETE_VALIDATE: {
                 DeleteOperator operation = (DeleteOperator) mPresenter.deleteOperator(selectedList);
                 doValidate(operation);
+                hideContextMenu();
                 break;
             }
             default:
@@ -625,6 +675,10 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         }, mActionError);
     }
 
+//    public void setOpenOption(ExplorerPresenter.OpenOption openOption) {
+//        mPresenter.setOpenOption(openOption);
+//    }
+
     public void createFolder(String name) {
         mPresenter.createFolder(name)
                 .subscribe(new Action1<Void>() {
@@ -635,10 +689,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                 }, mActionError);
     }
 
-//    public void setOpenOption(ExplorerPresenter.OpenOption openOption) {
-//        mPresenter.setOpenOption(openOption);
-//    }
-
+    @Override
     public void refreshView() {
         mViewHolder.mAdapter.notifyDataSetChanged();
     }
@@ -672,5 +723,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         RecyclerView        mList;
         MenuItem            mSearchMenu;
         SearchView          mSearchView;
+        ActionMode          mActionMode;
     }
 }

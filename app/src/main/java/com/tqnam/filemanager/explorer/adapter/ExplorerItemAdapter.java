@@ -3,14 +3,9 @@ package com.tqnam.filemanager.explorer.adapter;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.ActionMode;
 import android.support.v7.widget.RecyclerView;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
@@ -47,52 +42,12 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     public static int mDefaultThemeBackgroundID;
     int mState = STATE_NORMAL;
 
-    private Context mContext;
     private SparseBooleanArrayParcelable mSelectedList;
-    private ActionMode               mActionMode;
     private ExplorerPresenter mPresenter;
     private ExplorerItemAdapterListener mListener;
 
-    private ActionMode.Callback mActionCallback        = new ActionMode.Callback() {
-        @Override
-        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            MenuInflater inflater = mode.getMenuInflater();
-            inflater.inflate(R.menu.action_select_item, menu);
-
-            return true;
-        }
-
-        @Override
-        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            mActionMode = mode;
-            return false;
-        }
-
-        @Override
-        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.action_property:
-                case R.id.action_copy:
-                case R.id.action_del:
-                    mListener.onMenuSelected(item.getItemId());
-                    break;
-
-            }
-
-//            mActionMode.finish();
-
-            return true;
-        }
-
-        @Override
-        public void onDestroyActionMode(ActionMode mode) {
-            mActionMode = null;
-            updateView(null, ExplorerItemAdapter.STATE_NORMAL);
-        }
-    };
-
     public ExplorerItemAdapter(Context context, ExplorerPresenter presenter) {
-        mContext = context;
+//        mContext = context;
         mPresenter = presenter;
         mSelectedList = new SparseBooleanArrayParcelable();
         TypedValue typedValueAttr = new TypedValue();
@@ -140,10 +95,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
 
                 break;
             case STATE_MULTI_SELECT:
-                if (mActionMode == null) {
-                    AppCompatActivity activity = (AppCompatActivity) mContext;
-                    activity.startSupportActionMode(mActionCallback);
-                }
+                mListener.showContextMenu();
 
                 break;
         }
@@ -207,7 +159,10 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         mSelectedList = savedInstanceState.getParcelable(ARG_SELECTED_LIST);
-        int state = savedInstanceState.getInt(ARG_STATE);
+        if (mSelectedList == null)
+            mSelectedList = new SparseBooleanArrayParcelable();
+
+        int state = savedInstanceState.getInt(ARG_STATE, STATE_NORMAL);
 
         updateView(null, state);
     }
@@ -215,7 +170,8 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     public interface ExplorerItemAdapterListener {
         void onOpenAction(int position);
         void openRenameDialog(String item, int position);
-        void onMenuSelected(int menu);
+        void showContextMenu();
+        void hideContextMenu();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -296,7 +252,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             }
 
             if (mSelectedList.size() == 0) {
-                mActionMode.finish();
+                mListener.hideContextMenu();
             }
         }
 

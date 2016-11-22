@@ -34,6 +34,7 @@ public interface ExplorerPresenter extends SaveBundleListener {
     Observable<List<? extends ItemExplorer>> quickQueryFile(String query, String path);
     Observable<List<ItemExplorer>> queryFile(String path, String query);
     Operator<?> deleteOperator(List<ItemExplorer> list);
+    Operator<?> copyCurFolderOperator(List<ItemExplorer> listSelected);
     void setValidated(Operator operator);
 
     void saveClipboard(List<ItemExplorer> clipboard);

@@ -19,6 +19,8 @@ public interface ExplorerView {
 
     void setRootPath(String path);
 
+    void refreshView();
+
     ExplorerPresenter.OpenType getOpenType();
 
     void setOpenType(ExplorerPresenter.OpenType openType);

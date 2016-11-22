@@ -137,6 +137,17 @@ public class FileUtil {
         return search(new FileItem(path), query);
     }
 
+    /**
+     * Copy file source to destination file
+     *
+     * @param source File to copy
+     * @param destination File to copy
+     */
+    public static void copy(FileItem source, FileItem destination, boolean isOverwrite) {
+
+
+    }
+
     public static String formatListTitle(List<? extends ItemExplorer> list) {
         StringBuilder sb = new StringBuilder();
 

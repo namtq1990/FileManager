@@ -25,6 +25,7 @@ import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.Operator;
 import com.tqnam.filemanager.utils.DefaultErrorAction;
+import com.tqnam.filemanager.utils.OperatorManager;
 import com.tqnam.filemanager.utils.ViewUtils;
 
 import java.util.ArrayList;
@@ -44,10 +45,6 @@ import rx.functions.Action1;
  * Project FileManager-master
  */
 public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.ParentViewHolder, ChildViewHolder> {
-    public static final int INDEX_COPY = 0;
-    public static final int INDEX_MOVE = 1;
-    public static final int INDEX_DELETE = 2;
-    public static final int INDEX_COMPRESS = 3;
 
     private BaseActivity mContext;
 
@@ -88,14 +85,17 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
     public void onBindParentViewHolder(ParentViewHolder parentViewHolder, int position, ParentListItem parentListItem) {
         String label;
 
-        switch (position) {
-            case INDEX_COPY:
+        List parentList = getParentItemList();
+        int index = parentList.indexOf(parentListItem);
+
+        switch (index) {
+            case OperatorManager.CATEGORY_COPY:
                 label = "COPY OPERATOR";
                 break;
-            case INDEX_MOVE:
+            case OperatorManager.CATEGORY_MOVE:
                 label = "MOVE OPERATOR";
                 break;
-            case INDEX_DELETE:
+            case OperatorManager.CATEGORY_DELETE:
                 label = "DELETE OPERATOR";
                 break;
             default:
@@ -136,7 +136,6 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         }
         if (operator.isUpdatable()) {
             viewHolder.progressBar.setVisibility(View.VISIBLE);
-            setProgress(viewHolder, 0);
         } else {
             viewHolder.progressBar.setVisibility(View.INVISIBLE);
         }
