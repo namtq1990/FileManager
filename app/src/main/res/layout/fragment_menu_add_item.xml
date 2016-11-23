@@ -59,6 +59,8 @@
                 android:layout_weight="1"
                 android:background="@drawable/bg_border"
                 android:gravity="center"
+                android:paddingBottom="@dimen/padding_small_02"
+                android:paddingTop="@dimen/padding_small_02"
                 android:text="ADD FOLDER"/>
 
             <android.support.design.widget.FloatingActionButton
@@ -89,6 +91,8 @@
                 android:layout_weight="1"
                 android:background="@drawable/bg_border"
                 android:gravity="center"
+                android:paddingBottom="@dimen/padding_small_02"
+                android:paddingTop="@dimen/padding_small_02"
                 android:text="ADD FILE"/>
 
             <android.support.design.widget.FloatingActionButton

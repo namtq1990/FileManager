@@ -7,5 +7,6 @@
     <color name="blur_bgr">#AA000000</color>
     <color name="primary_red">@android:color/holo_red_dark</color>
     <color name="dark_gray">#555555</color>
+    <color name="green">#009688</color>
 
 </resources>

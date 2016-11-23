@@ -6,6 +6,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -41,6 +42,7 @@ import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.ItemInformation;
 import com.tqnam.filemanager.model.Operator;
 import com.tqnam.filemanager.utils.FileUtil;
+import com.tqnam.filemanager.utils.SparseBooleanArrayParcelable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +63,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public static final int ACTION_DELETE_VALIDATE = 0;
     public static final int ACTION_COPY_VALIDATE = 1;
     public static final int ACTION_MOVE_VALIDATE = 2;
+    private static final String ARG_SELECTED_LIST = "selected_list";
     private static final String ARG_QUICK_QUERY = "query_text";
     private static final String ARG_HASHCODE = "hashcode";
     //    private Animator               mOpenAnimType;
@@ -68,6 +71,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     private boolean mIsShownMenu;
     private FragmentDataStorage mDataFragment;
     private ViewHolder mViewHolder;
+    private Parcelable mSelectedList;
     private ActionMode.Callback mActionCallback        = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -85,7 +89,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            List<ItemExplorer> selectedList = mViewHolder.mAdapter.getSelectedItem();
+            List<ItemExplorer> selectedList = mViewHolder.mAdapter.getSelectedList();
 
             switch (item.getItemId()) {
                 case R.id.action_property: {
@@ -123,7 +127,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             mViewHolder.mActionMode = null;
-            mViewHolder.mAdapter.updateView(null, ExplorerItemAdapter.STATE_NORMAL);
+            mViewHolder.mAdapter.setEnableMultiSelect(false);
         }
     };
 
@@ -214,6 +218,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             }
         } else {
             mPresenter.onRestoreInstanceState(savedInstanceState);
+            mSelectedList = savedInstanceState.getParcelable(ARG_SELECTED_LIST);
         }
     }
 
@@ -228,16 +233,15 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         GridLayoutManager layoutManager = new GridLayoutManager(rootView.getContext(), 2);
 
         mViewHolder.mRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_refresh);
+        mViewHolder.mRefreshLayout.setColorSchemeResources(R.color.green);
         mViewHolder.mList = (RecyclerView) rootView.findViewById(R.id.grid_view_list);
         mViewHolder.mList.setAdapter(mViewHolder.mAdapter);
         mViewHolder.mList.setLayoutManager(layoutManager);
         mViewHolder.mList.setHasFixedSize(true);
 
         mViewHolder.mAdapter.setListener(this);
-
-        if (savedState != null) {
-            mViewHolder.mAdapter.onRestoreInstanceState(savedState);
-        }
+        if (mSelectedList != null)
+            mViewHolder.mAdapter.setSelectedList((SparseBooleanArrayParcelable) mSelectedList);
 
         mViewHolder.mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -256,8 +260,12 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         mDataFragment.getOtherData().put(presenterTag, mPresenter);
 
         mPresenter.onSaveInstanceState(outState);
-        if (mViewHolder != null)
-            mViewHolder.mAdapter.onSaveInstanceState(outState);
+        if (mViewHolder != null) {
+            mSelectedList = mViewHolder.mAdapter.getSelectedItem();
+        }
+        if (mSelectedList != null) {
+            outState.putParcelable(ARG_SELECTED_LIST, mSelectedList);
+        }
     }
 
     @Override
@@ -500,11 +508,11 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     @Override
     public void onDialogClick(DialogInterface dialog, int which, int action, Bundle args) {
         if (which == DialogInterface.BUTTON_NEGATIVE) {
-            mViewHolder.mAdapter.updateView(null, ExplorerItemAdapter.STATE_NORMAL);
+            mViewHolder.mAdapter.setEnableMultiSelect(false);
             return;
         }
 
-        List<ItemExplorer> selectedList = mViewHolder.mAdapter.getSelectedItem();
+        List<ItemExplorer> selectedList = mViewHolder.mAdapter.getSelectedList();
 
         switch (action) {
             case ACTION_DELETE_VALIDATE: {

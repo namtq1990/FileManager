@@ -1,9 +1,7 @@
 package com.tqnam.filemanager.explorer.adapter;
 
 import android.content.Context;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.RecyclerView;
+import android.util.SparseBooleanArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,13 +12,11 @@ import android.widget.TextView;
 
 import com.jakewharton.rxbinding.view.RxView;
 import com.quangnam.baseframework.BaseActivity;
-import com.quangnam.baseframework.SaveBundleListener;
 import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
 import com.tqnam.filemanager.model.ItemExplorer;
-import com.tqnam.filemanager.utils.SparseBooleanArrayParcelable;
 import com.tqnam.filemanager.view.GridViewItem;
 
 import java.util.ArrayList;
@@ -32,73 +28,34 @@ import rx.functions.Action1;
 /**
  * Adapter for explorer, must be combined with GridViewItem
  */
-public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapter.ViewHolder> implements SaveBundleListener {
+public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.ViewHolder> {
 
-    public static final int STATE_NORMAL       = 0;
-    //    public static final int STATE_EDIT         = 1;
-    public static final int STATE_MULTI_SELECT = 2;
-    private static final String ARG_STATE = ExplorerItemAdapter.class.getSimpleName() + ".state";
-    private static final String ARG_SELECTED_LIST = ExplorerItemAdapter.class.getSimpleName() + ".selected_list";
+
     public static int mDefaultThemeBackgroundID;
-    int mState = STATE_NORMAL;
 
-    private SparseBooleanArrayParcelable mSelectedList;
     private ExplorerPresenter mPresenter;
     private ExplorerItemAdapterListener mListener;
 
     public ExplorerItemAdapter(Context context, ExplorerPresenter presenter) {
 //        mContext = context;
         mPresenter = presenter;
-        mSelectedList = new SparseBooleanArrayParcelable();
         TypedValue typedValueAttr = new TypedValue();
         context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, typedValueAttr, true);
         mDefaultThemeBackgroundID = typedValueAttr.resourceId;
 
     }
 
-    private void clearSelection() {
-        for (int i = 0; i < mSelectedList.size(); i++) {
-            notifyItemChanged(mSelectedList.keyAt(i));
-        }
-        mSelectedList.clear();
-    }
-
-    public ArrayList<ItemExplorer> getSelectedItem() {
-        int length = mSelectedList.size();
+    public ArrayList<ItemExplorer> getSelectedList() {
+        SparseBooleanArray selectedItem = getSelectedItem();
+        int length = selectedItem.size();
         ArrayList<ItemExplorer> selectedList = new ArrayList<>(length);
 
         for (int i = 0; i < length; i++) {
-            int key = mSelectedList.keyAt(i);
+            int key = selectedItem.keyAt(i);
             selectedList.add(mPresenter.getItemDisplayedAt(key));
         }
 
         return selectedList;
-    }
-
-    public void updateView(@Nullable View view, int state) {
-
-        if (mState == state)
-            return;
-
-        int oldState = mState;
-        mState = state;
-
-        if (oldState == STATE_MULTI_SELECT) {
-            // Handler destroy multi select state
-            clearSelection();
-        }
-
-        switch (mState) {
-            case STATE_NORMAL:
-//                if (view != null) {
-//                }
-
-                break;
-            case STATE_MULTI_SELECT:
-                mListener.showContextMenu();
-
-                break;
-        }
     }
 
     public void setListener(ExplorerItemAdapterListener listener) {
@@ -142,7 +99,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             }
         }
 
-        holder.panel.setChecked(mSelectedList.get(position));
+        super.onBindViewHolder((ComplexAdapter.ViewHolder) holder, position);
     }
 
     @Override
@@ -151,20 +108,16 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     }
 
     @Override
-    public void onSaveInstanceState(Bundle state) {
-        state.putInt(ARG_STATE, mState);
-        state.putParcelable(ARG_SELECTED_LIST, mSelectedList);
-    }
+    public void setEnableMultiSelect(boolean isEnable) {
+        if (isEnableMultiSelect() != isEnable) {
+            if (isEnable) {
+                mListener.showContextMenu();
+            } else {
+                mListener.hideContextMenu();
+            }
+        }
 
-    @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
-        mSelectedList = savedInstanceState.getParcelable(ARG_SELECTED_LIST);
-        if (mSelectedList == null)
-            mSelectedList = new SparseBooleanArrayParcelable();
-
-        int state = savedInstanceState.getInt(ARG_STATE, STATE_NORMAL);
-
-        updateView(null, state);
+        super.setEnableMultiSelect(isEnable);
     }
 
     public interface ExplorerItemAdapterListener {
@@ -173,7 +126,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
         void hideContextMenu();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends ComplexAdapter.ViewHolder {
         public TextView     label;
         public ImageView    icon;
         public GridViewItem panel;
@@ -188,18 +141,6 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                 return false;
             }
         };
-        private OnLongClickListener mItemLongClickListener = new OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                setItemChecked(true);
-
-                if (mState != STATE_MULTI_SELECT) {
-                    updateView(v, STATE_MULTI_SELECT);
-                }
-
-                return true;
-            }
-        };
 
         public ViewHolder(final View itemView) {
             super(itemView);
@@ -208,7 +149,6 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
             panel = (GridViewItem) itemView;
 
             label.setOnLongClickListener(mTextViewLongClick);
-            panel.setOnLongClickListener(mItemLongClickListener);
 
             BaseActivity activity = (BaseActivity) itemView.getContext();
             activity.subscribe(
@@ -218,16 +158,10 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                             .subscribe(new Action1<Void>() {
                                 @Override
                                 public void call(Void aVoid) {
-                                    switch (mState) {
-                                        case STATE_MULTI_SELECT: {
-                                            GridViewItem item = (GridViewItem) itemView;
-                                            setItemChecked(!item.isChecked());
-                                            break;
-                                        }
-                                        case STATE_NORMAL: {
-                                            mPresenter.openItem(getAdapterPosition());
-                                            break;
-                                        }
+                                    if (isEnableMultiSelect()) {
+                                        toggle();
+                                    } else {
+                                        mPresenter.openItem(getAdapterPosition());
                                     }
                                 }
                             }, new Action1<Throwable>() {
@@ -239,21 +173,16 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                             }));
         }
 
-        public void setItemChecked(boolean checked) {
-            panel.setChecked(checked);
-
-            if (checked) {
-                mSelectedList.append(getAdapterPosition(), true);
-            } else {
-                mSelectedList.delete(getAdapterPosition());
-            }
-
-            if (mSelectedList.size() == 0) {
-                mListener.hideContextMenu();
-            }
+        @Override
+        public boolean isChecked() {
+            return panel.isChecked();
         }
 
+        @Override
+        public void setChecked(boolean checked) {
+            super.setChecked(checked);
+            panel.setChecked(checked);
+        }
     }
-
 
 }
