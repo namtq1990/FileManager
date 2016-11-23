@@ -8,26 +8,27 @@ import com.tqnam.filemanager.model.Operator;
 import java.util.ArrayList;
 import java.util.List;
 
-import rx.Observable;
-
 public interface ExplorerPresenter extends SaveBundleListener {
-    Observable<ItemExplorer> onBackPressed();
+
+    void bind(View view);
+    void unbind(View view);
+    void onBackPressed();
 
     /**
      * Open an item at position in list
      * @param position position to open
      * @return Observable with result a ItemExplorer've just opened (Folder if it's folder)
      */
-    Observable<ItemExplorer> openItem(int position);
-    Observable<ItemExplorer> openDirectory(ItemExplorer path);
-    Observable<Void> renameItem(ItemExplorer item, String newLabel);
-    Observable<ItemExplorer> reload();
-    Observable<Void> createFile(String filename);
-    Observable<Void> createFolder(String filename);
+    void openItem(int position);
+    void openDirectory(ItemExplorer path);
+    void renameItem(ItemExplorer item, String newLabel);
+    void reload();
+    void createFile(String filename);
+    void createFolder(String filename);
 
-    Observable<List<? extends ItemExplorer>> quickQueryFile(String query);
-    Observable<List<? extends ItemExplorer>> quickQueryFile(String query, String path);
-    Observable<List<ItemExplorer>> queryFile(String path, String query);
+    void quickQueryFile(String query);
+    void quickQueryFile(String query, String path);
+    void queryFile(String path, String query);
     Operator<?> deleteOperator(List<ItemExplorer> list);
     Operator<?> copyCurFolderOperator(List<ItemExplorer> listSelected);
     void setValidated(Operator operator);
@@ -58,11 +59,17 @@ public interface ExplorerPresenter extends SaveBundleListener {
         SEARCH
     }
 
-    public interface View extends AutoUnsubscribe {
-        void onOpenItem(ItemExplorer item);
+    interface View extends AutoUnsubscribe {
         ExplorerPresenter getPresenter();
 
+        void replaceExplorerAtItem(ItemExplorer root);
+
+        void openPreview(ItemExplorer item);
+
+        void showLoading(boolean isLoading);
+
         String getQuery();
+
         void setQuery(String query);
 
         String getRootPath();
@@ -78,10 +85,6 @@ public interface ExplorerPresenter extends SaveBundleListener {
         void showMessage(String message);
 
         void showMessage(int message);
-
-        ExplorerPresenter.OpenType getOpenType();
-
-        void setOpenType(ExplorerPresenter.OpenType openType);
 
         void onQueryFile(final String query);
     }

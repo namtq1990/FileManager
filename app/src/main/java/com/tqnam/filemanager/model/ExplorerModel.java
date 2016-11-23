@@ -26,14 +26,12 @@ public class ExplorerModel {
     public String mCurLocation;
     public String mParentPath;
     public int mCurCompare;
-
+    // The list that will be display in GUI
+    public ArrayList<ItemExplorer> mDisplayedItem;
     private BaseDataFragment mDataFragment;
     private OperatorManager mOperatorManager;
      // The List item in current location, all item must be same type to restore value
     private ArrayList<ItemExplorer> mListItem;
-    // The list that will be display in GUI
-    private ArrayList<ItemExplorer> mDisplayedItem;
-
     private ArrayList<Operator>  mUnvalidatedOperators;
 
     public ExplorerModel(BaseDataFragment dataFragment) {

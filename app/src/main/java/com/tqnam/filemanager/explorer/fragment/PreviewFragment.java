@@ -93,7 +93,7 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
 
 //            BaseActivity activity = (BaseActivity) inflater.getContext();
 //            activity.requestFocusFragment(this);
-            requestFocusFragment((BaseActivity) getActivity());
+            requestFocusFragment();
         }
 
         return mPreview;
@@ -135,9 +135,9 @@ public class PreviewFragment extends BaseFragment implements Preview.OnRemoveLis
         BaseActivity activity = (BaseActivity) getActivity();
 
         if (newState == Preview.STATE_MAXIMUM) {
-            requestFocusFragment(activity);
+            requestFocusFragment();
         } else {
-            removeFocusRequest(activity);
+            removeFocusRequest();
         }
     }
 

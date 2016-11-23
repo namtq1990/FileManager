@@ -5,9 +5,6 @@ import android.support.annotation.Nullable;
 
 import java.util.HashMap;
 
-/**
- * Created by quangnam on 5/13/16.
- */
 public class BaseDataFragment extends BaseFragment {
     public static final String TAG = BaseDataFragment.class.getSimpleName();
 

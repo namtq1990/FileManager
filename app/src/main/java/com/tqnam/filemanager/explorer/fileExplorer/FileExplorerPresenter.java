@@ -4,8 +4,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.quangnam.baseframework.exception.SystemException;
-import com.quangnam.baseframework.utils.RxCacheWithoutError;
-import com.squareup.picasso.Target;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
 import com.tqnam.filemanager.model.CopyFileOperator;
 import com.tqnam.filemanager.model.DeleteOperator;
@@ -17,27 +15,47 @@ import com.tqnam.filemanager.utils.DefaultErrorAction;
 import com.tqnam.filemanager.utils.FileUtil;
 import com.tqnam.filemanager.utils.OperatorManager;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by tqnam on 10/28/2015.
  * Implement interface {@link ExplorerPresenter}
  */
 public class FileExplorerPresenter implements ExplorerPresenter {
+    private static final long TIME_LOADING_TRIGGER = 300;
 
-    private View  mView;
+    private View mView;
     private ExplorerModel mModel;
-    private Target mCurTarget;
+    private ActionSuccess mActionSuccess = new ActionSuccess();
+    private DefaultErrorAction mErrorAction = new DefaultErrorAction() {
 
-    public FileExplorerPresenter(View view, ExplorerModel model) {
-        mView = view;
+        @Override
+        public void showErrorMessage(String message) {
+            mView.showError(message);
+        }
+
+        @Override
+        public void showErrorMessage(int stringID) {
+            mView.showError(stringID);
+        }
+    };
+    private ItemExplorer mCurFolder;
+    private boolean mShowLoading;
+
+    public FileExplorerPresenter(ExplorerModel model) {
         mModel = model;
+        mShowLoading = false;
     }
 
     @Override
@@ -51,185 +69,217 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public Observable<ItemExplorer> onBackPressed() {
-        if (mModel.mParentPath != null || !mModel.mCurLocation.equals(mView.getRootPath())) {
-            FileItem parentFolder = new FileItem(mModel.mParentPath);
-            return openDirectory(parentFolder);
-        }
+    public void bind(View view) {
+        mView = view;
 
-        return null;
+        if (mShowLoading) {
+            mView.showLoading(true);
+        }
     }
 
     @Override
-    public Observable<ItemExplorer> openItem(int position) {
+    public void unbind(View view) {
+        if (mView == view)
+            mView = null;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mModel.mParentPath != null
+                || !mModel.mCurLocation.equals(mView.getRootPath())) {
+            FileItem parentFolder = new FileItem(mModel.mParentPath);
+            openDirectory(parentFolder);
+        }
+    }
+
+    @Override
+    public void openItem(int position) {
         ItemExplorer item = getItemDisplayedAt(position);
 
         if (item.isDirectory()) {
-            return openDirectory(item);
+            openDirectory(item);
         } else {
-            return Observable.just(item);
+            mView.openPreview(item);
         }
+
     }
 
     @Override
-    public Observable<ItemExplorer> openDirectory(ItemExplorer item) {
-
-        return Observable.just(item)
-                .doOnNext(new Action1<ItemExplorer>() {
-                    @Override
-                    public void call(ItemExplorer item) {
-                        FileItem folder = (FileItem) item;
-
-                        if (item == null) {
-                            throw new SystemException(ErrorCode.RK_EXPLORER_OPEN_NOTHING,
-                                    "Nothing to open");
-                        }
-
-                        if (folder.isDirectory()) {
-                            if (getOpenOption() == OpenOption.EXPLORER) {
-
-                                List<FileItem> list = FileUtil.open((FileItem) item);
-
-                                if (list != null) {
-                                    mModel.mCurLocation = item.getPath();
-                                    mModel.setList(list);
-                                    mModel.sort();
-                                    mModel.resetDisplayList();
-                                    mModel.mParentPath = item.getParentPath();
-                                }
-                            }
-
-                        } else {
-                            // User wrong function to open item, error may be in openFile() function
-                            throw new SystemException(ErrorCode.RK_EXPLORER_OPEN_WRONG_FUNCTION,
-                                    "Wrong function to open");
-                        }
-                    }
-                });
-    }
-
-    @Override
-    public Observable<Void> renameItem(final ItemExplorer item, final String newLabel) {
-
-        return Observable.create(new Observable.OnSubscribe<Void>() {
-
+    public void openDirectory(final ItemExplorer item) {
+        Observable<Void> observable = Observable.create(new Observable.OnSubscribe<Void>() {
             @Override
             public void call(Subscriber<? super Void> subscriber) {
-                FileItem file = (FileItem) item;
-                FileItem newFile = new FileItem(file.getParent(), newLabel);
-                boolean isRenameSuccess = file.renameTo(newFile);
+                FileItem folder = (FileItem) item;
 
-                if (!isRenameSuccess) {
-                    throw new SystemException(ErrorCode.RK_RENAME_ERR, "Can't rename file " + item);
+                if (item == null) {
+                    throw new SystemException(ErrorCode.RK_EXPLORER_OPEN_NOTHING,
+                            "Nothing to open");
                 }
 
-                int index = mModel.getList().indexOf(file);
-                if (index != -1) mModel.getList().set(index, newFile);
-                index = mModel.getDisplayedItem().indexOf(file);
-                if (index != -1) mModel.getDisplayedItem().set(index, newFile);
+                if (folder.isDirectory()) {
+                    if (getOpenOption() == OpenOption.EXPLORER) {
+
+                        List<FileItem> list = FileUtil.open((FileItem) item);
+
+                        if (list != null) {
+                            mModel.mCurLocation = item.getPath();
+                            mModel.setList(list);
+                            mModel.sort();
+                            mModel.resetDisplayList();
+                            mModel.mParentPath = item.getParentPath();
+
+                            mCurFolder = item;
+                        }
+                    } else if (getOpenOption() == OpenOption.SEARCH) {
+                        if (mView != null) {
+                            mView.replaceExplorerAtItem(item);
+                            subscriber.onCompleted();
+                            return;
+                        }
+                    }
+
+                } else {
+                    // User wrong function to open item, error may be in openFile() function
+                    throw new SystemException(ErrorCode.RK_EXPLORER_OPEN_WRONG_FUNCTION,
+                            "Wrong function to open");
+                }
 
                 subscriber.onNext(null);
                 subscriber.onCompleted();
             }
-
-        }
-        ).compose(new RxCacheWithoutError<Void>(1));
+        });
+        mapStream(observable, true, true).subscribe(mActionSuccess, mErrorAction);
     }
 
     @Override
-    public Observable<ItemExplorer> reload() {
-        FileItem file = new FileItem(mModel.mCurLocation);
-        return openDirectory(file);
+    public void renameItem(final ItemExplorer item, final String newLabel) {
+
+        Observable<Void> observable = Observable.create(new Observable.OnSubscribe<Void>() {
+
+                                                            @Override
+                                                            public void call(Subscriber<? super Void> subscriber) {
+                                                                FileItem file = (FileItem) item;
+                                                                FileItem newFile = new FileItem(file.getParent(), newLabel);
+                                                                boolean isRenameSuccess = file.renameTo(newFile);
+
+                                                                if (!isRenameSuccess) {
+                                                                    throw new SystemException(ErrorCode.RK_RENAME_ERR, "Can't rename file " + item);
+                                                                }
+
+                                                                int index = mModel.getList().indexOf(file);
+                                                                if (index != -1) mModel.getList().set(index, newFile);
+                                                                index = mModel.getDisplayedItem().indexOf(file);
+                                                                if (index != -1) mModel.getDisplayedItem().set(index, newFile);
+
+                                                                subscriber.onNext(null);
+                                                                subscriber.onCompleted();
+                                                            }
+
+                                                        }
+        );
+        mapStream(observable, true, true).subscribe(mActionSuccess, mErrorAction);
     }
 
     @Override
-    public Observable<Void> createFile(final String filename) {
-        return Observable.just(filename)
-                .flatMap(new Func1<String, Observable<ItemExplorer>>() {
-                    @Override
-                    public Observable<ItemExplorer> call(String s) {
-                        FileUtil.createFile(mModel.mCurLocation, filename);
-                        return reload();
-                    }
-                })
-                .map(new Func1<ItemExplorer, Void>() {
-                    @Override
-                    public Void call(ItemExplorer itemExplorer) {
-                        return null;
-                    }
-                });
+    public void reload() {
+        openDirectory(mCurFolder);
     }
 
     @Override
-    public Observable<Void> createFolder(final String filename) {
-        return Observable.just(filename)
-                .flatMap(new Func1<String, Observable<ItemExplorer>>() {
-                    @Override
-                    public Observable<ItemExplorer> call(String s) {
-                        FileUtil.createFolder(mModel.mCurLocation, filename);
-                        return reload();
-                    }
-                })
-                .map(new Func1<ItemExplorer, Void>() {
-                    @Override
-                    public Void call(ItemExplorer itemExplorer) {
-                        return null;
-                    }
-                });
+    public void createFile(final String filename) {
+        Observable<FileItem> observable = Observable.create(new Observable.OnSubscribe<FileItem>() {
+            @Override
+            public void call(Subscriber<? super FileItem> subscriber) {
+                File file = FileUtil.createFile(mModel.mCurLocation, filename);
+                FileItem item = new FileItem(file.getPath());
+                mModel.getList().add(item);
+                subscriber.onNext(item);
+                subscriber.onCompleted();
+            }
+        });
+        observable = (Observable<FileItem>) mapStream(observable, true, true);
+
+        observable.subscribe(new Action1<FileItem>() {
+            @Override
+            public void call(FileItem fileItem) {
+                reload();
+            }
+        }, mErrorAction);
     }
 
     @Override
-    public Observable<List<? extends ItemExplorer>> quickQueryFile(final String query) {
-        return Observable.just(query)
-                .map(new Func1<String, List<? extends ItemExplorer>>() {
-                    @Override
-                    public List<ItemExplorer> call(String s) {
-                        mModel.resetDisplayList();
-                        FileUtil.filter(mModel.getDisplayedItem(), s);
+    public void createFolder(final String filename) {
+        Observable<FileItem> observable = Observable.create(new Observable.OnSubscribe<FileItem>() {
+            @Override
+            public void call(Subscriber<? super FileItem> subscriber) {
+                File file = FileUtil.createFolder(mModel.mCurLocation, filename);
+                FileItem item = new FileItem(file.getPath());
+                mModel.getList().add(item);
+                subscriber.onNext(item);
+                subscriber.onCompleted();
+            }
+        });
+        observable = (Observable<FileItem>) mapStream(observable, true, true);
 
-                        return mModel.getDisplayedItem();
-                    }
-                });
+        observable.subscribe(new Action1<FileItem>() {
+            @Override
+            public void call(FileItem fileItem) {
+                reload();
+            }
+        }, mErrorAction);
     }
 
     @Override
-    public Observable<List<? extends ItemExplorer>> quickQueryFile(final String query, final String path) {
-        if (path.equals(mModel.mCurLocation)) {
-            return quickQueryFile(query);
-        }
-
-        return Observable.just(query)
-                .map(new Func1<String, List<? extends ItemExplorer>>() {
-                    @Override
-                    public List<? extends ItemExplorer> call(String query) {
-                        List<FileItem> list = FileUtil.open(path);
-                        FileUtil.filter(list, query);
-
-                        return list;
-                    }
-                });
+    public void quickQueryFile(final String query) {
+        quickQueryFile(query, mModel.mCurLocation);
     }
 
     @Override
-    public Observable<List<ItemExplorer>> queryFile(final String path, final String query) {
-        return Observable.just(query)
-                .map(new Func1<String, List<ItemExplorer>>() {
-                    @Override
-                    public List<ItemExplorer> call(String s) {
-                        if (TextUtils.isEmpty(query))
-                            return null;
+    public void quickQueryFile(final String query, final String path) {
 
-                        List<ItemExplorer> list = FileUtil.search(path, query);
-//                        switch (getOpenOption()) {
-//                            case EXPLORER:
-//
-//                        }
-                        mModel.setList(list);
-                        mModel.resetDisplayList();
+        Observable<Void> observable = Observable.create(new Observable.OnSubscribe<Void>() {
+            @Override
+            public void call(Subscriber<? super Void> subscriber) {
 
-                        return list;
-                    }
-                });
+                List<FileItem> list = FileUtil.open(path);
+                FileUtil.filter(list, query);
+                if (path.equals(mModel.mCurLocation)) {
+                    mModel.mDisplayedItem = new ArrayList<ItemExplorer>(list);
+                }
+
+                subscriber.onNext(null);
+                subscriber.onCompleted();
+            }
+        });
+        observable = (Observable<Void>) mapStream(observable, true, true);
+        observable.subscribe(mActionSuccess, mErrorAction);
+    }
+
+    @Override
+    public void queryFile(final String path, final String query) {
+        Observable<Void> observable = Observable.create(new Observable.OnSubscribe<Void>() {
+            @Override
+            public void call(Subscriber<? super Void> subscriber) {
+                if (TextUtils.isEmpty(query))
+                {
+                    subscriber.onCompleted();
+                    return;
+                }
+
+                List<ItemExplorer> list = FileUtil.search(path, query);
+                //                        switch (getOpenOption()) {
+                //                            case EXPLORER:
+                //
+                //                        }
+                mModel.setList(list);
+                mModel.sort();
+                mModel.resetDisplayList();
+                subscriber.onNext(null);
+                subscriber.onCompleted();
+            }
+        });
+        observable = (Observable<Void>) mapStream(observable, true, true);
+        observable.subscribe(mActionSuccess, mErrorAction);
     }
 
     @Override
@@ -268,24 +318,14 @@ public class FileExplorerPresenter implements ExplorerPresenter {
         mModel.getOperatorManager().addOperator(operator, category);
 
         operator.execute()
-                .concatWith(openDirectory(getCurFolder()))
                 .subscribe(new Action1<Object>() {
                     @Override
                     public void call(Object o) {
-                        mView.refreshView();
+                        if (mCurFolder != null) openDirectory(mCurFolder);
+                        if (mView != null)
+                            mView.showMessage("Done!");
                     }
-                }, new DefaultErrorAction() {
-
-                    @Override
-                    public void showErrorMessage(String message) {
-                        mView.showError(message);
-                    }
-
-                    @Override
-                    public void showErrorMessage(int stringID) {
-                        mView.showError(stringID);
-                    }
-                });
+                }, mErrorAction);
     }
 
     @Override
@@ -341,6 +381,61 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     @Override
     public void setOpenOption(OpenOption openOption) {
         // TODO implements
+    }
+
+    private Observable<?> mapStream(Observable<?> observable,
+                                    final boolean useBackgroundThread,
+                                    final boolean showLoading) {
+        if (useBackgroundThread) {
+            observable = observable.subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread());
+        }
+        if (showLoading) {
+            Observable.timer(TIME_LOADING_TRIGGER, TimeUnit.MILLISECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .map(new Func1<Long, Void>() {
+                        @Override
+                        public Void call(Long aLong) {
+                            // After delay time, stream's still working. So show loading
+                            if (mShowLoading) {
+                                mView.showLoading(true);
+                            }
+                            return null;
+                        }
+                    })
+                    .subscribe();
+
+            observable = observable.doOnSubscribe(new Action0() {
+                @Override
+                public void call() {
+                    mShowLoading = true;
+                }
+            })
+                    .doOnError(new Action1<Throwable>() {
+                @Override
+                public void call(Throwable throwable) {
+                    mView.showLoading(false);
+                    mShowLoading = false;
+                }
+            }).doOnCompleted(new Action0() {
+                @Override
+                public void call() {
+                    mView.showLoading(false);
+                    mShowLoading = false;
+                }
+            });
+        }
+
+        return observable;
+    }
+
+    private class ActionSuccess implements Action1<Object> {
+
+        @Override
+        public void call(Object o) {
+            if (mView != null)
+                mView.refreshView();
+        }
     }
 
 }

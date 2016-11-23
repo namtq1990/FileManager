@@ -3,16 +3,11 @@ package com.tqnam.filemanager.explorer.fileExplorer;
 import android.os.Bundle;
 
 import com.quangnam.baseframework.BaseActivity;
+import com.quangnam.baseframework.BaseDataFragment;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
 import com.tqnam.filemanager.explorer.fragment.ExplorerBaseFragment;
 import com.tqnam.filemanager.model.ExplorerModel;
-import com.tqnam.filemanager.model.ItemExplorer;
-
-import java.util.List;
-
-import rx.functions.Action1;
-import rx.functions.Func1;
 
 public class ListFileFragment extends ExplorerBaseFragment {
     public static final String TAG = "ListFileFragment";
@@ -45,17 +40,24 @@ public class ListFileFragment extends ExplorerBaseFragment {
     }
 
     @Override
-    public void openFolder(String path) {
-        getPresenter().openDirectory(new FileItem(path))
-                .subscribe(mActionOpen, mActionError);
-    }
-
-    @Override
     public ExplorerPresenter getPresenter() {
         if (mPresenter == null) {
-            mPresenter = new FileExplorerPresenter(this,
-                    new ExplorerModel(((BaseActivity) getActivity()).getDataFragment()));
-            mPresenter.setOpenType(ExplorerPresenter.OpenType.LOCAL);
+            BaseDataFragment dataFragment = ((BaseActivity) getActivity())
+                    .getDataFragment();
+            String tag = getDataTag(getSavedHashcode(), ARG_PRESENTER);
+
+            if (dataFragment != null
+                    && dataFragment.getOtherData().containsKey(tag)) {
+                // Presenter saved, so restore it
+                mPresenter = (ExplorerPresenter) dataFragment.getOtherData().get(tag);
+                dataFragment.getOtherData().remove(tag);
+            } else {
+                mPresenter = new FileExplorerPresenter(
+                        new ExplorerModel(((BaseActivity) getActivity()).getDataFragment()));
+                mPresenter.setOpenType(ExplorerPresenter.OpenType.LOCAL);
+            }
+
+            mPresenter.bind(this);
         }
 
         return mPresenter;
@@ -63,28 +65,16 @@ public class ListFileFragment extends ExplorerBaseFragment {
 
     @Override
     public void onQueryFile(final String query) {
-        if (getOpenOption() == ExplorerPresenter.OpenOption.EXPLORER) {
+        if (mPresenter.getOpenOption() == ExplorerPresenter.OpenOption.EXPLORER) {
             ListFileFragment fragment = ListFileFragment.newInstance(getPresenter().getCurLocation(), query);
 
             getFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, fragment, ListFileFragment.TAG)
                     .addToBackStack(null)
                     .commit();
-        } else if (getOpenOption() == ExplorerPresenter.OpenOption.SEARCH) {
+        } else if (mPresenter.getOpenOption() == ExplorerPresenter.OpenOption.SEARCH) {
             setQuery(query);
-            getPresenter().queryFile(getRootPath(), query)
-                    .map(new Func1<List<ItemExplorer>, ItemExplorer>() {
-                        @Override
-                        public ItemExplorer call(List<ItemExplorer> list) {
-                            return getPresenter().getCurFolder();
-                        }
-                    })
-                    .subscribe(new Action1<ItemExplorer>() {
-                        @Override
-                        public void call(ItemExplorer itemExplorer) {
-                            refreshView();
-                        }
-                    }, mActionError);
+            getPresenter().queryFile(getRootPath(), query);
         }
     }
 }

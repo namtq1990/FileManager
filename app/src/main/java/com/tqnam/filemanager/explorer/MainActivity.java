@@ -298,7 +298,7 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 
         if (fragment != null) {
             //            requestFocusFragment((BaseFragmentInterface) fragment);
-            ((BaseFragmentInterface) fragment).requestFocusFragment(this);
+            ((BaseFragmentInterface) fragment).requestFocusFragment();
         }
 
     }

@@ -168,7 +168,6 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
     }
 
     public interface ExplorerItemAdapterListener {
-        void onOpenAction(int position);
         void openRenameDialog(String item, int position);
         void showContextMenu();
         void hideContextMenu();
@@ -226,9 +225,7 @@ public class ExplorerItemAdapter extends RecyclerView.Adapter<ExplorerItemAdapte
                                             break;
                                         }
                                         case STATE_NORMAL: {
-                                            if (mListener != null) {
-                                                mListener.onOpenAction(getAdapterPosition());
-                                            }
+                                            mPresenter.openItem(getAdapterPosition());
                                             break;
                                         }
                                     }

@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
-import com.quangnam.baseframework.BaseActivity;
 import com.quangnam.baseframework.BaseFragment;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.MainActivity;
@@ -93,7 +92,7 @@ public class MenuAddItemFragment extends BaseFragment {
         showMenu();
 //        BaseActivity activity = (BaseActivity) getActivity();
 //        activity.requestFocusFragment(this);
-        requestFocusFragment((BaseActivity) getActivity());
+        requestFocusFragment();
     }
 
     @Override
@@ -102,7 +101,7 @@ public class MenuAddItemFragment extends BaseFragment {
 
 //        BaseActivity activity = (BaseActivity) getActivity();
 //        activity.removeFocusRequest(this);
-        removeFocusRequest((BaseActivity) getActivity());
+        removeFocusRequest();
     }
 
     @Override

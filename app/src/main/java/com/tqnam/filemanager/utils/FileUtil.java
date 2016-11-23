@@ -48,6 +48,10 @@ public class FileUtil {
                     throw new SystemException(ErrorCode.RK_EXPLORER_PERMISSION,
                             "Don't have permission");
                 }
+
+                throw new SystemException(ErrorCode.RK_UNKNOWN,
+                        "Couldn't create file " + filename
+                                + " at " + path);
             }
         } catch (IOException e) {
             if (file.exists()) {

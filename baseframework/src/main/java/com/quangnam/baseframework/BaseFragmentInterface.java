@@ -10,6 +10,9 @@ import android.support.v4.app.FragmentActivity;
  */
 public interface BaseFragmentInterface extends AutoUnsubscribe {
 
+    void onAttach(Context context);
+    void onDestroy();
+
     Context getAppContext();
 
     /**
@@ -31,14 +34,14 @@ public interface BaseFragmentInterface extends AutoUnsubscribe {
      */
     long getTimeAnimate();
 
-    void requestFocusFragment(BaseActivity activity);
+    void requestFocusFragment();
 
-    void popupFocusFragment(BaseActivity activity);
+    void popupFocusFragment();
 
-    void removeFocusRequest(BaseActivity activity);
+    void removeFocusRequest();
 
-    int getPriorityFocusIndex(BaseActivity activity);
+    int getPriorityFocusIndex();
 
-    void requestAtPriority(BaseActivity activity, int priority);
+    void requestAtPriority(int priority);
 
 }

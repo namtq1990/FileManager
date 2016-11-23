@@ -36,14 +36,14 @@ public class HostFragment extends BaseFragment implements BaseActivity.OnBackPre
         if (needRequestFocus()) {
 //            BaseActivity activity = (BaseActivity) getActivity();
 //            activity.requestFocusFragment(this);
-            requestFocusFragment((BaseActivity) getActivity());
+            requestFocusFragment();
         }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        removeFocusRequest((BaseActivity) getActivity());
+        removeFocusRequest();
     }
 
     public void addFragmentPage(Fragment page, String tag) {
