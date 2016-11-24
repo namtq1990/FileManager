@@ -318,8 +318,11 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                     return false;
                 }
 
-                mPresenter.quickQueryFile(query);
+//                mPresenter.quickQueryFile(query);
                 setQuickQuery(query);
+                if (mViewHolder.mAdapter != null) {
+                    mViewHolder.mAdapter.setQuery(query);
+                }
 
                 return false;
             }
@@ -484,13 +487,21 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public void openRenameDialog(String label, int position) {
-        ItemExplorer item = mPresenter.getItemDisplayedAt(position);
+        ItemExplorer item = mPresenter.getListData().get(position);
         DialogRenameFragment dialog = DialogRenameFragment.newInstance(item, label);
         dialog.show(getChildFragmentManager(), DialogRenameFragment.TAG);
     }
 
     public void onRename(ItemExplorer item, String label) {
         mPresenter.renameItem(item, label);
+    }
+
+    @Override
+    public void clearFilter() {
+        if (mViewHolder != null
+                && mViewHolder.mSearchView != null) {
+            mViewHolder.mSearchMenu.collapseActionView();
+        }
     }
 
     @Override

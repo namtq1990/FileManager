@@ -12,12 +12,13 @@ interface CheckListener {
 
 /**
  * Created by quangnam on 11/23/16.
- * Project FileManager-master
+ * This Adapter add multiselect mode and filter to support {@link RecyclerView}
  */
 public abstract class ComplexAdapter<T extends ComplexAdapter.ViewHolder> extends RecyclerView.Adapter<T>
     implements CheckListener
 {
     protected RecyclerView mRecyclerView;
+    private Filter mFilter;
     private boolean mEnableMultiSelect = false;
     private SparseBooleanArrayParcelable mSelectedList;
 
@@ -37,6 +38,31 @@ public abstract class ComplexAdapter<T extends ComplexAdapter.ViewHolder> extend
             setEnableMultiSelect(true);
         } else {
             setEnableMultiSelect(false);
+        }
+    }
+
+    public Filter getFilter() {
+        return mFilter;
+    }
+
+    /**
+     * Set a filter to this adapter. If adapter have a filter, you must use {@link #getItem(int)}}
+     * to get the data for each item. It'll return the data from filter if it've a filter.
+     * <br>
+     * Otherwise, if you need source data, use {@link #getRawDataAt(int)} instead.
+     * After set filter, if you need to filter, you should call {@link #notifyDataSetChanged()}
+     * or other method to notify data and apply that filter.
+     *
+     */
+    public void setFilter(Filter filter) {
+        if (mFilter != null) {
+            unregisterAdapterDataObserver(mFilter);
+        }
+
+        mFilter = filter;
+
+        if (mFilter != null) {
+            registerAdapterDataObserver(mFilter);
         }
     }
 
@@ -87,7 +113,30 @@ public abstract class ComplexAdapter<T extends ComplexAdapter.ViewHolder> extend
         }
     }
 
-    public abstract Object getData();
+    public abstract int getRawDataCount();
+    public abstract Object getRawDataAt(int position);
+
+    public final Object getItem(int position) {
+        if (mFilter != null) {
+            return mFilter.mDataCopied.get(position);
+        }
+
+        return getRawDataAt(position);
+    }
+
+    @Override
+    public final int getItemCount() {
+        if (mFilter != null)
+            return mFilter.mDataCopied.size();
+
+        return getRawDataCount();
+    }
+
+    public interface Collection {
+        int size();
+        Object get(int position);
+        boolean remove(Object item);
+    }
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements Checkable {
 
@@ -122,6 +171,27 @@ public abstract class ComplexAdapter<T extends ComplexAdapter.ViewHolder> extend
         public void toggle() {
             setChecked(!isChecked());
         }
+    }
+
+    /**
+     * Class to apply filter to this adapter. You must call {@link #filter(Object...)} function
+     * in method {@link #onChanged()} or any method that change data that you want.
+     * <BR>
+     *     It also copy your source data to a {@link Collection} to be a mask to provide data for
+     *     this adapter.
+     */
+    public static abstract class Filter extends RecyclerView.AdapterDataObserver {
+        protected Collection mDataCopied;
+
+        public abstract Collection cloneData(Object data);
+        public abstract void filter(Object... constraint);
+
+        public void setSource(Object source) {
+            mDataCopied = cloneData(source);
+        }
+
+        @Override
+        public abstract void onChanged();
     }
 
 }

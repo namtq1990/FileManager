@@ -1,6 +1,7 @@
 package com.tqnam.filemanager.explorer.adapter;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.SparseBooleanArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -17,9 +18,11 @@ import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.utils.FileUtil;
 import com.tqnam.filemanager.view.GridViewItem;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import rx.android.schedulers.AndroidSchedulers;
@@ -33,26 +36,31 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
 
     public static int mDefaultThemeBackgroundID;
 
+    private Context mContext;
     private ExplorerPresenter mPresenter;
     private ExplorerItemAdapterListener mListener;
+    private String mQuery;
+    private Filter mCurFilter;
 
     public ExplorerItemAdapter(Context context, ExplorerPresenter presenter) {
-//        mContext = context;
+        mContext = context;
         mPresenter = presenter;
         TypedValue typedValueAttr = new TypedValue();
         context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, typedValueAttr, true);
         mDefaultThemeBackgroundID = typedValueAttr.resourceId;
 
+        mCurFilter = new Filter();
     }
 
     public ArrayList<ItemExplorer> getSelectedList() {
         SparseBooleanArray selectedItem = getSelectedItem();
         int length = selectedItem.size();
         ArrayList<ItemExplorer> selectedList = new ArrayList<>(length);
+        List<ItemExplorer> data = mPresenter.getListData();
 
         for (int i = 0; i < length; i++) {
             int key = selectedItem.keyAt(i);
-            selectedList.add(mPresenter.getItemDisplayedAt(key));
+            selectedList.add(data.get(key));
         }
 
         return selectedList;
@@ -69,10 +77,22 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
         return new ViewHolder(v);
     }
 
+    public void setQuery(String query) {
+        mQuery = query;
+
+        if (TextUtils.isEmpty(query)) {
+            setFilter(null);
+        } else {
+            setFilter(mCurFilter);
+        }
+
+        notifyDataSetChanged();
+    }
+
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
 
-        ItemExplorer item = mPresenter.getItemDisplayedAt(position);
+        ItemExplorer item = (ItemExplorer) getItem(position);
         if (item != null) {
             holder.label.setText(item.getDisplayName());
 
@@ -103,11 +123,6 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
     }
 
     @Override
-    public int getItemCount() {
-        return mPresenter.getItemDisplayCount();
-    }
-
-    @Override
     public void setEnableMultiSelect(boolean isEnable) {
         if (isEnableMultiSelect() != isEnable) {
             if (isEnable) {
@@ -120,7 +135,18 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
         super.setEnableMultiSelect(isEnable);
     }
 
+    @Override
+    public int getRawDataCount() {
+        return mPresenter.getListData().size();
+    }
+
+    @Override
+    public ItemExplorer getRawDataAt(int position) {
+        return mPresenter.getListData().get(position);
+    }
+
     public interface ExplorerItemAdapterListener {
+        void clearFilter();
         void openRenameDialog(String item, int position);
         void showContextMenu();
         void hideContextMenu();
@@ -161,13 +187,17 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
                                     if (isEnableMultiSelect()) {
                                         toggle();
                                     } else {
-                                        mPresenter.openItem(getAdapterPosition());
+                                        mPresenter.openItem((ItemExplorer) getItem(getAdapterPosition()));
+                                        if (mQuery != null
+                                                && mListener != null) {
+                                            mListener.clearFilter();
+                                        }
                                     }
                                 }
                             }, new Action1<Throwable>() {
                                 @Override
                                 public void call(Throwable throwable) {
-                                    Common.Log("error when open item " + getAdapterPosition());
+                                    Common.Log("error when open item " + getItem(getAdapterPosition()));
                                     throwable.printStackTrace();
                                 }
                             }));
@@ -182,6 +212,36 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
         public void setChecked(boolean checked) {
             super.setChecked(checked);
             panel.setChecked(checked);
+        }
+    }
+
+    private class Filter extends ComplexAdapter.Filter {
+
+        @Override
+        public Array<ItemExplorer> cloneData(Object data) {
+            return new Array<>((List<ItemExplorer>) data);
+        }
+
+        @Override
+        public void filter(Object... constraint) {
+            String query = (String) constraint[0];
+            Array<ItemExplorer> list = cloneData(mPresenter.getListData());
+
+            FileUtil.filter(list, query);
+
+            mDataCopied = list;
+        }
+
+        @Override
+        public void onChanged() {
+            filter(mQuery);
+        }
+    }
+
+    private class Array<T> extends ArrayList<T> implements Collection {
+
+        Array(List<T> list) {
+            super(list);
         }
     }
 

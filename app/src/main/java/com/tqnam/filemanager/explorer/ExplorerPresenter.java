@@ -13,21 +13,15 @@ public interface ExplorerPresenter extends SaveBundleListener {
     void bind(View view);
     void unbind(View view);
     void onBackPressed();
+    List<ItemExplorer> getListData();
 
-    /**
-     * Open an item at position in list
-     * @param position position to open
-     * @return Observable with result a ItemExplorer've just opened (Folder if it's folder)
-     */
-    void openItem(int position);
+    void openItem(ItemExplorer item);
     void openDirectory(ItemExplorer path);
     void renameItem(ItemExplorer item, String newLabel);
     void reload();
     void createFile(String filename);
     void createFolder(String filename);
 
-    void quickQueryFile(String query);
-    void quickQueryFile(String query, String path);
     void queryFile(String path, String query);
     Operator<?> deleteOperator(List<ItemExplorer> list);
     Operator<?> copyCurFolderOperator(List<ItemExplorer> listSelected);
@@ -39,8 +33,6 @@ public interface ExplorerPresenter extends SaveBundleListener {
     String getCurLocation();
     void setCurLocation(String path);
     ItemExplorer getCurFolder();
-    int getItemDisplayCount();
-    ItemExplorer getItemDisplayedAt(int position);
 
     OpenType getOpenType();
 

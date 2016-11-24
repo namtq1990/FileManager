@@ -93,8 +93,12 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public void openItem(int position) {
-        ItemExplorer item = getItemDisplayedAt(position);
+    public List<ItemExplorer> getListData() {
+        return mModel.getList();
+    }
+
+    @Override
+    public void openItem(ItemExplorer item) {
 
         if (item.isDirectory()) {
             openDirectory(item);
@@ -125,7 +129,6 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                             mModel.mCurLocation = item.getPath();
                             mModel.setList(list);
                             mModel.sort();
-                            mModel.resetDisplayList();
                             mModel.mParentPath = item.getParentPath();
 
                             mCurFolder = item;
@@ -154,35 +157,38 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     @Override
     public void renameItem(final ItemExplorer item, final String newLabel) {
 
-        Observable<Void> observable = Observable.create(new Observable.OnSubscribe<Void>() {
+        Observable<Void> observable = Observable.create(
+                new Observable.OnSubscribe<Void>() {
 
-                                                            @Override
-                                                            public void call(Subscriber<? super Void> subscriber) {
-                                                                FileItem file = (FileItem) item;
-                                                                FileItem newFile = new FileItem(file.getParent(), newLabel);
-                                                                boolean isRenameSuccess = file.renameTo(newFile);
+                    @Override
+                    public void call(Subscriber<? super Void> subscriber) {
+                        FileItem file = (FileItem) item;
+                        FileItem newFile = new FileItem(file.getParent(), newLabel);
+                        boolean isRenameSuccess = file.renameTo(newFile);
 
-                                                                if (!isRenameSuccess) {
-                                                                    throw new SystemException(ErrorCode.RK_RENAME_ERR, "Can't rename file " + item);
-                                                                }
+                        if (!isRenameSuccess) {
+                            throw new SystemException(ErrorCode.RK_RENAME_ERR, "Can't rename file " + item);
+                        }
 
-                                                                int index = mModel.getList().indexOf(file);
-                                                                if (index != -1) mModel.getList().set(index, newFile);
-                                                                index = mModel.getDisplayedItem().indexOf(file);
-                                                                if (index != -1) mModel.getDisplayedItem().set(index, newFile);
+                        int index = mModel.getList().indexOf(file);
+                        if (index != -1) mModel.getList().set(index, newFile);
 
-                                                                subscriber.onNext(null);
-                                                                subscriber.onCompleted();
-                                                            }
+                        subscriber.onNext(null);
+                        subscriber.onCompleted();
+                    }
 
-                                                        }
+                }
         );
         mapStream(observable, true, true).subscribe(mActionSuccess, mErrorAction);
     }
 
     @Override
     public void reload() {
-        openDirectory(mCurFolder);
+        if (getOpenOption() == OpenOption.EXPLORER) {
+            openDirectory(mCurFolder);
+        } else {
+            queryFile(getCurLocation(), mView.getQuery());
+        }
     }
 
     @Override
@@ -230,38 +236,11 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public void quickQueryFile(final String query) {
-        quickQueryFile(query, mModel.mCurLocation);
-    }
-
-    @Override
-    public void quickQueryFile(final String query, final String path) {
-
-        Observable<Void> observable = Observable.create(new Observable.OnSubscribe<Void>() {
-            @Override
-            public void call(Subscriber<? super Void> subscriber) {
-
-                List<FileItem> list = FileUtil.open(path);
-                FileUtil.filter(list, query);
-                if (path.equals(mModel.mCurLocation)) {
-                    mModel.mDisplayedItem = new ArrayList<ItemExplorer>(list);
-                }
-
-                subscriber.onNext(null);
-                subscriber.onCompleted();
-            }
-        });
-        observable = (Observable<Void>) mapStream(observable, true, true);
-        observable.subscribe(mActionSuccess, mErrorAction);
-    }
-
-    @Override
     public void queryFile(final String path, final String query) {
         Observable<Void> observable = Observable.create(new Observable.OnSubscribe<Void>() {
             @Override
             public void call(Subscriber<? super Void> subscriber) {
-                if (TextUtils.isEmpty(query))
-                {
+                if (TextUtils.isEmpty(query)) {
                     subscriber.onCompleted();
                     return;
                 }
@@ -273,7 +252,6 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                 //                        }
                 mModel.setList(list);
                 mModel.sort();
-                mModel.resetDisplayList();
                 subscriber.onNext(null);
                 subscriber.onCompleted();
             }
@@ -346,21 +324,15 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     @Override
     public void setCurLocation(String path) {
         mModel.mCurLocation = path;
+        mCurFolder = new FileItem(path);
     }
 
     @Override
     public ItemExplorer getCurFolder() {
+        if (mCurFolder != null)
+            return mCurFolder;
+
         return new FileItem(getCurLocation());
-    }
-
-    @Override
-    public int getItemDisplayCount() {
-        return mModel.getDisplayCount();
-    }
-
-    @Override
-    public ItemExplorer getItemDisplayedAt(int position) {
-        return mModel.getItemDisplayedAt(position);
     }
 
     @Override
@@ -412,18 +384,18 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                 }
             })
                     .doOnError(new Action1<Throwable>() {
-                @Override
-                public void call(Throwable throwable) {
-                    mView.showLoading(false);
-                    mShowLoading = false;
-                }
-            }).doOnCompleted(new Action0() {
-                @Override
-                public void call() {
-                    mView.showLoading(false);
-                    mShowLoading = false;
-                }
-            });
+                        @Override
+                        public void call(Throwable throwable) {
+                            mView.showLoading(false);
+                            mShowLoading = false;
+                        }
+                    }).doOnCompleted(new Action0() {
+                        @Override
+                        public void call() {
+                            mView.showLoading(false);
+                            mShowLoading = false;
+                        }
+                    });
         }
 
         return observable;
