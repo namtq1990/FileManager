@@ -16,6 +16,7 @@ public class AlertDialogFragment extends BaseDialog {
     public static final String TAG = AlertDialogFragment.class.getName();
     private static final String ARG_MESSAGE = "message";
     private static final String ARG_ACTION = "action";
+    private static final String ARG_NEUTRAL = "neutral";
 
     private AlertDialogListener mListener;
     private DialogInterface.OnClickListener mOnClick = new DialogInterface.OnClickListener() {
@@ -27,11 +28,12 @@ public class AlertDialogFragment extends BaseDialog {
         }
     };
 
-    public static AlertDialogFragment newInstance(int action, String message) {
+    public static AlertDialogFragment newInstance(int action, String message, String btnNeutral) {
         AlertDialogFragment fragment = new AlertDialogFragment();
         Bundle bundle = new Bundle();
         bundle.putString(ARG_MESSAGE, message);
         bundle.putInt(ARG_ACTION, action);
+        bundle.putString(ARG_NEUTRAL, btnNeutral);
         fragment.setArguments(bundle);
 
         return fragment;
@@ -47,8 +49,9 @@ public class AlertDialogFragment extends BaseDialog {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                 .setMessage(getMessage())
                 .setPositiveButton(getPositiveLabel(), mOnClick)
-                .setNegativeButton(getNegativeLabel(), mOnClick)
-                .setNeutralButton("Ignore", mOnClick);
+                .setNegativeButton(getNegativeLabel(), mOnClick);
+        if (getNeutralLabel() != null)
+                builder.setNeutralButton("Ignore", mOnClick);
 
         return builder.create();
     }
@@ -67,6 +70,10 @@ public class AlertDialogFragment extends BaseDialog {
 
     public String getNegativeLabel() {
         return getString(android.R.string.cancel);
+    }
+
+    public String getNeutralLabel() {
+        return getArguments().getString(ARG_NEUTRAL);
     }
 
     public interface AlertDialogListener {

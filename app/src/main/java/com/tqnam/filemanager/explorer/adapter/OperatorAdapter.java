@@ -23,7 +23,7 @@ import com.quangnam.baseframework.Log;
 import com.quangnam.baseframework.exception.SystemException;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;
-import com.tqnam.filemanager.model.Operator;
+import com.tqnam.filemanager.model.operation.Operation;
 import com.tqnam.filemanager.utils.DefaultErrorAction;
 import com.tqnam.filemanager.utils.OperatorManager;
 import com.tqnam.filemanager.utils.ViewUtils;
@@ -108,48 +108,48 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
 
     @Override
     public void onBindChildViewHolder(com.bignerdranch.expandablerecyclerview.ViewHolder.ChildViewHolder childViewHolder, int position, Object childListItem) {
-        Operator operator = (Operator) childListItem;
+        Operation operation = (Operation) childListItem;
         final ChildViewHolder viewHolder = (ChildViewHolder) childViewHolder;
 
-        setupFileName(viewHolder, operator);
-        setupStream(operator, viewHolder);
+        setupFileName(viewHolder, operation);
+        setupStream(operation, viewHolder);
 
-        if (operator.isCancelable() && operator.isExecuting()) {
+        if (operation.isCancelable() && operation.isExecuting()) {
             viewHolder.addMenuButton(viewHolder.btnCancel);
         } else {
             viewHolder.removeMenuButton(viewHolder.btnCancel);
         }
-        if (operator.isAbleToPause() && operator.isExecuting()) {
+        if (operation.isAbleToPause() && operation.isExecuting()) {
             viewHolder.addMenuButton(viewHolder.btnPause);
         } else {
             viewHolder.removeMenuButton(viewHolder.btnPause);
         }
-        if (operator.isExecuting()) {
+        if (operation.isExecuting()) {
             viewHolder.removeMenuButton(viewHolder.btnRestart);
         } else {
             viewHolder.addMenuButton(viewHolder.btnRestart);
         }
-        if (operator.isUndoable()) {
+        if (operation.isUndoable()) {
             viewHolder.addMenuButton(viewHolder.btnUndo);
         } else {
             viewHolder.removeMenuButton(viewHolder.btnUndo);
         }
-        if (operator.isUpdatable()) {
+        if (operation.isUpdatable()) {
             viewHolder.progressBar.setVisibility(View.VISIBLE);
         } else {
             viewHolder.progressBar.setVisibility(View.INVISIBLE);
         }
-        if (operator.getSourcePath() != null) {
+        if (operation.getSourcePath() != null) {
             ViewUtils.formatTitleAndContentTextView(viewHolder.tvFrom,
                     "From: ",
-                    operator.getSourcePath(),
+                    operation.getSourcePath(),
                     null,
                     null);
         }
-        if (operator.getDestinationPath() != null) {
+        if (operation.getDestinationPath() != null) {
             ViewUtils.formatTitleAndContentTextView(viewHolder.tvTo,
                     "To: ",
-                    operator.getDestinationPath(),
+                    operation.getDestinationPath(),
                     null,
                     null);
         }
@@ -170,14 +170,14 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         viewHolder.tvProgress.setText(String.format(Locale.ENGLISH, "%1d%%", progress));
     }
 
-    private void setupFileName(ChildViewHolder viewHolder, Operator operator) {
-        if (operator.getData() != null) {
+    private void setupFileName(ChildViewHolder viewHolder, Operation operation) {
+        if (operation.getData() != null) {
             List<Object> data = new ArrayList<>();
 
-            if (operator.getData() instanceof Collection) {
-                data.addAll((Collection<?>) operator.getData());
+            if (operation.getData() instanceof Collection) {
+                data.addAll((Collection<?>) operation.getData());
             } else {
-                data.add(operator.getData());
+                data.add(operation.getData());
             }
 
             SimpleArrayAdapter<Object> adapter = new SimpleArrayAdapter<Object>(data.toArray()) {
@@ -200,19 +200,19 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         }
     }
 
-    private void setupStream(Operator operator, ChildViewHolder viewHolder) {
+    private void setupStream(Operation operation, ChildViewHolder viewHolder) {
         Observable<?> observable = null;
-        if (operator.isUpdatable()) {
-            Operator.UpdatableData data = operator.getUpdateData();
+        if (operation.isUpdatable()) {
+            Operation.UpdatableData data = operation.getUpdateData();
             if (data.isError()) {
                 observable = Observable.just(data);
             }
         }
         if (observable == null) {
-            observable = operator.execute();
+            observable = operation.execute();
         }
 
-        viewHolder.curOperator = operator;
+        viewHolder.mCurOperation = operation;
         if (viewHolder.curSubscription != null
                 && viewHolder.curSubscription.isUnsubscribed()) {
             viewHolder.curSubscription.unsubscribe();
@@ -248,9 +248,9 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
 
     public static class OperatorList implements ParentListItem {
 
-        ArrayList<Operator> mList;
+        ArrayList<Operation> mList;
 
-        public OperatorList(List<Operator> list) {
+        public OperatorList(List<Operation> list) {
             mList = new ArrayList<>(list);
         }
 
@@ -281,7 +281,7 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
         @BindView(R.id.tv_to) TextView tvTo;
         View rootView;
 
-        Operator curOperator;
+        Operation mCurOperation;
         Subscription curSubscription;
 
         /**
@@ -305,17 +305,17 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
 
         @Override
         public void call(Object o) {
-            if (o instanceof Operator.UpdatableData) {
-                update((Operator.UpdatableData) o);
+            if (o instanceof Operation.UpdatableData) {
+                update((Operation.UpdatableData) o);
             }
         }
 
-        public void update(Operator.UpdatableData updatableData) {
+        public void update(Operation.UpdatableData updatableData) {
             Log.d("Updated data: " + updatableData);
             int position = getAdapterPosition();
             Object o = getListItem(position);
 
-            if (o instanceof Operator) {
+            if (o instanceof Operation) {
                 if (updatableData.getOperatorHashcode() == o.hashCode()) {
                     // This is right operator, so update this view
                     if (progressBar.getProgress() != (int)updatableData.getProgress()) {
@@ -327,7 +327,7 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
 
         @OnClick(R.id.btn_cancel)
         public void onClickCancel() {
-            if (curOperator != null) {
+            if (mCurOperation != null) {
                 //TODO Cancel operator
             }
         }

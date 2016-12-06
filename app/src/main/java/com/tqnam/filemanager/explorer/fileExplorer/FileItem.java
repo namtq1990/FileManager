@@ -58,6 +58,11 @@ public class FileItem extends File implements ItemExplorer {
     }
 
     @Override
+    public ItemExplorer getParentItem() {
+        return new FileItem(getParentPath());
+    }
+
+    @Override
     public long getSize() {
         if (!isDirectory()) {
             return super.length();

@@ -47,6 +47,8 @@ public interface ItemExplorer extends Parcelable {
 
     String getParentPath();
 
+    ItemExplorer getParentItem();
+
     long getSize();
 
     Date getModifiedTime();
@@ -56,6 +58,8 @@ public interface ItemExplorer extends Parcelable {
     boolean canWrite();
 
     boolean canExecute();
+
+    boolean exists();
 
     Uri getUri();
 

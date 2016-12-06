@@ -15,11 +15,11 @@
         android:title="@string/action_cut"
         app:showAsAction="always" />
 
-    <item
-        android:id="@+id/action_archive"
-        android:icon="@drawable/ic_archive"
-        android:title="@string/action_archive"
-        app:showAsAction="withText" />
+    <!--<item-->
+        <!--android:id="@+id/action_archive"-->
+        <!--android:icon="@drawable/ic_archive"-->
+        <!--android:title="@string/action_archive"-->
+        <!--app:showAsAction="withText" />-->
 
     <item
         android:id="@+id/action_del"
@@ -29,6 +29,7 @@
 
     <item
         android:id="@+id/action_property"
+        android:icon="@drawable/ic_action_about_dark"
         android:title="@string/action_property"
-        app:showAsAction="collapseActionView"/>
+        app:showAsAction="always"/>
 </menu>

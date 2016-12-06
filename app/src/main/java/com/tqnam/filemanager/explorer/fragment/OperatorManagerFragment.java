@@ -44,16 +44,16 @@ public class OperatorManagerFragment extends BaseFragment {
     }
 
     private void initData() {
-//        Operator testOperator;
+//        Operation testOperator;
 //        List<ItemExplorer> files = new ArrayList<>();
 //        files.add(new FileItem("/Sdcard/Movies"));
 //        files.add(new FileItem("/Sdcard/Music"));
 //
 //        List<FileItem> input = new ArrayList<>();
 //        input.add(new FileItem("/storage/emulated/0/Subtitles/Download"));
-////        testOperator = new CopyFileOperator(input, "/storage/emulated/0/Subtitles");
-//        testOperator = new DeleteOperator(input);
-////        Operator testOperator = new Operator.MultipleItemOperator<ItemExplorer>(files) {
+////        testOperator = new CopyFileOperation(input, "/storage/emulated/0/Subtitles");
+//        testOperator = new DeleteOperation(input);
+////        Operation testOperator = new Operation.MultipleItemOperator<ItemExplorer>(files) {
 ////            @Override
 ////            public Observable execute(Object... arg) {
 ////                return Observable.just("Test");
@@ -75,7 +75,7 @@ public class OperatorManagerFragment extends BaseFragment {
 ////            }
 ////        };
 //
-//        ArrayList<Operator> operators = new ArrayList<>();
+//        ArrayList<Operation> operators = new ArrayList<>();
 //        operators.add(testOperator);
 //
 //        OperatorAdapter.OperatorList childList = new OperatorAdapter.OperatorList(operators);

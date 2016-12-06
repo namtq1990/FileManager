@@ -1,16 +1,19 @@
-package com.tqnam.filemanager.model;
+package com.tqnam.filemanager.model.operation;
 
 import com.quangnam.baseframework.Log;
 import com.quangnam.baseframework.TrackingTime;
 import com.quangnam.baseframework.exception.SystemException;
 import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
+import com.tqnam.filemanager.model.ErrorCode;
+import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.utils.FileUtil;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -25,37 +28,49 @@ import rx.schedulers.Schedulers;
  * Created by quangnam on 11/16/16.
  * Project FileManager-master
  */
-public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
-    public static final String TAG = CopyFileOperator.class.getCanonicalName();
+public class CopyFileOperation extends CPMOperation<FileItem> implements Validator.ValidateAction{
+    public static final String TAG = CopyFileOperation.class.getCanonicalName();
     private static final int UPDATE_TIME = 800;
 
     private Observable<CopyFileData> mCurObservable;
+    private HashMap<String, String> mDestinationPathStorage;
     private CopyFileData mResult;
     private String mDestinationPath;
     private String mSourcePath;
     private long mLastEmitSize;
 
-    public CopyFileOperator(List<FileItem> data, String destPath) {
+    public CopyFileOperation(List<FileItem> data, String destPath) {
         super(data);
 
         if (data == null || data.isEmpty()) {
-            throw new SystemException("List data is empty. Operator is aborted");
+            throw new SystemException("List data is empty. Operation is aborted");
         }
 
         mDestinationPath = destPath;
         mSourcePath = data.get(0).getParentPath();
+        mDestinationPathStorage = new HashMap<>();
 
         mResult = new CopyFileData();
         mResult.setOperatorHashcode(hashCode());
+        getValidator().setValidateAction(this);
 
-        traverse();
-        Log.d("Data traversed: " + mResult);
+        validate();
+    }
+
+    @Override
+    public void validate() {
+        for (FileItem file : getData()) {
+            String destinationPath = file.getPath().replaceFirst(mSourcePath, mDestinationPath);
+            mDestinationPathStorage.put(file.getPath(), destinationPath);
+            getValidator().validate(file);
+        }
     }
 
     @Override
     public Observable<CopyFileData> execute(Object... arg) {
         if (mCurObservable == null) {
             TrackingTime.beginTracking(formatTag(mResult));
+            traverse();
 
             mCurObservable = Observable.interval(UPDATE_TIME, TimeUnit.MILLISECONDS)
                     .takeUntil(
@@ -97,11 +112,11 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
     private void execute() {
         try {
             Log.d("Copying...");
-            ArrayList<Operator> list = getAllStream();
+            ArrayList<Operation> list = getAllStream();
 
-            for (Operator operator : list) {
-                SingleFileCopyOperator copyOperator = (SingleFileCopyOperator) operator;
-                copyOperator.execute(false);
+            for (Operation operation : list) {
+                SingleFileCopyOperation copyOperator = (SingleFileCopyOperation) operation;
+                copyOperator.execute(isOverwrite());
             }
 
             mResult.setError(false);
@@ -158,15 +173,52 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
     }
 
     @Override
-    public Operator createStreamFromData(FileItem data) {
+    public Operation createStreamFromData(FileItem data) {
+        String destinationPath;
+        String parentPath = data.getParentPath();
+        String parentDestinationPath = mDestinationPathStorage.get(parentPath);
+        if (parentDestinationPath != null) {
+            destinationPath = parentDestinationPath + "/" + data.getDisplayName();
+        } else {
+            destinationPath = data.getPath().replaceFirst(mSourcePath, mDestinationPath);
+        }
+
+        mDestinationPathStorage.put(data.getPath(), destinationPath);
+
         if (!data.isDirectory()) {
             mResult.sizeTotal += data.length();
         }
 
-        SingleFileCopyOperator operator = new SingleFileCopyOperator(data);
-        operator.setDestination(data.getPath().replaceFirst(mSourcePath, mDestinationPath));
+        SingleFileCopyOperation operator = new SingleFileCopyOperation(data);
+        operator.setDestination(destinationPath);
 
         return operator;
+    }
+
+    @Override
+    public int validate(ItemExplorer item) {
+        int mode = 0;
+        String destinationPath = mDestinationPathStorage.get(item.getPath());
+
+        if (destinationPath != null) {
+            FileItem destFile = new FileItem(destinationPath);
+            if (destFile.exists()) {
+                mode = getValidator().setModeViolated(Validator.MODE_FILE_EXIST, mode, true);
+            }
+            if ((destFile.exists() && !destFile.canWrite())
+                    || (!destFile.exists() && !destFile.getParentItem().canWrite())) {
+                mode = getValidator().setModeViolated(Validator.MODE_PERMISSION, mode, true);
+            }
+        }
+
+        return mode;
+    }
+
+    @Override
+    public void setItemValidated(ItemExplorer item) {
+        super.setItemValidated(item);
+
+        getData().remove(item);
     }
 
     public static class CopyFileData extends UpdatableData {
@@ -184,17 +236,33 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
             return speed;
         }
 
+        public void setSpeed(float speed) {
+            this.speed = speed;
+        }
+
         @Override
         public boolean isFinished() {
             return isFinished;
+        }
+
+        public void setFinished(boolean finished) {
+            isFinished = finished;
         }
 
         public long getSizeCopied() {
             return sizeCopied;
         }
 
+        public void setSizeCopied(long sizeCopied) {
+            this.sizeCopied = sizeCopied;
+        }
+
         public long getSizeTotal() {
             return sizeTotal;
+        }
+
+        public void setSizeTotal(long sizeTotal) {
+            this.sizeTotal = sizeTotal;
         }
 
         @Override
@@ -209,11 +277,11 @@ public class CopyFileOperator extends Operator.TraverseFileOperator<FileItem> {
         }
     }
 
-    public class SingleFileCopyOperator extends SingleFileOperator<FileItem> {
+    public class SingleFileCopyOperation extends SingleFileOperation<FileItem> {
 
         private FileItem mDestination;
 
-        public SingleFileCopyOperator(FileItem data) {
+        public SingleFileCopyOperation(FileItem data) {
             super(data);
 
             Log.d("make operation for item: " + data.getAbsolutePath());

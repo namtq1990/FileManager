@@ -1,8 +1,8 @@
 package com.tqnam.filemanager.utils;
 
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
-import com.tqnam.filemanager.model.CopyFileOperator;
-import com.tqnam.filemanager.model.Operator;
+import com.tqnam.filemanager.model.operation.CopyFileOperation;
+import com.tqnam.filemanager.model.operation.Operation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,20 +27,20 @@ public class OperatorManager {
             CATEGORY_OTHER
     };
 
-//    private ArrayList<Operator> mPrepareList;
+//    private ArrayList<Operation> mPrepareList;
     private static OperatorManager mInstance;
 
-    private ArrayList<Operator> mCopyOperator;
-    private ArrayList<Operator> mDeleteOperator;
-    private ArrayList<Operator> mMoveOperator;
-    private ArrayList<Operator> mOtherList;
+    private ArrayList<Operation> mCopyOperation;
+    private ArrayList<Operation> mDeleteOperation;
+    private ArrayList<Operation> mMoveOperation;
+    private ArrayList<Operation> mOtherList;
 
     private OperatorManager() {
 //        mPrepareList = new ArrayList<>();
 
-        mCopyOperator = new ArrayList<>();
-        mDeleteOperator = new ArrayList<>();
-        mMoveOperator = new ArrayList<>();
+        mCopyOperation = new ArrayList<>();
+        mDeleteOperation = new ArrayList<>();
+        mMoveOperation = new ArrayList<>();
         mOtherList = new ArrayList<>();
     }
 
@@ -51,18 +51,18 @@ public class OperatorManager {
         return mInstance;
     }
 
-    public static CopyFileOperator makeCopy(List<FileItem> data, String path) {
-        return new CopyFileOperator(data, path);
+    public static CopyFileOperation makeCopy(List<FileItem> data, String path) {
+        return new CopyFileOperation(data, path);
     }
 
-    public ArrayList<Operator> getOperatorList(int category) {
+    public ArrayList<Operation> getOperatorList(int category) {
         switch (category) {
             case CATEGORY_COPY:
-                return mCopyOperator;
+                return mCopyOperation;
             case CATEGORY_DELETE:
-                return mDeleteOperator;
+                return mDeleteOperation;
             case CATEGORY_MOVE:
-                return mMoveOperator;
+                return mMoveOperation;
             default:
                 return mOtherList;
         }
@@ -72,13 +72,13 @@ public class OperatorManager {
      * Add operation to Manager and will be started
      *
      */
-    public void addOperator(Operator<?> operator, int category) {
-//        mPrepareList.remove(operator);
+    public void addOperator(Operation<?> operation, int category) {
+//        mPrepareList.remove(operation);
 
-        ArrayList<Operator> list = getOperatorList(category);
-        list.add(operator);
+        ArrayList<Operation> list = getOperatorList(category);
+        list.add(operation);
 
-        Observable<?> observable = operator.execute();
+        Observable<?> observable = operation.execute();
         observable
                 .subscribe(new Subscriber<Object>() {
                     @Override
@@ -98,7 +98,7 @@ public class OperatorManager {
                 });
     }
 
-//    public void addPrepareList(Operator operator) {
+//    public void addPrepareList(Operation operator) {
 //        mPrepareList.add(operator);
 //    }
 }

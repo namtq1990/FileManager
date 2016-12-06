@@ -3,7 +3,7 @@ package com.tqnam.filemanager.explorer;
 import com.quangnam.baseframework.AutoUnsubscribe;
 import com.quangnam.baseframework.SaveBundleListener;
 import com.tqnam.filemanager.model.ItemExplorer;
-import com.tqnam.filemanager.model.Operator;
+import com.tqnam.filemanager.model.operation.Operation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,12 +23,21 @@ public interface ExplorerPresenter extends SaveBundleListener {
     void createFolder(String filename);
 
     void queryFile(String path, String query);
-    Operator<?> deleteOperator(List<ItemExplorer> list);
-    Operator<?> copyCurFolderOperator(List<ItemExplorer> listSelected);
-    void setValidated(Operator operator);
+    Operation<?> deleteOperation(List<ItemExplorer> list);
+    Operation<?> copyCurFolderOperation(List<ItemExplorer> listSelected);
+    Operation<?> moveCurFolderOperation(List<ItemExplorer> listSelected);
+    Operation<?> doPasteAction();
+    void trySetValidated(Operation operation);
 
-    void saveClipboard(List<ItemExplorer> clipboard);
+    /**
+     * Save to clipboard with category (Copy or Move)
+     */
+    void saveClipboard(List<ItemExplorer> clipboard, int category);
     ArrayList<ItemExplorer> getClipboard();
+
+    Operation getValidatingOperation();
+
+    void setValidatingOperation(Operation operation);
 
     String getCurLocation();
     void setCurLocation(String path);
@@ -79,5 +88,7 @@ public interface ExplorerPresenter extends SaveBundleListener {
         void showMessage(int message);
 
         void onQueryFile(final String query);
+
+        void showValidate(Operation operation);
     }
 }

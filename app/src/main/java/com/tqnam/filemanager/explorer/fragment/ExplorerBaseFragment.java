@@ -36,12 +36,14 @@ import com.tqnam.filemanager.explorer.dialog.DialogRenameFragment;
 import com.tqnam.filemanager.explorer.dialog.InformationDialogFragment;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
-import com.tqnam.filemanager.model.CopyFileOperator;
-import com.tqnam.filemanager.model.DeleteOperator;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.ItemInformation;
-import com.tqnam.filemanager.model.Operator;
+import com.tqnam.filemanager.model.operation.CPMOperation;
+import com.tqnam.filemanager.model.operation.DeleteOperation;
+import com.tqnam.filemanager.model.operation.Operation;
+import com.tqnam.filemanager.model.operation.Validator;
 import com.tqnam.filemanager.utils.FileUtil;
+import com.tqnam.filemanager.utils.OperatorManager;
 import com.tqnam.filemanager.utils.SparseBooleanArrayParcelable;
 
 import java.util.ArrayList;
@@ -63,6 +65,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public static final int ACTION_DELETE_VALIDATE = 0;
     public static final int ACTION_COPY_VALIDATE = 1;
     public static final int ACTION_MOVE_VALIDATE = 2;
+
     private static final String ARG_SELECTED_LIST = "selected_list";
     private static final String ARG_QUICK_QUERY = "query_text";
     private static final String ARG_HASHCODE = "hashcode";
@@ -72,6 +75,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     private FragmentDataStorage mDataFragment;
     private ViewHolder mViewHolder;
     private Parcelable mSelectedList;
+
     private ActionMode.Callback mActionCallback        = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -105,18 +109,24 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                             + "\n"
                             + FileUtil.formatListTitle(selectedList);
                     AlertDialogFragment.newInstance(ACTION_DELETE_VALIDATE,
-                            message)
+                            message, null)
                             .show(getChildFragmentManager(), AlertDialogFragment.TAG);
 
                     break;
                 }
                 case R.id.action_copy: {
-                    mPresenter.saveClipboard(new ArrayList<>(selectedList));
+                    mPresenter.saveClipboard(new ArrayList<>(selectedList), OperatorManager.CATEGORY_COPY);
                     getActivity().supportInvalidateOptionsMenu();
                     hideContextMenu();
 
                     break;
                 }
+                case R.id.action_cut:
+                    mPresenter.saveClipboard(new ArrayList<>(selectedList), OperatorManager.CATEGORY_MOVE);
+                    getActivity().supportInvalidateOptionsMenu();
+                    hideContextMenu();
+
+                    break;
                 default:
                     break;
             }
@@ -370,12 +380,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             case R.id.action_search:
                 return true;
             case R.id.action_paste:
-                List<ItemExplorer> listSelected = mPresenter.getClipboard();
-                CopyFileOperator operator = (CopyFileOperator) mPresenter.copyCurFolderOperator(listSelected);
-                mPresenter.saveClipboard(null);
-
-                doValidate(operator);
-
+                mPresenter.doPasteAction();
                 item.setVisible(false);
                 return true;
             default:
@@ -520,6 +525,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     public void onDialogClick(DialogInterface dialog, int which, int action, Bundle args) {
         if (which == DialogInterface.BUTTON_NEGATIVE) {
             mViewHolder.mAdapter.setEnableMultiSelect(false);
+            mPresenter.setValidatingOperation(null);
             return;
         }
 
@@ -527,22 +533,52 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
         switch (action) {
             case ACTION_DELETE_VALIDATE: {
-                DeleteOperator operation = (DeleteOperator) mPresenter.deleteOperator(selectedList);
-                doValidate(operation);
+                DeleteOperation operation = (DeleteOperation) mPresenter.deleteOperation(selectedList);
+                showValidate(operation);
                 hideContextMenu();
                 break;
             }
             case ACTION_COPY_VALIDATE:
             case ACTION_MOVE_VALIDATE:
+                Operation operation = mPresenter.getValidatingOperation();
+                mPresenter.setValidatingOperation(null);
+
+                if (which == DialogInterface.BUTTON_NEUTRAL) {
+                    // Skip this item
+                    if (operation instanceof CPMOperation) {
+                        ((CPMOperation) operation).setItemValidated(((CPMOperation) operation).getValidatingItem());
+                    }
+                } else if (which == DialogInterface.BUTTON_POSITIVE) {
+                    // Overwrite this item
+                    if (operation instanceof CPMOperation) {
+                        ((CPMOperation) operation).setOverwrite(true);
+                        ((CPMOperation) operation).getValidator().clear();
+                    }
+                }
+
+                mPresenter.trySetValidated(operation);
+
                 break;
             default:
                 break;
         }
     }
 
-    public void doValidate(Operator operation) {
-        //TODO Show dialog to validate action
-        mPresenter.setValidated(operation);
+    @Override
+    public void showValidate(Operation operation) {
+        if (operation instanceof CPMOperation) {
+            Validator validator = ((CPMOperation) operation).getValidator();
+            ItemExplorer item = validator.getListViolated().iterator().next();
+            AlertDialogFragment dialog = AlertDialogFragment.newInstance(ACTION_COPY_VALIDATE,
+                    "File " + item.getPath() + " existed, do you want to continue?",
+                    "Skip");
+            mPresenter.setValidatingOperation(operation);
+            dialog.show(getChildFragmentManager(), AlertDialogFragment.TAG);
+
+            return;
+        }
+
+        mPresenter.trySetValidated(operation);
     }
 
     @Override

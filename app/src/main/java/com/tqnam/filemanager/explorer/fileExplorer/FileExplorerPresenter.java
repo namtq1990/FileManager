@@ -5,12 +5,15 @@ import android.text.TextUtils;
 
 import com.quangnam.baseframework.exception.SystemException;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
-import com.tqnam.filemanager.model.CopyFileOperator;
-import com.tqnam.filemanager.model.DeleteOperator;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ExplorerModel;
 import com.tqnam.filemanager.model.ItemExplorer;
-import com.tqnam.filemanager.model.Operator;
+import com.tqnam.filemanager.model.operation.CPMOperation;
+import com.tqnam.filemanager.model.operation.CopyFileOperation;
+import com.tqnam.filemanager.model.operation.DeleteOperation;
+import com.tqnam.filemanager.model.operation.MoveOperation;
+import com.tqnam.filemanager.model.operation.Operation;
+import com.tqnam.filemanager.model.operation.Validator;
 import com.tqnam.filemanager.utils.DefaultErrorAction;
 import com.tqnam.filemanager.utils.FileUtil;
 import com.tqnam.filemanager.utils.OperatorManager;
@@ -52,6 +55,7 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     };
     private ItemExplorer mCurFolder;
     private boolean mShowLoading;
+    private Operation mValidatingOperation;
 
     public FileExplorerPresenter(ExplorerModel model) {
         mModel = model;
@@ -261,9 +265,9 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public Operator<?> deleteOperator(List<ItemExplorer> list) {
+    public Operation<?> deleteOperation(List<ItemExplorer> list) {
         List<FileItem> listFile = (List<FileItem>) (List<? extends ItemExplorer>) list;
-        DeleteOperator operation = new DeleteOperator(listFile);
+        DeleteOperation operation = new DeleteOperation(listFile);
 
         // TODO Check if operator is validated, so add to unvalidatedList
         mModel.getUnvalidatedList().add(operation);
@@ -272,9 +276,9 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public Operator<?> copyCurFolderOperator(List<ItemExplorer> listSelected) {
+    public Operation<?> copyCurFolderOperation(List<ItemExplorer> listSelected) {
         List<FileItem> listFile = (List<FileItem>) (List<? extends ItemExplorer>) listSelected;
-        CopyFileOperator operator = new CopyFileOperator(listFile, mModel.mCurLocation);
+        CopyFileOperation operator = new CopyFileOperation(listFile, mModel.mCurLocation);
 
         mModel.getUnvalidatedList().add(operator);
 
@@ -282,20 +286,65 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public void setValidated(Operator operator) {
+    public Operation<?> moveCurFolderOperation(List<ItemExplorer> listSelected) {
+        List<FileItem> listFile = (List<FileItem>) (List<? extends ItemExplorer>) listSelected;
+        MoveOperation operation = new MoveOperation(listFile, mModel.mCurLocation);
+
+        mModel.getUnvalidatedList().add(operation);
+
+        return operation;
+    }
+
+    @Override
+    public Operation<?> doPasteAction() {
+        List<ItemExplorer> listSelected = mModel.getClipboard();
+        int category = mModel.getClipboardCategory();
+        Operation operation = null;
+
+        if (category == OperatorManager.CATEGORY_MOVE) {
+            operation = moveCurFolderOperation(listSelected);
+        } else if (category == OperatorManager.CATEGORY_COPY) {
+            operation = copyCurFolderOperation(listSelected);
+        }
+
+        mModel.saveClipboard(null, category);
+
+        trySetValidated(operation);
+
+        return operation;
+    }
+
+    @Override
+    public void trySetValidated(Operation operation) {
+        if (operation instanceof CPMOperation) {
+            if (operation.getData() == null
+                    || ((List) operation.getData()).isEmpty()) {
+                return;
+            }
+
+            Validator validator = ((CPMOperation) operation).getValidator();
+            if (!validator.getListViolated().isEmpty()) {
+                mView.showValidate(operation);
+                return;
+            }
+        }
+
         int category = OperatorManager.CATEGORY_OTHER;
-        if (operator instanceof DeleteOperator) {
+        if (operation instanceof DeleteOperation) {
             category = OperatorManager.CATEGORY_DELETE;
             mView.showMessage("Deleting...");
-        } else if (operator instanceof CopyFileOperator) {
+        } else if (operation instanceof MoveOperation) {
+            category = OperatorManager.CATEGORY_MOVE;
+            mView.showMessage("Moving...");
+        } else if (operation instanceof CopyFileOperation) {
             category = OperatorManager.CATEGORY_COPY;
             mView.showMessage("Copying...");
         }
 
-        mModel.getUnvalidatedList().remove(operator);
-        mModel.getOperatorManager().addOperator(operator, category);
+        mModel.getUnvalidatedList().remove(operation);
+        mModel.getOperatorManager().addOperator(operation, category);
 
-        operator.execute()
+        operation.execute()
                 .subscribe(new Action1<Object>() {
                     @Override
                     public void call(Object o) {
@@ -307,13 +356,23 @@ public class FileExplorerPresenter implements ExplorerPresenter {
     }
 
     @Override
-    public void saveClipboard(List<ItemExplorer> clipboard) {
-        mModel.saveClipboard(clipboard);
+    public void saveClipboard(List<ItemExplorer> clipboard, int category) {
+        mModel.saveClipboard(clipboard, category);
     }
 
     @Override
     public ArrayList<ItemExplorer> getClipboard() {
         return mModel.getClipboard();
+    }
+
+    @Override
+    public Operation getValidatingOperation() {
+        return mValidatingOperation;
+    }
+
+    @Override
+    public void setValidatingOperation(Operation operation) {
+        mValidatingOperation = operation;
     }
 
     @Override

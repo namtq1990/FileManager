@@ -32,6 +32,8 @@ public class ErrorCode {
 
     public static final int RK_COPY_ERR = 120;
 
+    public static final int RK_MOVE_ERR = 130;
+
     //    public static String generateError(String message, int errorcode) {
 //        return "" + errorcode + ":{" + message + "}";
 //    }

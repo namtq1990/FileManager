@@ -1,4 +1,4 @@
-package com.tqnam.filemanager.model;
+package com.tqnam.filemanager.model.operation;
 
 import com.quangnam.baseframework.Log;
 import com.quangnam.baseframework.exception.SystemException;
@@ -19,14 +19,14 @@ import rx.schedulers.Schedulers;
  * Created by quangnam on 11/18/16.
  * Project FileManager-master
  */
-public class DeleteOperator extends Operator.TraverseFileOperator<FileItem> {
+public class DeleteOperation extends Operation.TraverseFileOperation<FileItem> {
     private static final int UPDATE_TIMESTAMP = 800;
 
     private Observable<DeleteFileData> mCurObservable;
     private DeleteFileData mResult;
 
 
-    public DeleteOperator(List<FileItem> data) {
+    public DeleteOperation(List<FileItem> data) {
         super(data);
 
         mResult = new DeleteFileData();
@@ -37,7 +37,7 @@ public class DeleteOperator extends Operator.TraverseFileOperator<FileItem> {
     }
 
     @Override
-    public Operator createStreamFromData(FileItem data) {
+    public Operation createStreamFromData(FileItem data) {
         mResult.numOfFile++;
         return new SingleDeleteFile(data);
     }
@@ -72,7 +72,7 @@ public class DeleteOperator extends Operator.TraverseFileOperator<FileItem> {
     private void execute() {
         try {
             Log.d("Deleting...");
-            ArrayList<Operator> operators = getAllStream();
+            ArrayList<Operation> operations = getAllStream();
 
             //        try {
             //            Thread.sleep(3000);
@@ -82,8 +82,8 @@ public class DeleteOperator extends Operator.TraverseFileOperator<FileItem> {
             //
             //        throw new SystemException("Error!!!");
 
-            for (int i = operators.size() - 1; i >= 0; i--) {
-                SingleDeleteFile deleteOperator = (SingleDeleteFile) operators.get(i);
+            for (int i = operations.size() - 1; i >= 0; i--) {
+                SingleDeleteFile deleteOperator = (SingleDeleteFile) operations.get(i);
                 deleteOperator.execute();
                 mResult.numOfFileDeleted++;
             }
@@ -122,7 +122,7 @@ public class DeleteOperator extends Operator.TraverseFileOperator<FileItem> {
         return true;
     }
 
-    public static class SingleDeleteFile extends SingleFileOperator<FileItem> {
+    public static class SingleDeleteFile extends SingleFileOperation<FileItem> {
 
         public SingleDeleteFile(FileItem data) {
             super(data);

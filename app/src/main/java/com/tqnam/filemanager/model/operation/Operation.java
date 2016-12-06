@@ -1,4 +1,6 @@
-package com.tqnam.filemanager.model;
+package com.tqnam.filemanager.model.operation;
+
+import com.tqnam.filemanager.model.ItemExplorer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,11 +8,11 @@ import java.util.List;
 
 import rx.Observable;
 
-public abstract class Operator<T> {
+public abstract class Operation<T> {
 
     private T mData;
 
-    public Operator(T data) {
+    public Operation(T data) {
         mData = data;
     }
 
@@ -46,13 +48,13 @@ public abstract class Operator<T> {
 
     public abstract UpdatableData getUpdateData();
 
-    public abstract static class TraverseFileOperator<T extends ItemExplorer> extends Operator<List<T>> {
+    public abstract static class TraverseFileOperation<T extends ItemExplorer> extends Operation<List<T>> {
 
-        private ArrayList<Operator> mStreamList;
-        private ArrayList<Operator> mExecutingList;
-        private ArrayList<Operator> mExecutedList;
+        private ArrayList<Operation> mStreamList;
+        private ArrayList<Operation> mExecutingList;
+        private ArrayList<Operation> mExecutedList;
 
-        public TraverseFileOperator(List<T> data) {
+        public TraverseFileOperation(List<T> data) {
             super(data);
 
             mStreamList = new ArrayList<>(10);
@@ -60,15 +62,15 @@ public abstract class Operator<T> {
             mExecutedList = new ArrayList<>(10);
         }
 
-        public ArrayList<Operator> getAllStream() {
+        public ArrayList<Operation> getAllStream() {
             return mStreamList;
         }
 
-        public ArrayList<Operator> getExecutingList() {
+        public ArrayList<Operation> getExecutingList() {
             return mExecutingList;
         }
 
-        public ArrayList<Operator> getExecutedList() {
+        public ArrayList<Operation> getExecutedList() {
             return mExecutedList;
         }
 
@@ -78,8 +80,8 @@ public abstract class Operator<T> {
             while (!data.isEmpty()) {
                 T file = data.remove(0);
 
-                Operator operator = createStreamFromData(file);
-                mStreamList.add(operator);
+                Operation operation = createStreamFromData(file);
+                mStreamList.add(operation);
 
                 if (file.isDirectory()) {
                     data.addAll((Collection<? extends T>) file.getChild());
@@ -87,22 +89,22 @@ public abstract class Operator<T> {
             }
         }
 
-        protected void moveToExecuting(Operator operator) {
-            if (!mExecutingList.contains(operator))
-                mExecutingList.add(operator);
+        protected void moveToExecuting(Operation operation) {
+            if (!mExecutingList.contains(operation))
+                mExecutingList.add(operation);
         }
 
-        protected void moveToExecuted(Operator operator) {
-            mExecutingList.remove(operator);
-            mExecutedList.add(operator);
+        protected void moveToExecuted(Operation operation) {
+            mExecutingList.remove(operation);
+            mExecutedList.add(operation);
         }
 
-        public abstract Operator createStreamFromData(T data);
+        public abstract Operation createStreamFromData(T data);
     }
 
-    public abstract static class SingleFileOperator<T extends ItemExplorer> extends Operator<T> {
+    public abstract static class SingleFileOperation<T extends ItemExplorer> extends Operation<T> {
 
-        public SingleFileOperator(T data) {
+        public SingleFileOperation(T data) {
             super(data);
         }
     }
@@ -116,7 +118,7 @@ public abstract class Operator<T> {
             return progress >= 100;
         }
 
-        public float getProgress() {
+        public int getProgress() {
             return progress;
         }
 

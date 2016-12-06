@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 
 import com.quangnam.baseframework.BaseDataFragment;
+import com.tqnam.filemanager.model.operation.Operation;
 import com.tqnam.filemanager.utils.OperatorManager;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class ExplorerModel {
     public static final String ARG_CUR_COMPARE = "cur_compare";
     public static final String ARG_LIST_ITEM = "list_item";
     public static final String ARG_CLIPBOARD = "list_clipboard";
+    public static final String ARG_CLIPBOARD_CATEGORY = "clipboard_category";
 
     public String mCurLocation;
     public String mParentPath;
@@ -30,7 +32,7 @@ public class ExplorerModel {
     private OperatorManager mOperatorManager;
      // The List item in current location, all item must be same type to restore value
     private ArrayList<ItemExplorer> mListItem;
-    private ArrayList<Operator>  mUnvalidatedOperators;
+    private ArrayList<Operation> mUnvalidatedOperations;
 
     public ExplorerModel(BaseDataFragment dataFragment) {
         mCurCompare = COMPARE_NAME;
@@ -38,7 +40,7 @@ public class ExplorerModel {
 
         mDataFragment = dataFragment;
         mOperatorManager = OperatorManager.getInstance();
-        mUnvalidatedOperators = new ArrayList<>();
+        mUnvalidatedOperations = new ArrayList<>();
     }
 
     public void onSavedInstanceState(Bundle savedState) {
@@ -96,17 +98,29 @@ public class ExplorerModel {
         return mOperatorManager;
     }
 
-    public ArrayList<Operator> getUnvalidatedList() {
-        return mUnvalidatedOperators;
+    public ArrayList<Operation> getUnvalidatedList() {
+        return mUnvalidatedOperations;
     }
 
-    public void saveClipboard(List<ItemExplorer> clipboard) {
+    public void saveClipboard(List<ItemExplorer> clipboard, int category) {
         mDataFragment.getData()
                 .putParcelableArrayList(ARG_CLIPBOARD, (ArrayList<? extends Parcelable>) clipboard);
+        if (clipboard != null) {
+            mDataFragment.getData()
+                    .putInt(ARG_CLIPBOARD_CATEGORY, category);
+        } else {
+            mDataFragment.getData()
+                    .remove(ARG_CLIPBOARD_CATEGORY);
+        }
     }
 
     public ArrayList<ItemExplorer> getClipboard() {
         return mDataFragment.getData()
                 .getParcelableArrayList(ARG_CLIPBOARD);
+    }
+
+    public int getClipboardCategory() {
+        return mDataFragment.getData()
+                .getInt(ARG_CLIPBOARD_CATEGORY, OperatorManager.CATEGORY_COPY);
     }
 }

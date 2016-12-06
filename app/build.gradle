@@ -17,13 +17,13 @@ repositories {
 
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "23.0.3"
+    compileSdkVersion project.compiledSdk
+    buildToolsVersion project.buildToolVersion
 
     defaultConfig {
         applicationId "com.tqnam.filemanager"
-        minSdkVersion 14
-        targetSdkVersion 19
+        minSdkVersion project.minSdk
+        targetSdkVersion project.targetSdk
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -40,9 +40,9 @@ dependencies {
     compile('com.crashlytics.sdk.android:crashlytics:2.5.2@aar') {
         transitive = true;
     }
-    compile 'com.android.support:design:24.1.1'
-    compile 'com.android.support:recyclerview-v7:24.1.1'
-    compile 'com.android.support:gridlayout-v7:24.1.1'
+    compile 'com.android.support:design:'+project.androidSupport
+    compile 'com.android.support:recyclerview-v7:'+project.androidSupport
+    compile 'com.android.support:gridlayout-v7:'+project.androidSupport
     compile ('com.bignerdranch.android:expandablerecyclerview:2.1.1') {
         exclude module: 'recyclerview-v7'
         exclude module: 'appcompat-v7'
