@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 
 import com.quangnam.baseframework.BaseDialog;
+import com.tqnam.filemanager.R;
 
 /**
  * Created by quangnam on 11/19/16.
@@ -46,7 +47,7 @@ public class AlertDialogFragment extends BaseDialog {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AlertDialog)
                 .setMessage(getMessage())
                 .setPositiveButton(getPositiveLabel(), mOnClick)
                 .setNegativeButton(getNegativeLabel(), mOnClick);

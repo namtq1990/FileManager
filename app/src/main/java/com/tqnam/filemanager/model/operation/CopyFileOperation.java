@@ -7,6 +7,7 @@ import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.model.operation.propertyView.CopyPropertyView;
 import com.tqnam.filemanager.utils.FileUtil;
 
 import java.io.FileInputStream;
@@ -49,6 +50,7 @@ public class CopyFileOperation extends CPMOperation<FileItem> implements Validat
         mDestinationPath = destPath;
         mSourcePath = data.get(0).getParentPath();
         mDestinationPathStorage = new HashMap<>();
+        super.mPropertyView = new CopyPropertyView(this);
 
         mResult = new CopyFileData();
         mResult.setOperatorHashcode(hashCode());
@@ -369,4 +371,5 @@ public class CopyFileOperation extends CPMOperation<FileItem> implements Validat
             mDestination = new FileItem(path);
         }
     }
+
 }

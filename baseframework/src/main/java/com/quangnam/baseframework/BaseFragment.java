@@ -1,6 +1,8 @@
 package com.quangnam.baseframework;
 
 import android.content.Context;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.view.animation.Animation;
 
@@ -29,6 +31,18 @@ public class BaseFragment extends android.support.v4.app.Fragment implements Bas
     public void onAttach(Context context) {
         super.onAttach(context);
         mDelegate.onAttach(context);
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mDelegate.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mDelegate.onSaveInstanceState(outState);
     }
 
     @Override
@@ -80,5 +94,10 @@ public class BaseFragment extends android.support.v4.app.Fragment implements Bas
 
     public Context getAppContext() {
         return mDelegate.getAppContext();
+    }
+
+    @Override
+    public int getSavedHashcode() {
+        return mDelegate.getSavedHashcode();
     }
 }

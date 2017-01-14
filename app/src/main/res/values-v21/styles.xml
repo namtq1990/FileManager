@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="AppBaseTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppBaseTheme" parent="TemplateTheme">
     </style>
 
-    <style name="ExplorerTheme">
-        <item name="android:colorPrimaryDark">@color/blue_dark</item>
-    </style>
 </resources>

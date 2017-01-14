@@ -1,6 +1,7 @@
 package com.quangnam.baseframework;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.view.animation.Animation;
@@ -24,6 +25,18 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat im
     public void onAttach(Context context) {
         super.onAttach(context);
         mDelegate.onAttach(context);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mDelegate.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mDelegate.onSaveInstanceState(outState);
     }
 
     @Override
@@ -55,6 +68,11 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat im
     @Override
     public void subscribe(Subscription subscription) {
         mDelegate.subscribe(subscription);
+    }
+
+    @Override
+    public int getSavedHashcode() {
+        return mDelegate.getSavedHashcode();
     }
 
     @Override

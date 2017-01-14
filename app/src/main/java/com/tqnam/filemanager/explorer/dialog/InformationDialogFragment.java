@@ -1,15 +1,21 @@
 package com.tqnam.filemanager.explorer.dialog;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.quangnam.baseframework.BaseDialog;
@@ -45,10 +51,25 @@ public class InformationDialogFragment extends BaseDialog {
         mInformation = (ItemInformation) getArguments().getSerializable(ARG_DATA);
     }
 
-    @Nullable
+    @NonNull
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_information, container, false);
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        View rootView = LayoutInflater.from(getActivity())
+                .inflate(R.layout.fragment_information, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AlertDialog_Single)
+                .setTitle(R.string.information_property)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {}
+                })
+                .setView(rootView);
+        initView(rootView);
+
+        return builder.create();
+    }
+
+    private void initView(View rootView) {
+
         mViewHolder = new ViewHolder();
         ButterKnife.bind(mViewHolder, rootView);
 
@@ -60,7 +81,7 @@ public class InformationDialogFragment extends BaseDialog {
                 tv.setText(String.format(" - %1s", label));
             }
         });
-        mViewHolder.listName.setLayoutManager(new LinearLayoutManager(inflater.getContext()));
+        mViewHolder.listName.setLayoutManager(new LinearLayoutManager(getActivity()));
         mViewHolder.listName.setHasFixedSize(true);
 
         setPath(mInformation.getPath());
@@ -72,20 +93,20 @@ public class InformationDialogFragment extends BaseDialog {
 
         updateRoot();
 
-//        rootView.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                // Make dialog fullscreen in width side
-//                if (getDialog() != null) {
-//                    Dialog dialog = getDialog();
-//                    final WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
-//                    params.width = WindowManager.LayoutParams.MATCH_PARENT;
-//                    getDialog().getWindow().setAttributes(params);
-//                }
-//            }
-//        });
+        rootView.post(new Runnable() {
+            @Override
+            public void run() {
+                if (getDialog() != null) {
+                    AlertDialog curDialog = (AlertDialog) getDialog();
 
-        return rootView;
+                    Button button = curDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                    LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) button
+                            .getLayoutParams();
+                    params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                }
+            }
+        });
+
     }
 
     private void setPath(String path) {

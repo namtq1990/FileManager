@@ -34,7 +34,6 @@ public abstract class CPMOperation<T extends ItemExplorer> extends Operation.Tra
     }
 
     public void validate() {
-
     }
 
     public void setItemValidated(ItemExplorer item) {

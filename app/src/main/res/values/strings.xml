@@ -11,6 +11,7 @@
     <string name="information_location">Location:&#160;</string>
     <string name="information_size">Size:&#160;</string>
     <string name="information_mod_date">Date Modified:&#160;</string>
-    <string name="information_file">File:</string>
+    <string name="information_file">File:&#160;</string>
+    <string name="information_property">File Property</string>
 
 </resources>

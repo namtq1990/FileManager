@@ -5,14 +5,18 @@ import com.quangnam.baseframework.exception.SystemException;
 import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.ErrorCode;
+import com.tqnam.filemanager.model.ItemExplorer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -20,10 +24,11 @@ import rx.schedulers.Schedulers;
  * Created by quangnam on 11/24/16.
  * Project FileManager-master
  */
-public class MoveOperation extends Operation.TraverseFileOperation<FileItem> {
+public class MoveOperation extends CPMOperation<FileItem> implements Validator.ValidateAction {
     private static final int UPDATE_TIMESTAMP = 800;
 
     private Observable<MoveData> mCurObservable;
+    private HashMap<String, String> mDestinationPathStorage;
     private MoveData mResult;
     private String mSourcePath;
     private String mDestinationPath;
@@ -32,6 +37,7 @@ public class MoveOperation extends Operation.TraverseFileOperation<FileItem> {
     public MoveOperation(List<FileItem> data, String destPath) {
         super(data);
 
+        mDestinationPathStorage = new HashMap<>();
         mDestinationPath = destPath;
         mSourcePath = data.get(0).getParentPath();
 
@@ -39,9 +45,16 @@ public class MoveOperation extends Operation.TraverseFileOperation<FileItem> {
         mResult.numOfFile = getAllStream().size();
         mResult.setOperatorHashcode(hashCode());
 
-        for (FileItem item : data) {
-            Operation operation = createStreamFromData(item);
-            getAllStream().add(operation);
+        getValidator().setValidateAction(this);
+        validate();
+    }
+
+    @Override
+    public void validate() {
+        for (FileItem file : getData()) {
+            String destinationPath = file.getPath().replaceFirst(mSourcePath, mDestinationPath);
+            mDestinationPathStorage.put(file.getPath(), destinationPath);
+            getValidator().validate(file);
         }
     }
 
@@ -57,27 +70,83 @@ public class MoveOperation extends Operation.TraverseFileOperation<FileItem> {
 
     @Override
     public Observable<MoveData> execute(Object... arg) {
-        if (mCurObservable == null)
-            mCurObservable = Observable.interval(UPDATE_TIMESTAMP, TimeUnit.MILLISECONDS).takeUntil(
-                    Observable.create(new Observable.OnSubscribe<Long>() {
-                        @Override
-                        public void call(Subscriber<? super Long> subscriber) {
-                            execute();
-                            subscriber.onCompleted();
-                        }
-                    })
-                            .subscribeOn(Schedulers.io()))
-                    .concatWith(Observable.just(0L))
-                    .map(new Func1<Long, MoveData>() {
-                        @Override
-                        public MoveData call(Long aLong) {
-                            Log.d("Mapping data: " + mResult);
-                            mResult.validate();
-                            return mResult;
-                        }
-                    })
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .compose(new RxCacheWithoutError<MoveData>(1));
+        if (mCurObservable == null) {
+
+            if (isOverwrite()) {
+                CopyFileOperation copyOperation = new CopyFileOperation(getData(), getDestinationPath());
+                DeleteOperation deleteOperation = new DeleteOperation(getData());
+                copyOperation.setOverwrite(true);
+                copyOperation.getValidator().clear();
+
+                mCurObservable = copyOperation.execute()
+                        .map(new Func1<CopyFileOperation.CopyFileData, MoveData>() {
+                            @Override
+                            public MoveData call(CopyFileOperation.CopyFileData copyFileData) {
+                                int progress = copyFileData.getProgress();
+                                if (progress > 99)
+                                    progress = 99;
+
+                                mResult.setProgress(progress);
+                                return mResult;
+                            }
+                        })
+                        .concatWith(
+                                deleteOperation.execute()
+                                .map(new Func1<DeleteOperation.DeleteFileData, MoveData>() {
+                                    @Override
+                                    public MoveData call(DeleteOperation.DeleteFileData deleteFileData) {
+                                        if (deleteFileData.isFinished()) {
+                                            mResult.setProgress(100);
+                                        }
+
+                                        mResult.setError(deleteFileData.isError());
+
+                                        return mResult;
+                                    }
+                                })
+                                .doOnCompleted(new Action0() {
+                                    @Override
+                                    public void call() {
+                                        mResult.setProgress(100);
+                                        mResult.setError(false);
+                                    }
+                                })
+                        )
+                        .doOnError(new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                mResult.setError(true);
+                            }
+                        })
+                        .compose(new RxCacheWithoutError<MoveData>(1));
+            } else {
+                for (FileItem item : getData()) {
+                    Operation operation = createStreamFromData(item);
+                    getAllStream().add(operation);
+                }
+
+                mCurObservable = Observable.interval(UPDATE_TIMESTAMP, TimeUnit.MILLISECONDS).takeUntil(
+                        Observable.create(new Observable.OnSubscribe<Long>() {
+                            @Override
+                            public void call(Subscriber<? super Long> subscriber) {
+                                execute();
+                                subscriber.onCompleted();
+                            }
+                        })
+                                .subscribeOn(Schedulers.io()))
+                        .concatWith(Observable.just(0L))
+                        .map(new Func1<Long, MoveData>() {
+                            @Override
+                            public MoveData call(Long aLong) {
+                                Log.d("Mapping data: " + mResult);
+                                mResult.validate();
+                                return mResult;
+                            }
+                        })
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .compose(new RxCacheWithoutError<MoveData>(1));
+            }
+        }
 
         return mCurObservable;
     }
@@ -133,6 +202,31 @@ public class MoveOperation extends Operation.TraverseFileOperation<FileItem> {
     @Override
     public boolean isAbleToPause() {
         return true;
+    }
+
+    @Override
+    public int validate(ItemExplorer item) {
+        int mode = 0;
+        String destinationPath = mDestinationPathStorage.get(item.getPath());
+
+        if (destinationPath != null) {
+            FileItem destFile = new FileItem(destinationPath);
+            if (destFile.exists()) {
+                mode = getValidator().setModeViolated(Validator.MODE_FILE_EXIST, mode, true);
+            }
+            if ((destFile.exists() && !destFile.canWrite())
+                    || (!destFile.exists() && !destFile.getParentItem().canWrite())) {
+                mode = getValidator().setModeViolated(Validator.MODE_PERMISSION, mode, true);
+            }
+        }
+
+        return mode;
+    }
+
+    @Override
+    public void setItemValidated(ItemExplorer item) {
+        super.setItemValidated(item);
+        getData().remove(item);
     }
 
     public static class SingleMoveFile extends SingleFileOperation<FileItem> {

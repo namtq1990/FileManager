@@ -45,6 +45,7 @@ import com.tqnam.filemanager.model.operation.Validator;
 import com.tqnam.filemanager.utils.FileUtil;
 import com.tqnam.filemanager.utils.OperatorManager;
 import com.tqnam.filemanager.utils.SparseBooleanArrayParcelable;
+import com.tqnam.filemanager.utils.ViewUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,8 +58,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         MenuItemCompat.OnActionExpandListener, ExplorerItemAdapter.ExplorerItemAdapterListener,
         BaseActivity.OnBackPressedListener,
         DialogRenameFragment.RenameDialogListener, BaseActivity.OnFocusFragmentChanged,
-        AlertDialogFragment.AlertDialogListener
-{
+        AlertDialogFragment.AlertDialogListener {
     public static final String ARG_QUERY = "query";
     public static final String ARG_ROOT_PATH = "root_path";
     public static final String ARG_PRESENTER = "presenter";
@@ -68,7 +68,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     private static final String ARG_SELECTED_LIST = "selected_list";
     private static final String ARG_QUICK_QUERY = "query_text";
-    private static final String ARG_HASHCODE = "hashcode";
     //    private Animator               mOpenAnimType;
     protected ExplorerPresenter mPresenter;
     private boolean mIsShownMenu;
@@ -76,7 +75,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     private ViewHolder mViewHolder;
     private Parcelable mSelectedList;
 
-    private ActionMode.Callback mActionCallback        = new ActionMode.Callback() {
+    private ActionMode.Callback mActionCallback = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             MenuInflater inflater = mode.getMenuInflater();
@@ -93,6 +92,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            ViewUtils.disableUntilProcess(item);
             List<ItemExplorer> selectedList = mViewHolder.mAdapter.getSelectedList();
 
             switch (item.getItemId()) {
@@ -177,17 +177,17 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     @Override
     public void onResume() {
         super.onResume();
-//        BaseActivity activity = (BaseActivity) getActivity();
+        //        BaseActivity activity = (BaseActivity) getActivity();
 
-//        if (activity.getFocusFragment() == null) {
-//            requestFocus();
-//        }
+        //        if (activity.getFocusFragment() == null) {
+        //            requestFocus();
+        //        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-//        clearFocus();
+        //        clearFocus();
     }
 
     @Override
@@ -198,7 +198,13 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public void onDestroyView() {
-        ((BaseActivity) getActivity()).removeFocusListener(this);
+        if (getView() != null)
+            getView().post(new Runnable() {
+                @Override
+                public void run() {
+                    ((BaseActivity) getActivitySafe()).removeFocusListener(ExplorerBaseFragment.this);
+                }
+            });
 
         if (mViewHolder.mSearchView != null) {
             mViewHolder.mSearchView.setOnQueryTextFocusChangeListener(null);
@@ -228,7 +234,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             }
         } else {
             mPresenter.onRestoreInstanceState(savedInstanceState);
-            mSelectedList = savedInstanceState.getParcelable(ARG_SELECTED_LIST);
         }
     }
 
@@ -266,16 +271,9 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         super.onSaveInstanceState(outState);
 
         String presenterTag = getDataTag(hashCode(), ARG_PRESENTER);
-        getArguments().putInt(ARG_HASHCODE, hashCode());
         mDataFragment.getOtherData().put(presenterTag, mPresenter);
 
         mPresenter.onSaveInstanceState(outState);
-        if (mViewHolder != null) {
-            mSelectedList = mViewHolder.mAdapter.getSelectedItem();
-        }
-        if (mSelectedList != null) {
-            outState.putParcelable(ARG_SELECTED_LIST, mSelectedList);
-        }
     }
 
     @Override
@@ -328,7 +326,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                     return false;
                 }
 
-//                mPresenter.quickQueryFile(query);
+                //                mPresenter.quickQueryFile(query);
                 setQuickQuery(query);
                 if (mViewHolder.mAdapter != null) {
                     mViewHolder.mAdapter.setQuery(query);
@@ -345,11 +343,11 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         LayoutTransition searchBarTransition = new LayoutTransition();
 
         //If use translation animation
-//        int curWidth = getResources().getDisplayMetrics().widthPixels;
-//        ObjectAnimator animSlide = ObjectAnimator.ofFloat(searchBar, "translationX", curWidth, 0);
-//        searchBarTransition.setAnimator(LayoutTransition.APPEARING, animSlide);
-//        searchBarTransition.setDuration(getResources().getInteger(android.R.integer.config_shortAnimTime));
-//        searchBarTransition.setStartDelay(LayoutTransition.APPEARING, 0);
+        //        int curWidth = getResources().getDisplayMetrics().widthPixels;
+        //        ObjectAnimator animSlide = ObjectAnimator.ofFloat(searchBar, "translationX", curWidth, 0);
+        //        searchBarTransition.setAnimator(LayoutTransition.APPEARING, animSlide);
+        //        searchBarTransition.setDuration(getResources().getInteger(android.R.integer.config_shortAnimTime));
+        //        searchBarTransition.setStartDelay(LayoutTransition.APPEARING, 0);
         searchBar.setLayoutTransition(searchBarTransition);
         // -----------------------------------------------------------------------------------------
         //endregion
@@ -376,6 +374,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        ViewUtils.disableUntilProcess(item);
         switch (item.getItemId()) {
             case R.id.action_search:
                 return true;
@@ -388,68 +387,68 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         }
     }
 
-//    private Animator animActionOpenUp() {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
-//                && getView() != null) {
-//            View rootView = getView();
-//            Context context = rootView.getContext();
-//            int startColor = ContextCompat.getColor(context, R.color.accent_material_dark);
-//            int endColor = ContextCompat.getColor(context, R.color.white);
-//            int width = rootView.getWidth();
-//            int height = rootView.getHeight();
-//
-//            int startRadius = (int) Math.sqrt(width * width + height * height);
-//            AnimatorSet set = new AnimatorSet();
-//            Animator anim = ViewAnimationUtils.createCircularReveal(rootView, width, height, startRadius, 0);
-//            ObjectAnimator colorAnim = ObjectAnimator.ofObject(rootView, "backgroundColor",
-//                    new ArgbEvaluator(), startColor, endColor).setDuration(anim.getDuration());
-//            set.play(anim).with(colorAnim);
-//            rootView.setVisibility(View.VISIBLE);
-//
-//            return set;
-//        } else {
-//            return null;
-//        }
-//    }
-//
-//    private Animator animActionOpenIn(View itemView) {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
-//                && getView() != null) {
-//            final View rootView = getView();
-//            // TODO need iconview to be child directly of itemView
-//            View iconView = itemView.findViewById(R.id.icon_item);
-//            int left = itemView.getLeft() + iconView.getLeft();
-//            int right = itemView.getLeft() + iconView.getRight();
-//            int top = itemView.getTop() + iconView.getTop();
-//            int bottom = itemView.getTop() + iconView.getBottom();
-//            Context context = rootView.getContext();
-//            rootView.setVisibility(View.INVISIBLE);
-//            int centerX = (left + right) / 2;
-//            int centerY = (top + bottom) / 2;
-//            int width = rootView.getWidth();
-//            int height = rootView.getHeight();
-//            int startRadius = 0;
-//            int startColor = ContextCompat.getColor(context, R.color.accent_material_dark);
-//            final int endColor = ContextCompat.getColor(context, R.color.white);
-//
-//            int finalRadius = (int) (Math.sqrt(width * width
-//                    + height * height));
-//            AnimatorSet set = new AnimatorSet();
-//            Animator anim = ViewAnimationUtils.createCircularReveal(rootView, centerX, centerY,
-//                    startRadius, finalRadius);
-//            ObjectAnimator colorAnim = ObjectAnimator.ofObject(rootView, "backgroundColor",
-//                    new ArgbEvaluator(), startColor, endColor).setDuration(anim.getDuration());
-//            set.play(anim).with(colorAnim);
-//            rootView.setVisibility(View.VISIBLE);
-//
-//            return set;
-//        } else {
-//            return null;
-//        }
-//    }
+    //    private Animator animActionOpenUp() {
+    //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+    //                && getView() != null) {
+    //            View rootView = getView();
+    //            Context context = rootView.getContext();
+    //            int startColor = ContextCompat.getColor(context, R.color.accent_material_dark);
+    //            int endColor = ContextCompat.getColor(context, R.color.white);
+    //            int width = rootView.getWidth();
+    //            int height = rootView.getHeight();
+    //
+    //            int startRadius = (int) Math.sqrt(width * width + height * height);
+    //            AnimatorSet set = new AnimatorSet();
+    //            Animator anim = ViewAnimationUtils.createCircularReveal(rootView, width, height, startRadius, 0);
+    //            ObjectAnimator colorAnim = ObjectAnimator.ofObject(rootView, "backgroundColor",
+    //                    new ArgbEvaluator(), startColor, endColor).setDuration(anim.getDuration());
+    //            set.play(anim).with(colorAnim);
+    //            rootView.setVisibility(View.VISIBLE);
+    //
+    //            return set;
+    //        } else {
+    //            return null;
+    //        }
+    //    }
+    //
+    //    private Animator animActionOpenIn(View itemView) {
+    //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+    //                && getView() != null) {
+    //            final View rootView = getView();
+    //            // TODO need iconview to be child directly of itemView
+    //            View iconView = itemView.findViewById(R.id.icon_item);
+    //            int left = itemView.getLeft() + iconView.getLeft();
+    //            int right = itemView.getLeft() + iconView.getRight();
+    //            int top = itemView.getTop() + iconView.getTop();
+    //            int bottom = itemView.getTop() + iconView.getBottom();
+    //            Context context = rootView.getContext();
+    //            rootView.setVisibility(View.INVISIBLE);
+    //            int centerX = (left + right) / 2;
+    //            int centerY = (top + bottom) / 2;
+    //            int width = rootView.getWidth();
+    //            int height = rootView.getHeight();
+    //            int startRadius = 0;
+    //            int startColor = ContextCompat.getColor(context, R.color.accent_material_dark);
+    //            final int endColor = ContextCompat.getColor(context, R.color.white);
+    //
+    //            int finalRadius = (int) (Math.sqrt(width * width
+    //                    + height * height));
+    //            AnimatorSet set = new AnimatorSet();
+    //            Animator anim = ViewAnimationUtils.createCircularReveal(rootView, centerX, centerY,
+    //                    startRadius, finalRadius);
+    //            ObjectAnimator colorAnim = ObjectAnimator.ofObject(rootView, "backgroundColor",
+    //                    new ArgbEvaluator(), startColor, endColor).setDuration(anim.getDuration());
+    //            set.play(anim).with(colorAnim);
+    //            rootView.setVisibility(View.VISIBLE);
+    //
+    //            return set;
+    //        } else {
+    //            return null;
+    //        }
+    //    }
 
     public boolean onBackPressed() {
-//        mOpenAnimType = animActionOpenUp();
+        //        mOpenAnimType = animActionOpenUp();
 
         if (isCloseFragment()) {
             getFragmentManager().popBackStack();
@@ -483,10 +482,32 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             ((ExplorerBaseFunction) getActivity()).showAddButton();
             mIsShownMenu = true;
             getActivity().supportInvalidateOptionsMenu();
+
+            if (mDataFragment.getData().containsKey(ARG_SELECTED_LIST)) {
+                mSelectedList = mDataFragment.getData().getParcelable(ARG_SELECTED_LIST);
+                mDataFragment.getData().remove(ARG_SELECTED_LIST);
+
+                if (mViewHolder != null && mViewHolder.mList != null) {
+                    mViewHolder.mAdapter.setSelectedList((SparseBooleanArrayParcelable) mSelectedList);
+                    mViewHolder.mAdapter.notifyDataSetChanged();
+                }
+
+            }
         } else {
-            ((ExplorerBaseFunction) getActivity()).hideAddButton();
+            ((ExplorerBaseFunction) getActivitySafe()).hideAddButton();
             mIsShownMenu = false;
             if (mViewHolder.mSearchView != null) mViewHolder.mSearchMenu.setVisible(false);
+
+            if (!mDataFragment.getData().containsKey(ARG_SELECTED_LIST)) {
+                if (mViewHolder != null && mViewHolder.mAdapter != null) {
+                    mSelectedList = (Parcelable) mViewHolder.mAdapter.getSelectedItem().clone();
+                }
+                if (mSelectedList != null) {
+                    mDataFragment.getData()
+                            .putParcelable(ARG_SELECTED_LIST, mSelectedList);
+                }
+                hideContextMenu();
+            }
         }
     }
 
@@ -600,7 +621,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         switch (fileType) {
             case ItemExplorer.FILE_TYPE_IMAGE:
 
-//                break;
+                //                break;
             default:
 
                 if (previewFragment == null) {
@@ -647,10 +668,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         getArguments().putString(ARG_QUERY, query);
     }
 
-    public int getSavedHashcode() {
-        return getArguments().getInt(ARG_HASHCODE, hashCode());
-    }
-
     public String getDataTag(int hashcode, String dataTag) {
         return getTag() + "_" + hashcode + "_" + dataTag;
     }
@@ -669,9 +686,9 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         mPresenter.createFile(name);
     }
 
-//    public void setOpenOption(ExplorerPresenter.OpenOption openOption) {
-//        mPresenter.setOpenOption(openOption);
-//    }
+    //    public void setOpenOption(ExplorerPresenter.OpenOption openOption) {
+    //        mPresenter.setOpenOption(openOption);
+    //    }
 
     public void createFolder(String name) {
         mPresenter.createFolder(name);
@@ -706,15 +723,16 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     public interface ExplorerBaseFunction {
         void showAddButton();
+
         void hideAddButton();
     }
 
     private class ViewHolder {
-        SwipeRefreshLayout  mRefreshLayout;
+        SwipeRefreshLayout mRefreshLayout;
         ExplorerItemAdapter mAdapter;
-        RecyclerView        mList;
-        MenuItem            mSearchMenu;
-        SearchView          mSearchView;
-        ActionMode          mActionMode;
+        RecyclerView mList;
+        MenuItem mSearchMenu;
+        SearchView mSearchView;
+        ActionMode mActionMode;
     }
 }

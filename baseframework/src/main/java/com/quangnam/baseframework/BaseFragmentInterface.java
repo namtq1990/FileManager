@@ -1,6 +1,7 @@
 package com.quangnam.baseframework;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 
@@ -11,9 +12,13 @@ import android.support.v4.app.FragmentActivity;
 public interface BaseFragmentInterface extends AutoUnsubscribe {
 
     void onAttach(Context context);
+    void onCreate(Bundle savedState);
+    void onSaveInstanceState(Bundle outState);
     void onDestroy();
 
     Context getAppContext();
+
+    int getSavedHashcode();
 
     /**
      * Safety get activity of Fragment to stop something stupid from {@link Fragment#getActivity()}

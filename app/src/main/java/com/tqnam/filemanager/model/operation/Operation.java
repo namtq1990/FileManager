@@ -1,6 +1,7 @@
 package com.tqnam.filemanager.model.operation;
 
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.model.operation.propertyView.OperationPropertyView;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,6 +11,7 @@ import rx.Observable;
 
 public abstract class Operation<T> {
 
+    protected OperationPropertyView mPropertyView;
     private T mData;
 
     public Operation(T data) {
@@ -41,6 +43,10 @@ public abstract class Operation<T> {
     public abstract String getSourcePath();
 
     public abstract String getDestinationPath();
+
+    public OperationPropertyView getPropertyView() {
+        return mPropertyView;
+    }
 
     public T getData() {
         return mData;

@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 
 import com.quangnam.baseframework.BaseFragment;
 import com.tqnam.filemanager.R;
-import com.tqnam.filemanager.explorer.adapter.OperatorAdapter;
+import com.tqnam.filemanager.explorer.adapter.OperationAdapter;
 import com.tqnam.filemanager.utils.OperatorManager;
 
 import java.util.ArrayList;
@@ -78,22 +78,22 @@ public class OperatorManagerFragment extends BaseFragment {
 //        ArrayList<Operation> operators = new ArrayList<>();
 //        operators.add(testOperator);
 //
-//        OperatorAdapter.OperatorList childList = new OperatorAdapter.OperatorList(operators);
+//        OperationAdapter.OperatorList childList = new OperationAdapter.OperatorList(operators);
 
-        ArrayList<OperatorAdapter.OperatorList> list = new ArrayList<>();
+        ArrayList<OperationAdapter.OperatorList> list = new ArrayList<>();
 //        list.add(childList);
         for (int category : OperatorManager.CATEGORIES) {
-            OperatorAdapter.OperatorList childList = new OperatorAdapter.OperatorList(
+            OperationAdapter.OperatorList childList = new OperationAdapter.OperatorList(
                     OperatorManager.getInstance().getOperatorList(category)
             );
             list.add(childList);
         }
 
-        mViewHolder.listAdapter = new OperatorAdapter(list, getActivity());
+        mViewHolder.listAdapter = new OperationAdapter(list, getActivity());
     }
 
     class ViewHolder {
         @BindView(R.id.list_operator) RecyclerView listOperator;
-        OperatorAdapter listAdapter;
+        OperationAdapter listAdapter;
     }
 }

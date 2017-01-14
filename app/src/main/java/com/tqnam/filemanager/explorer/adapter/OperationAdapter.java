@@ -22,6 +22,7 @@ import com.quangnam.baseframework.BaseActivity;
 import com.quangnam.baseframework.Log;
 import com.quangnam.baseframework.exception.SystemException;
 import com.tqnam.filemanager.R;
+import com.tqnam.filemanager.explorer.dialog.OperationInforDialogFragment;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.operation.Operation;
 import com.tqnam.filemanager.utils.DefaultErrorAction;
@@ -44,7 +45,7 @@ import rx.functions.Action1;
  * Created by quangnam on 11/15/16.
  * Project FileManager-master
  */
-public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.ParentViewHolder, ChildViewHolder> {
+public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter.ParentViewHolder, ChildViewHolder> {
 
     private BaseActivity mContext;
 
@@ -60,7 +61,7 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
      *                       displayed in the RecyclerView that this
      *                       adapter is linked to
      */
-    public OperatorAdapter(@NonNull List<OperatorList> parentItemList, Context context) {
+    public OperationAdapter(@NonNull List<OperatorList> parentItemList, Context context) {
         super(parentItemList);
         mContext = (BaseActivity) context;
     }
@@ -330,6 +331,13 @@ public class OperatorAdapter extends ExpandableRecyclerAdapter<OperatorAdapter.P
             if (mCurOperation != null) {
                 //TODO Cancel operator
             }
+        }
+
+        @OnClick(R.id.btn_info)
+        public void onClickInfo() {
+            OperationInforDialogFragment fragment = OperationInforDialogFragment
+                    .newInstance(mCurOperation, mContext.getDataFragment());
+            fragment.show(mContext.getSupportFragmentManager(), OperationInforDialogFragment.TAG);
         }
 
         // TODO unbind with operator

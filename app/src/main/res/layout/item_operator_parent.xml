@@ -15,6 +15,7 @@
         android:layout_gravity="center"
         android:layout_weight="1"
         android:padding="@dimen/padding_small_01"
+        android:textColor="@color/black"
         tools:text="Title Copy"/>
 
     <ImageView

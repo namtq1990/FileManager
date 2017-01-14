@@ -4,40 +4,51 @@
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
-    <style name="AppBaseTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="TemplateTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!--
             Theme customizations available in newer API levels can go in
             res/values-vXX/styles.xml, while customizations related to
             backward-compatibility can go here.
         -->
+        <item name="alertDialogTheme">@style/AlertDialog</item>
     </style>
 
-    <!-- Application theme. -->
-    <style name="AppTheme" parent="AppBaseTheme">
+    <style name="TemplateTheme.TransparentStatusBar">
     </style>
+    <!---->
 
-    <style name="AppTheme.TransparentStatusBar">
-    </style>
-
-
-
+    <!--Text styles-->
     <style name="DefaultText" parent="TextAppearance.AppCompat">
-        <item name="android:textColorHint">@color/white</item>
-        <!-- Label color in TRUE state and bar color FALSE and TRUE State -->
-        <!--<item name="colorAccent">?attr/colorAccent</item>-->
-        <!--<item name="colorControlNormal">?attr/colorControlNormal</item>-->
-        <!--<item name="colorControlActivated">?attr/colorControlActivated</item>-->
-        <!--<item name="android:textColorHighlight">@color/white</item>-->
-        <!--<item name="android:textColorLink">@color/white</item>-->
-        <!--<item name="android:textColor">?attr/colorAccent</item>-->
+        <item name="android:textColor">@android:color/tab_indicator_text</item>
     </style>
 
     <style name="DefaultText.Large">
         <item name="android:textSize">15sp</item>
     </style>
+    <!---->
 
+    <!--Dialog Theme-->
     <style name="DialogActivityTheme" parent="Base.Theme.AppCompat.Light.Dialog.Alert">
         <item name="windowNoTitle">true</item>
     </style>
+
+    <style name="AlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="buttonBarStyle">@style/ButtonBar</item>
+    </style>
+    <style name="AlertDialog.Single">
+        <item name="buttonBarPositiveButtonStyle">@style/SingleButtonBar</item>
+    </style>
+
+    <style name="SingleButtonBar" parent="Widget.AppCompat.Button.Borderless.Colored">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:background">@drawable/round_corner_selector</item>
+        <item name="backgroundTint">@android:color/holo_blue_dark</item>
+        <item name="backgroundTintMode">multiply</item>
+    </style>
+
+    <style name="ButtonBar" parent="Widget.AppCompat.ButtonBar">
+        <item name="android:clipToPadding">false</item>
+    </style>
+    <!---->
 
 </resources>

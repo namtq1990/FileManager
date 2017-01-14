@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="operation_property">Operation property</string>
+    <string name="from">From:&#160;</string>
+    <string name="destination">Destination:&#160;</string>
+    <string name="progress">Progress:&#160;</string>
+    <string name="speed">Speed:&#160;</string>
+</resources>

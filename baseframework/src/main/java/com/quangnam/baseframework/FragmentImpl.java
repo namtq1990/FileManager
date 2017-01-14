@@ -1,6 +1,7 @@
 package com.quangnam.baseframework;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -13,6 +14,10 @@ import rx.subscriptions.CompositeSubscription;
  * Project FileManager-master
  */
 class FragmentImpl implements BaseFragmentInterface {
+    private static final String TAG = FragmentImpl.class.getName();
+    private static final String ARG_SAVED_HOST = TAG + "_savedHostID";
+
+    int mSavedHostID;
     BaseApplication mAppContext;
     BaseActivity mActivity;
     CompositeSubscription mSubscription;
@@ -21,12 +26,25 @@ class FragmentImpl implements BaseFragmentInterface {
     FragmentImpl(BaseFragmentInterface host) {
         mSubscription = new CompositeSubscription();
         mHost = host;
+        mSavedHostID = -1;
     }
 
     @Override
     public void onAttach(Context context) {
         mAppContext = (BaseApplication) context.getApplicationContext();
         mActivity = (BaseActivity) context;
+    }
+
+    @Override
+    public void onCreate(Bundle savedState) {
+        if (savedState != null) {
+            mSavedHostID = savedState.getInt(ARG_SAVED_HOST);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt(ARG_SAVED_HOST, mHost.hashCode());
     }
 
     @Override
@@ -40,9 +58,16 @@ class FragmentImpl implements BaseFragmentInterface {
     }
 
     @Override
+    public int getSavedHashcode() {
+        return mSavedHostID;
+    }
+
+    @Override
     public FragmentActivity getActivitySafe() {
 
-        return getActivity() != null ? getActivity() : (FragmentActivity) mAppContext.getCurActivity();
+        return getActivity() != null
+                ? getActivity()
+                : mActivity;
     }
 
     public Animation onCreateAnimation(Animation hostAnimation, int transit, boolean enter, int nextAnim) {

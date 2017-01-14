@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.LinearLayoutCompat
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/default_padding">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/DefaultText.Large"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:paddingBottom="@dimen/default_padding"
+                android:text="@string/operation_property"
+                android:textAllCaps="true"
+                android:textColor="@color/black"
+                android:textStyle="bold"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingBottom="@dimen/default_padding">
+
+                <TextView
+                    style="@style/DefaultText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/information_file"
+                    android:textStyle="bold"/>
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/list_operation_files"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    tools:layout_height="100dp"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_operation_from"
+                style="@style/DefaultText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="@dimen/default_padding"
+                android:text="@string/from"/>
+
+            <TextView
+                android:id="@+id/tv_operation_to"
+                style="@style/DefaultText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="@dimen/default_padding"
+                android:text="@string/destination"
+                tools:text="Destination: /Sdcard/Music"/>
+
+            <TextView
+                android:id="@+id/tv_operation_progress"
+                style="@style/DefaultText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="@dimen/default_padding"
+                android:text="@string/progress"
+                tools:text="Progress: 23%"/>
+
+            <TextView
+                android:id="@+id/tv_operation_speed"
+                style="@style/DefaultText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="@dimen/default_padding"
+                android:text="@string/speed"
+                tools:text="Speed: 12MB/s"/>
+
+            <TextView
+                android:id="@+id/tv_operation_size"
+                style="@style/DefaultText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/information_size"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+
+</android.support.v7.widget.LinearLayoutCompat>
