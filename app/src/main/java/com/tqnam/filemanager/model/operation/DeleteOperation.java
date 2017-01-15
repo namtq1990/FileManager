@@ -1,9 +1,11 @@
 package com.tqnam.filemanager.model.operation;
 
 import com.quangnam.baseframework.Log;
+import com.quangnam.baseframework.TrackingTime;
 import com.quangnam.baseframework.exception.SystemException;
 import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
+import com.tqnam.filemanager.model.operation.propertyView.BasicOperationPropertyView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -19,52 +22,67 @@ import rx.schedulers.Schedulers;
  * Created by quangnam on 11/18/16.
  * Project FileManager-master
  */
-public class DeleteOperation extends Operation.TraverseFileOperation<FileItem> {
-    private static final int UPDATE_TIMESTAMP = 800;
+public class DeleteOperation extends BasicOperation<FileItem> {
+    private static final String TAG = DeleteOperation.class.getSimpleName();
 
-    private Observable<DeleteFileData> mCurObservable;
-    private DeleteFileData mResult;
-
+    private BasicOperation.BasicUpdatableData mResult;
 
     public DeleteOperation(List<FileItem> data) {
         super(data);
 
-        mResult = new DeleteFileData();
-        mResult.numOfFile = getAllStream().size();
+        mResult = new BasicOperation.BasicUpdatableData();
         mResult.setOperatorHashcode(hashCode());
+        super.mPropertyView = new BasicOperationPropertyView(this);
 
         traverse();
     }
 
     @Override
     public Operation createStreamFromData(FileItem data) {
-        mResult.numOfFile++;
+        if (!data.isDirectory()) {
+            mResult.setSizeTotal(mResult.getSizeTotal() + data.length());
+        }
+
         return new SingleDeleteFile(data);
     }
 
+    private String formatTag(BasicOperation.BasicUpdatableData data) {
+        return TAG + data.hashCode();
+    }
+
     @Override
-    public Observable<DeleteFileData> execute(Object... arg) {
-        if (mCurObservable == null)
-            mCurObservable = Observable.interval(UPDATE_TIMESTAMP, TimeUnit.MILLISECONDS).takeUntil(
-                    Observable.create(new Observable.OnSubscribe<Long>() {
-                        @Override
-                        public void call(Subscriber<? super Long> subscriber) {
-                            execute();
-                            subscriber.onCompleted();
-                        }
-                    })
-                            .subscribeOn(Schedulers.io()))
-                    .concatWith(Observable.just(0L))
-                    .map(new Func1<Long, DeleteFileData>() {
-                        @Override
-                        public DeleteFileData call(Long aLong) {
-                            Log.d("Mapping data: " + mResult);
-                            mResult.validate();
-                            return mResult;
-                        }
-                    })
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .compose(new RxCacheWithoutError<DeleteFileData>(1));
+    public Observable<? extends BasicUpdatableData> createExecuter() {
+        TrackingTime.beginTracking(formatTag(mResult));
+        mCurObservable = Observable.interval(UPDATE_TIME, TimeUnit.MILLISECONDS).takeUntil(
+                Observable.create(new Observable.OnSubscribe<Long>() {
+                    @Override
+                    public void call(Subscriber<? super Long> subscriber) {
+                        execute();
+                        subscriber.onCompleted();
+                    }
+                })
+                        .subscribeOn(Schedulers.io()))
+                .concatWith(Observable.just(0L))
+                .map(new Func1<Long, BasicOperation.BasicUpdatableData>() {
+                    @Override
+                    public BasicOperation.BasicUpdatableData call(Long aLong) {
+                        long time = TrackingTime.endTracking(formatTag(mResult));
+                        mResult.setSpeed(mResult.getSizeExecuted() - (getLastEmitSize()) * 1000 / (float) (time == 0 ? UPDATE_TIME : time));
+                        setLastEmitSize(mResult.getSizeExecuted());
+                        mResult.validate();
+                        TrackingTime.beginTracking(formatTag(mResult));
+
+                        return mResult;
+                    }
+                })
+                .doOnCompleted(new Action0() {
+                    @Override
+                    public void call() {
+                        TrackingTime.endTracking(formatTag(mResult));
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(new RxCacheWithoutError<BasicOperation.BasicUpdatableData>(1));
 
         return mCurObservable;
     }
@@ -74,18 +92,9 @@ public class DeleteOperation extends Operation.TraverseFileOperation<FileItem> {
             Log.d("Deleting...");
             ArrayList<Operation> operations = getAllStream();
 
-            //        try {
-            //            Thread.sleep(3000);
-            //        } catch (InterruptedException e) {
-            //            e.printStackTrace();
-            //        }
-            //
-            //        throw new SystemException("Error!!!");
-
             for (int i = operations.size() - 1; i >= 0; i--) {
                 SingleDeleteFile deleteOperator = (SingleDeleteFile) operations.get(i);
                 deleteOperator.execute();
-                mResult.numOfFileDeleted++;
             }
 
             mResult.setError(false);
@@ -122,7 +131,7 @@ public class DeleteOperation extends Operation.TraverseFileOperation<FileItem> {
         return true;
     }
 
-    public static class SingleDeleteFile extends SingleFileOperation<FileItem> {
+    public class SingleDeleteFile extends SingleFileOperation<FileItem> {
 
         public SingleDeleteFile(FileItem data) {
             super(data);
@@ -135,6 +144,7 @@ public class DeleteOperation extends Operation.TraverseFileOperation<FileItem> {
 
         private void execute() {
             FileItem data = getData();
+            long length = data.length();
 
             Log.d("Deleting " + data.getPath());
 
@@ -142,6 +152,9 @@ public class DeleteOperation extends Operation.TraverseFileOperation<FileItem> {
             if (!isDeleted) {
                 throw new SystemException("Can't delete file " + data.getPath());
             }
+
+            if (!data.isDirectory())
+                mResult.setSizeExecuted(mResult.getSizeExecuted() + length);
         }
 
         @Override
@@ -157,24 +170,6 @@ public class DeleteOperation extends Operation.TraverseFileOperation<FileItem> {
         @Override
         public UpdatableData getUpdateData() {
             return null;
-        }
-    }
-
-    public static class DeleteFileData extends UpdatableData {
-        private int numOfFile;
-        private int numOfFileDeleted;
-
-        @Override
-        public void validate() {
-            if (numOfFile != 0)
-                setProgress((numOfFileDeleted * 100 + 1) / numOfFile);
-        }
-
-        @Override
-        public String toString() {
-            return super.toString()
-                    + "{numOfFile=" + numOfFile
-                    + ", numOfFileDeleted=" + numOfFileDeleted + "}";
         }
     }
 }

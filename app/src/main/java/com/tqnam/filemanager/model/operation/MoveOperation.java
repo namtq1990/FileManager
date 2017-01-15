@@ -1,11 +1,13 @@
 package com.tqnam.filemanager.model.operation;
 
 import com.quangnam.baseframework.Log;
+import com.quangnam.baseframework.TrackingTime;
 import com.quangnam.baseframework.exception.SystemException;
 import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.model.operation.propertyView.BasicOperationPropertyView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,12 +26,10 @@ import rx.schedulers.Schedulers;
  * Created by quangnam on 11/24/16.
  * Project FileManager-master
  */
-public class MoveOperation extends CPMOperation<FileItem> implements Validator.ValidateAction {
-    private static final int UPDATE_TIMESTAMP = 800;
+public class MoveOperation extends BasicOperation<FileItem> implements Validator.ValidateAction {
+    private static final String TAG = MoveOperation.class.getSimpleName();
 
-    private Observable<MoveData> mCurObservable;
     private HashMap<String, String> mDestinationPathStorage;
-    private MoveData mResult;
     private String mSourcePath;
     private String mDestinationPath;
 
@@ -40,9 +40,9 @@ public class MoveOperation extends CPMOperation<FileItem> implements Validator.V
         mDestinationPathStorage = new HashMap<>();
         mDestinationPath = destPath;
         mSourcePath = data.get(0).getParentPath();
+        super.mPropertyView = new BasicOperationPropertyView(this);
 
-        mResult = new MoveData();
-        mResult.numOfFile = getAllStream().size();
+        mResult = new BasicUpdatableData();
         mResult.setOperatorHashcode(hashCode());
 
         getValidator().setValidateAction(this);
@@ -60,7 +60,9 @@ public class MoveOperation extends CPMOperation<FileItem> implements Validator.V
 
     @Override
     public Operation createStreamFromData(FileItem data) {
-        mResult.numOfFile++;
+        if (!data.isDirectory()) {
+            mResult.setSizeTotal(mResult.getSizeTotal() + data.length());
+        }
 
         SingleMoveFile operation = new SingleMoveFile(data);
         operation.setDestinationPath(data.getPath().replaceFirst(mSourcePath, mDestinationPath));
@@ -68,85 +70,103 @@ public class MoveOperation extends CPMOperation<FileItem> implements Validator.V
         return operation;
     }
 
-    @Override
-    public Observable<MoveData> execute(Object... arg) {
-        if (mCurObservable == null) {
+    private String formatTag(BasicOperation.BasicUpdatableData data) {
+        return TAG + data.hashCode();
+    }
 
-            if (isOverwrite()) {
+    @Override
+    public Observable<? extends BasicUpdatableData> createExecuter() {
+        TrackingTime.beginTracking(formatTag(mResult));
+
+        if (isOverwrite()) {
+            if (getSourcePath().equals(getDestinationPath())) {
+                mResult.setProgress(100);
+                mCurObservable = Observable.just(mResult);
+            } else {
                 CopyFileOperation copyOperation = new CopyFileOperation(getData(), getDestinationPath());
                 DeleteOperation deleteOperation = new DeleteOperation(getData());
                 copyOperation.setOverwrite(true);
                 copyOperation.getValidator().clear();
 
                 mCurObservable = copyOperation.execute()
-                        .map(new Func1<CopyFileOperation.CopyFileData, MoveData>() {
+                        .map(new Func1<BasicUpdatableData, BasicUpdatableData>() {
                             @Override
-                            public MoveData call(CopyFileOperation.CopyFileData copyFileData) {
+                            public BasicUpdatableData call(BasicUpdatableData copyFileData) {
                                 int progress = copyFileData.getProgress();
                                 if (progress > 99)
                                     progress = 99;
 
+                                mResult.setSizeExecuted(copyFileData.getSizeExecuted());
+                                mResult.setSizeTotal(copyFileData.getSizeTotal());
                                 mResult.setProgress(progress);
+                                mResult.setSpeed(copyFileData.getSpeed());
                                 return mResult;
                             }
                         })
                         .concatWith(
                                 deleteOperation.execute()
-                                .map(new Func1<DeleteOperation.DeleteFileData, MoveData>() {
-                                    @Override
-                                    public MoveData call(DeleteOperation.DeleteFileData deleteFileData) {
-                                        if (deleteFileData.isFinished()) {
-                                            mResult.setProgress(100);
-                                        }
+                                        .map(new Func1<BasicUpdatableData, BasicUpdatableData>() {
+                                            @Override
+                                            public BasicUpdatableData call(DeleteOperation.BasicUpdatableData deleteFileData) {
+                                                if (deleteFileData.isFinished()) {
+                                                    mResult.setProgress(100);
+                                                    mResult.setFinished(true);
+                                                }
 
-                                        mResult.setError(deleteFileData.isError());
+                                                mResult.setError(deleteFileData.isError());
 
-                                        return mResult;
-                                    }
-                                })
-                                .doOnCompleted(new Action0() {
-                                    @Override
-                                    public void call() {
-                                        mResult.setProgress(100);
-                                        mResult.setError(false);
-                                    }
-                                })
-                        )
-                        .doOnError(new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                mResult.setError(true);
-                            }
-                        })
-                        .compose(new RxCacheWithoutError<MoveData>(1));
-            } else {
-                for (FileItem item : getData()) {
-                    Operation operation = createStreamFromData(item);
-                    getAllStream().add(operation);
-                }
-
-                mCurObservable = Observable.interval(UPDATE_TIMESTAMP, TimeUnit.MILLISECONDS).takeUntil(
-                        Observable.create(new Observable.OnSubscribe<Long>() {
-                            @Override
-                            public void call(Subscriber<? super Long> subscriber) {
-                                execute();
-                                subscriber.onCompleted();
-                            }
-                        })
-                                .subscribeOn(Schedulers.io()))
-                        .concatWith(Observable.just(0L))
-                        .map(new Func1<Long, MoveData>() {
-                            @Override
-                            public MoveData call(Long aLong) {
-                                Log.d("Mapping data: " + mResult);
-                                mResult.validate();
-                                return mResult;
-                            }
-                        })
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .compose(new RxCacheWithoutError<MoveData>(1));
+                                                return mResult;
+                                            }
+                                        })
+                        );
             }
+        } else {
+            for (FileItem item : getData()) {
+                Operation operation = createStreamFromData(item);
+                getAllStream().add(operation);
+            }
+
+            mCurObservable = Observable.interval(UPDATE_TIME, TimeUnit.MILLISECONDS).takeUntil(
+                    Observable.create(new Observable.OnSubscribe<Long>() {
+                        @Override
+                        public void call(Subscriber<? super Long> subscriber) {
+                            execute();
+                            subscriber.onCompleted();
+                        }
+                    })
+                            .subscribeOn(Schedulers.io()))
+                    .concatWith(Observable.just(0L))
+                    .map(new Func1<Long, BasicUpdatableData>() {
+                        @Override
+                        public BasicUpdatableData call(Long aLong) {
+                            long time = TrackingTime.endTracking(formatTag(mResult));
+                            mResult.setSpeed(mResult.getSizeExecuted() - (getLastEmitSize()) * 1000 / (float) (time == 0 ? UPDATE_TIME : time));
+                            setLastEmitSize(mResult.getSizeExecuted());
+                            TrackingTime.beginTracking(formatTag(mResult));
+                            Log.d("Mapping data: " + mResult);
+                            mResult.validate();
+                            return mResult;
+                        }
+                    })
+                    .observeOn(AndroidSchedulers.mainThread());
         }
+
+        mCurObservable = mCurObservable
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mResult.setError(true);
+                    }
+                })
+                .doOnCompleted(new Action0() {
+                    @Override
+                    public void call() {
+                        TrackingTime.endTracking(formatTag(mResult));
+                        mResult.setProgress(100);
+                        mResult.setError(false);
+                    }
+                })
+                .compose(new RxCacheWithoutError<BasicUpdatableData>(1));
 
         return mCurObservable;
     }
@@ -156,18 +176,9 @@ public class MoveOperation extends CPMOperation<FileItem> implements Validator.V
             Log.d("Moving...");
             ArrayList<Operation> operations = getAllStream();
 
-            //        try {
-            //            Thread.sleep(3000);
-            //        } catch (InterruptedException e) {
-            //            e.printStackTrace();
-            //        }
-            //
-            //        throw new SystemException("Error!!!");
-
             for (int i = 0; i < operations.size(); i++) {
                 SingleMoveFile moveOperator = (SingleMoveFile) operations.get(i);
                 moveOperator.execute(false);
-                mResult.numOfFileMoved++;
             }
 
             mResult.setError(false);
@@ -187,11 +198,6 @@ public class MoveOperation extends CPMOperation<FileItem> implements Validator.V
     @Override
     public String getDestinationPath() {
         return mDestinationPath;
-    }
-
-    @Override
-    public UpdatableData getUpdateData() {
-        return mResult;
     }
 
     @Override
@@ -229,7 +235,7 @@ public class MoveOperation extends CPMOperation<FileItem> implements Validator.V
         getData().remove(item);
     }
 
-    public static class SingleMoveFile extends SingleFileOperation<FileItem> {
+    public class SingleMoveFile extends SingleFileOperation<FileItem> {
         FileItem mDestination;
 
         public SingleMoveFile(FileItem data) {
@@ -247,6 +253,7 @@ public class MoveOperation extends CPMOperation<FileItem> implements Validator.V
                         "Can't move file because file " + mDestination + " existed");
             }
             FileItem data = getData();
+            long dataLength = data.length();
 
             Log.d("Moving " + data.getPath());
 
@@ -258,6 +265,9 @@ public class MoveOperation extends CPMOperation<FileItem> implements Validator.V
 
                 throw new SystemException(ErrorCode.RK_MOVE_ERR, "Can't move file " + data.getPath());
             }
+
+            if (!data.isDirectory())
+                mResult.setSizeExecuted(mResult.getSizeExecuted() + dataLength);
         }
 
         @Override
@@ -277,24 +287,6 @@ public class MoveOperation extends CPMOperation<FileItem> implements Validator.V
         @Override
         public UpdatableData getUpdateData() {
             return null;
-        }
-    }
-
-    public static class MoveData extends UpdatableData {
-        private int numOfFile;
-        private int numOfFileMoved;
-
-        @Override
-        public void validate() {
-            if (numOfFile != 0)
-                setProgress((numOfFileMoved * 100 + 1) / numOfFile);
-        }
-
-        @Override
-        public String toString() {
-            return super.toString()
-                    + "{numOfFile=" + numOfFile
-                    + ", numOfFileMoved=" + numOfFileMoved + "}";
         }
     }
 

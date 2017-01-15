@@ -28,6 +28,7 @@ import android.widget.Toast;
 import com.quangnam.baseframework.BaseActivity;
 import com.quangnam.baseframework.BaseFragment;
 import com.quangnam.baseframework.BaseFragmentInterface;
+import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
 import com.tqnam.filemanager.explorer.adapter.ExplorerItemAdapter;
@@ -38,7 +39,7 @@ import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.ItemInformation;
-import com.tqnam.filemanager.model.operation.CPMOperation;
+import com.tqnam.filemanager.model.operation.BasicOperation;
 import com.tqnam.filemanager.model.operation.DeleteOperation;
 import com.tqnam.filemanager.model.operation.Operation;
 import com.tqnam.filemanager.model.operation.Validator;
@@ -140,10 +141,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             mViewHolder.mAdapter.setEnableMultiSelect(false);
         }
     };
-
-    public ExplorerBaseFragment() {
-        super();
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -566,14 +563,14 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
                 if (which == DialogInterface.BUTTON_NEUTRAL) {
                     // Skip this item
-                    if (operation instanceof CPMOperation) {
-                        ((CPMOperation) operation).setItemValidated(((CPMOperation) operation).getValidatingItem());
+                    if (operation instanceof BasicOperation) {
+                        ((BasicOperation) operation).setItemValidated(((BasicOperation) operation).getValidatingItem());
                     }
                 } else if (which == DialogInterface.BUTTON_POSITIVE) {
                     // Overwrite this item
-                    if (operation instanceof CPMOperation) {
-                        ((CPMOperation) operation).setOverwrite(true);
-                        ((CPMOperation) operation).getValidator().clear();
+                    if (operation instanceof BasicOperation) {
+                        ((BasicOperation) operation).setOverwrite(true);
+                        ((BasicOperation) operation).getValidator().clear();
                     }
                 }
 
@@ -587,8 +584,9 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public void showValidate(Operation operation) {
-        if (operation instanceof CPMOperation) {
-            Validator validator = ((CPMOperation) operation).getValidator();
+        if (operation instanceof BasicOperation
+                && !((BasicOperation) operation).getValidator().getListViolated().isEmpty()) {
+            Validator validator = ((BasicOperation) operation).getValidator();
             ItemExplorer item = validator.getListViolated().iterator().next();
             AlertDialogFragment dialog = AlertDialogFragment.newInstance(ACTION_COPY_VALIDATE,
                     "File " + item.getPath() + " existed, do you want to continue?",
@@ -703,22 +701,22 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public void showError(String message) {
-        Toast.makeText(getActivitySafe(), message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(((Application) getAppContext()).getCurActivity(), message, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void showError(int message) {
-        Toast.makeText(getActivitySafe(), getAppContext().getString(message), Toast.LENGTH_SHORT).show();
+        Toast.makeText(((Application) getAppContext()).getCurActivity(), getAppContext().getString(message), Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void showMessage(int message) {
-        Toast.makeText(getActivitySafe(), getAppContext().getString(message), Toast.LENGTH_SHORT).show();
+        Toast.makeText(((Application) getAppContext()).getCurActivity(), getAppContext().getString(message), Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void showMessage(String message) {
-        Toast.makeText(getActivitySafe(), message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(((Application) getAppContext()).getCurActivity(), message, Toast.LENGTH_SHORT).show();
     }
 
     public interface ExplorerBaseFunction {

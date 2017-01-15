@@ -163,74 +163,98 @@ public class OperationInforDialogFragment extends BaseDialog {
         public SimpleArrayAdapter<ItemExplorer> mAdapter;
 
         public void setListData(ItemExplorer[] data) {
-            mAdapter = new SimpleArrayAdapter<ItemExplorer>(data) {
+            if (data == null) {
+                ((View) mListFile.getParent()).setVisibility(View.GONE);
+            } else {
+                mAdapter = new SimpleArrayAdapter<ItemExplorer>(data) {
 
-                @Override
-                public void formatLabel(TextView tv, String label) {
-                    label = " - " + label;
-                    tv.setLayoutParams(
-                            new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                                    ViewGroup.LayoutParams.WRAP_CONTENT)
-                    );
-                    super.formatLabel(tv, label);
-                }
+                    @Override
+                    public void formatLabel(TextView tv, String label) {
+                        label = " - " + label;
+                        tv.setLayoutParams(
+                                new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                                        ViewGroup.LayoutParams.WRAP_CONTENT)
+                        );
+                        super.formatLabel(tv, label);
+                    }
 
-                @Override
-                public String getLabelFromData(ItemExplorer data) {
-                    return data.getPath();
-                }
-            };
-            mListFile.setAdapter(mAdapter);
+                    @Override
+                    public String getLabelFromData(ItemExplorer data) {
+                        return data.getPath();
+                    }
+                };
+                mListFile.setAdapter(mAdapter);
+            }
         }
 
         public void setSource(String source) {
-            ViewUtils.formatTitleAndContentTextView(mSource,
-                    getString(R.string.from),
-                    source,
-                    new Object[]{
-                            new StyleSpan(Typeface.BOLD)
-                    },
-                    null);
+            if (source == null) {
+                mSource.setVisibility(View.GONE);
+            } else {
+                ViewUtils.formatTitleAndContentTextView(mSource,
+                        getString(R.string.from),
+                        source,
+                        new Object[]{
+                                new StyleSpan(Typeface.BOLD)
+                        },
+                        null);
+            }
         }
 
         public void setDestination(String destination) {
-            ViewUtils.formatTitleAndContentTextView(mDestination,
-                    getString(R.string.destination),
-                    destination,
-                    new Object[] {
-                            new StyleSpan(Typeface.BOLD)
-                    },
-                    null);
+            if (destination == null) {
+                mDestination.setVisibility(View.GONE);
+            } else {
+                ViewUtils.formatTitleAndContentTextView(mDestination,
+                        getString(R.string.destination),
+                        destination,
+                        new Object[]{
+                                new StyleSpan(Typeface.BOLD)
+                        },
+                        null);
+            }
         }
 
-        public void setProgress(int progress) {
-            ViewUtils.formatTitleAndContentTextView(mProgress,
-                    getString(R.string.progress),
-                    String.valueOf(progress),
-                    new Object[] {
-                            new StyleSpan(Typeface.BOLD)
-                    },
-                    null);
+        public void setProgress(Integer progress) {
+            if (progress == null) {
+                mProgress.setVisibility(View.GONE);
+            } else {
+                ViewUtils.formatTitleAndContentTextView(mProgress,
+                        getString(R.string.progress),
+                        String.valueOf(progress),
+                        new Object[]{
+                                new StyleSpan(Typeface.BOLD)
+                        },
+                        null);
+            }
         }
 
-        public void setSpeed(int speed) {
-            ViewUtils.formatTitleAndContentTextView(mSpeed,
-                    getString(R.string.speed),
-                    String.valueOf(speed),
-                    new Object[] {
-                            new StyleSpan(Typeface.BOLD)
-                    },
-                    null);
+        public void setSpeed(Integer speed) {
+            if (speed == null) {
+                mSpeed.setVisibility(View.GONE);
+            } else {
+                ViewUtils.formatTitleAndContentTextView(mSpeed,
+                        getString(R.string.speed),
+                        String.valueOf(speed),
+                        new Object[]{
+                                new StyleSpan(Typeface.BOLD)
+                        },
+                        null);
+            }
         }
 
-        public void setSize(long size) {
-            ViewUtils.formatTitleAndContentTextView(mSize,
-                    getString(R.string.information_size),
-                    String.valueOf(size),
-                    new Object[] {
-                            new StyleSpan(Typeface.BOLD)
-                    },
-                    null);
+        public void setSize(Long size) {
+            if (size == null) {
+                mSize.setVisibility(View.GONE);
+            } else {
+                ViewUtils.formatTitleAndContentTextView(mSize,
+                        getString(R.string.information_size),
+                        String.valueOf(size),
+                        new Object[]{
+                                new StyleSpan(Typeface.BOLD)
+                        },
+                        null);
+            }
         }
     }
 

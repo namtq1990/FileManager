@@ -7,7 +7,7 @@ import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ItemExplorer;
-import com.tqnam.filemanager.model.operation.propertyView.CopyPropertyView;
+import com.tqnam.filemanager.model.operation.propertyView.BasicOperationPropertyView;
 import com.tqnam.filemanager.utils.FileUtil;
 
 import java.io.FileInputStream;
@@ -29,16 +29,12 @@ import rx.schedulers.Schedulers;
  * Created by quangnam on 11/16/16.
  * Project FileManager-master
  */
-public class CopyFileOperation extends CPMOperation<FileItem> implements Validator.ValidateAction{
+public class CopyFileOperation extends BasicOperation<FileItem> implements Validator.ValidateAction{
     public static final String TAG = CopyFileOperation.class.getCanonicalName();
-    private static final int UPDATE_TIME = 800;
 
-    private Observable<CopyFileData> mCurObservable;
     private HashMap<String, String> mDestinationPathStorage;
-    private CopyFileData mResult;
     private String mDestinationPath;
     private String mSourcePath;
-    private long mLastEmitSize;
 
     public CopyFileOperation(List<FileItem> data, String destPath) {
         super(data);
@@ -50,9 +46,9 @@ public class CopyFileOperation extends CPMOperation<FileItem> implements Validat
         mDestinationPath = destPath;
         mSourcePath = data.get(0).getParentPath();
         mDestinationPathStorage = new HashMap<>();
-        super.mPropertyView = new CopyPropertyView(this);
+        super.mPropertyView = new BasicOperationPropertyView(this);
 
-        mResult = new CopyFileData();
+        mResult = new BasicUpdatableData();
         mResult.setOperatorHashcode(hashCode());
         getValidator().setValidateAction(this);
 
@@ -69,44 +65,42 @@ public class CopyFileOperation extends CPMOperation<FileItem> implements Validat
     }
 
     @Override
-    public Observable<CopyFileData> execute(Object... arg) {
-        if (mCurObservable == null) {
-            TrackingTime.beginTracking(formatTag(mResult));
-            traverse();
+    public Observable<? extends BasicUpdatableData> createExecuter() {
+        TrackingTime.beginTracking(formatTag());
+        traverse();
 
-            mCurObservable = Observable.interval(UPDATE_TIME, TimeUnit.MILLISECONDS)
-                    .takeUntil(
-                            Observable.create(new Observable.OnSubscribe<Void>() {
-                                @Override
-                                public void call(Subscriber<? super Void> subscriber) {
-                                    execute();
-                                    subscriber.onCompleted();
-                                }
-                            })
-                                    .subscribeOn(Schedulers.io())
-                    )
-                    .concatWith(Observable.just(0L))
-                    .map(new Func1<Long, CopyFileData>() {
-                        @Override
-                        public CopyFileData call(Long aLong) {
-                            long time = TrackingTime.endTracking(formatTag(mResult));
-                            mResult.speed = (mResult.sizeCopied - mLastEmitSize) * 1000 / (float) (time == 0 ? UPDATE_TIME : time);
-                            mLastEmitSize = mResult.sizeCopied;
-                            mResult.validate();
-                            TrackingTime.beginTracking(formatTag(mResult));
+        mCurObservable = Observable.interval(UPDATE_TIME, TimeUnit.MILLISECONDS)
+                .takeUntil(
+                        Observable.create(new Observable.OnSubscribe<Void>() {
+                            @Override
+                            public void call(Subscriber<? super Void> subscriber) {
+                                execute();
+                                subscriber.onCompleted();
+                            }
+                        })
+                                .subscribeOn(Schedulers.io())
+                )
+                .concatWith(Observable.just(0L))
+                .map(new Func1<Long, BasicUpdatableData>() {
+                    @Override
+                    public BasicUpdatableData call(Long aLong) {
+                        long time = TrackingTime.endTracking(formatTag());
+                        mResult.setSpeed(mResult.getSizeExecuted() - (getLastEmitSize()) * 1000 / (float) (time == 0 ? UPDATE_TIME : time));
+                        setLastEmitSize(mResult.getSizeExecuted());
+                        mResult.validate();
+                        TrackingTime.beginTracking(formatTag());
 
-                            return mResult;
-                        }
-                    })
-                    .doOnCompleted(new Action0() {
-                        @Override
-                        public void call() {
-                            TrackingTime.endTracking(formatTag(mResult));
-                        }
-                    })
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .compose(new RxCacheWithoutError<CopyFileData>(1));
-        }
+                        return mResult;
+                    }
+                })
+                .doOnCompleted(new Action0() {
+                    @Override
+                    public void call() {
+                        TrackingTime.endTracking(formatTag());
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(new RxCacheWithoutError<BasicUpdatableData>(1));
 
         return mCurObservable;
     }
@@ -145,20 +139,6 @@ public class CopyFileOperation extends CPMOperation<FileItem> implements Validat
         return true;
     }
 
-    private String formatTag(CopyFileData data) {
-        return TAG + data.hashCode();
-    }
-
-//    private CopyFileData makeUpdatableData(CopyFileData data, int byteRead) {
-//        long time = TrackingTime.endTracking(formatTag(data)) / 1000; // Format time in second
-//        data.sizeTotal = mSizeTotal;
-//        data.sizeCopied = mSizeCopied;
-//        data.speed = (float) byteRead / time;
-//        data.isFinished = false;
-//
-//        return data;
-//    }
-
     @Override
     public String getSourcePath() {
         return mSourcePath;
@@ -167,11 +147,6 @@ public class CopyFileOperation extends CPMOperation<FileItem> implements Validat
     @Override
     public String getDestinationPath() {
         return mDestinationPath;
-    }
-
-    @Override
-    public UpdatableData getUpdateData() {
-        return mResult;
     }
 
     @Override
@@ -188,7 +163,7 @@ public class CopyFileOperation extends CPMOperation<FileItem> implements Validat
         mDestinationPathStorage.put(data.getPath(), destinationPath);
 
         if (!data.isDirectory()) {
-            mResult.sizeTotal += data.length();
+            mResult.setSizeTotal(mResult.getSizeTotal() + data.length());
         }
 
         SingleFileCopyOperation operator = new SingleFileCopyOperation(data);
@@ -221,62 +196,6 @@ public class CopyFileOperation extends CPMOperation<FileItem> implements Validat
         super.setItemValidated(item);
 
         getData().remove(item);
-    }
-
-    public static class CopyFileData extends UpdatableData {
-
-        private float speed;
-        private long sizeCopied;
-        private long sizeTotal;
-        private boolean isFinished;
-
-        CopyFileData() {
-            isFinished = false;
-        }
-
-        public float getSpeed() {
-            return speed;
-        }
-
-        public void setSpeed(float speed) {
-            this.speed = speed;
-        }
-
-        @Override
-        public boolean isFinished() {
-            return isFinished;
-        }
-
-        public void setFinished(boolean finished) {
-            isFinished = finished;
-        }
-
-        public long getSizeCopied() {
-            return sizeCopied;
-        }
-
-        public void setSizeCopied(long sizeCopied) {
-            this.sizeCopied = sizeCopied;
-        }
-
-        public long getSizeTotal() {
-            return sizeTotal;
-        }
-
-        public void setSizeTotal(long sizeTotal) {
-            this.sizeTotal = sizeTotal;
-        }
-
-        @Override
-        public void validate() {
-            setProgress((int)(sizeTotal == 0 ? 0 : (sizeCopied * 100 + 1) / sizeTotal));
-        }
-
-        @Override
-        public String toString() {
-            return super.toString() +
-                    "{speed=" + speed + ", sizeCopied=" + sizeCopied + ", sizeTotal=" + sizeTotal + ", isFinish:" + isFinished + "}";
-        }
     }
 
     public class SingleFileCopyOperation extends SingleFileOperation<FileItem> {
@@ -331,7 +250,7 @@ public class CopyFileOperation extends CPMOperation<FileItem> implements Validat
 
                     while ((byteRead = inputStream.read(buff, 0, buff.length)) > 0) {
                         outputStream.write(buff);
-                        mResult.sizeCopied += byteRead;
+                        mResult.setSizeExecuted(mResult.getSizeExecuted() + byteRead);
                     }
 
                     Log.d("COmpleted " + mDestination);

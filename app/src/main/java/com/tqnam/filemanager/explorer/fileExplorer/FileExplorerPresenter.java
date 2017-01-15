@@ -8,7 +8,7 @@ import com.tqnam.filemanager.explorer.ExplorerPresenter;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ExplorerModel;
 import com.tqnam.filemanager.model.ItemExplorer;
-import com.tqnam.filemanager.model.operation.CPMOperation;
+import com.tqnam.filemanager.model.operation.BasicOperation;
 import com.tqnam.filemanager.model.operation.CopyFileOperation;
 import com.tqnam.filemanager.model.operation.DeleteOperation;
 import com.tqnam.filemanager.model.operation.MoveOperation;
@@ -316,13 +316,13 @@ public class FileExplorerPresenter implements ExplorerPresenter {
 
     @Override
     public void trySetValidated(Operation operation) {
-        if (operation instanceof CPMOperation) {
+        if (operation instanceof BasicOperation) {
             if (operation.getData() == null
                     || ((List) operation.getData()).isEmpty()) {
                 return;
             }
 
-            Validator validator = ((CPMOperation) operation).getValidator();
+            Validator validator = ((BasicOperation) operation).getValidator();
             if (!validator.getListViolated().isEmpty()) {
                 mView.showValidate(operation);
                 return;

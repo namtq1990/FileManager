@@ -15,7 +15,7 @@ public class TrackingTime {
     }
 
     /**
-     * Return tracking time task in millisecond
+     * Return tracking time task in millisecond.
      */
     public static long endTracking(String tag) {
         String key = formatKey(tag, true);
