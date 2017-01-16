@@ -31,6 +31,7 @@ import com.tqnam.filemanager.utils.ViewUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -48,6 +49,7 @@ import rx.functions.Action1;
 public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter.ParentViewHolder, ChildViewHolder> {
 
     private BaseActivity mContext;
+    private int mControllerButtonSize;        //Size of a button in controller (reload, property, ...)
 
 //    private List<OperatorList> mTotalList;
 
@@ -64,6 +66,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
     public OperationAdapter(@NonNull List<OperatorList> parentItemList, Context context) {
         super(parentItemList);
         mContext = (BaseActivity) context;
+        mControllerButtonSize = context.getResources().getDimensionPixelSize(R.dimen.tiny_button_size);
     }
 
     @Override
@@ -120,11 +123,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         } else {
             viewHolder.removeMenuButton(viewHolder.btnCancel);
         }
-        if (operation.isAbleToPause() && operation.isExecuting()) {
-            viewHolder.addMenuButton(viewHolder.btnPause);
-        } else {
-            viewHolder.removeMenuButton(viewHolder.btnPause);
-        }
+        viewHolder.setupResumeButton();
         if (operation.isExecuting()) {
             viewHolder.removeMenuButton(viewHolder.btnRestart);
         } else {
@@ -267,6 +266,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
     }
 
     public class ChildViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ChildViewHolder implements Action1<Object> {
+        private static final int CONTROLLER_BUTTON_ROW_SIZE = 3;        // Number of button per rows
 
         @BindView(R.id.prog_execute)
         ProgressBar progressBar;
@@ -275,15 +275,20 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         RecyclerView listName;
         @BindView(R.id.btn_cancel)
         AppCompatImageButton btnCancel;
+        @BindView(R.id.btn_info) AppCompatImageButton btnInfo;
         @BindView(R.id.btn_restart) AppCompatImageButton btnRestart;
         @BindView(R.id.btn_pause) AppCompatImageButton btnPause;
         @BindView(R.id.btn_undo) AppCompatImageButton btnUndo;
         @BindView(R.id.tv_from) TextView tvFrom;
         @BindView(R.id.tv_to) TextView tvTo;
+        @BindView(R.id.layout_controller) ViewGroup layoutController;
+        @BindView(R.id.space)
+        View space;
         View rootView;
 
         Operation mCurOperation;
         Subscription curSubscription;
+        HashSet<Integer> mVisibleButton;
 
         /**
          * Default constructor.
@@ -294,14 +299,39 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             super(itemView);
             rootView = itemView;
             ButterKnife.bind(this, itemView);
+
+            mVisibleButton = new HashSet<>(layoutController.getChildCount());
+            for (int i = 0;i < layoutController.getChildCount();i++) {
+                View child = layoutController.getChildAt(i);
+                if (child instanceof AppCompatImageButton) {
+                    // Add all button in controller layout to visible button
+                    addMenuButton((AppCompatImageButton) child);
+                }
+            }
         }
 
         void removeMenuButton(AppCompatImageButton button) {
-//            button.setVisibility(View.GONE);
+            mVisibleButton.remove(button.getId());
+
+            if (mVisibleButton.size() < CONTROLLER_BUTTON_ROW_SIZE) {
+                space.getLayoutParams().width
+                        = (CONTROLLER_BUTTON_ROW_SIZE - mVisibleButton.size()) * mControllerButtonSize;
+                space.setVisibility(View.VISIBLE);
+            }
+
+            layoutController.removeView(button);
         }
 
         void addMenuButton(AppCompatImageButton button) {
-            button.setVisibility(View.VISIBLE);
+            if (button.getId() != View.NO_ID)
+                mVisibleButton.add(button.getId());
+            if (mVisibleButton.size() >= CONTROLLER_BUTTON_ROW_SIZE) {
+                space.setVisibility(View.GONE);
+            }
+
+            if (button.getParent() != layoutController) {
+                layoutController.addView(button, button.getLayoutParams());
+            }
         }
 
         @Override
@@ -322,6 +352,10 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
                     if (progressBar.getProgress() != (int)updatableData.getProgress()) {
                         setProgress(this, (int) updatableData.getProgress());
                     }
+
+                    if (mCurOperation.getUpdateData().isFinished()) {
+                        setupResumeButton();
+                    }
                 }
             }
         }
@@ -338,6 +372,38 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             OperationInforDialogFragment fragment = OperationInforDialogFragment
                     .newInstance(mCurOperation, mContext.getDataFragment());
             fragment.show(mContext.getSupportFragmentManager(), OperationInforDialogFragment.TAG);
+        }
+
+        @OnClick(R.id.btn_pause)
+        public void onClickPause() {
+            if (mCurOperation.isAbleToPause()) {
+                Operation.IPause pauseControl = (Operation.IPause) mCurOperation;
+                pauseControl.setRunning(!pauseControl.isRunning());
+                setupResumeButton();
+            }
+        }
+
+        public void setupResumeButton() {
+            if (mCurOperation.isAbleToPause() && !mCurOperation.getUpdateData().isFinished()) {
+                addMenuButton(btnPause);
+
+                Operation.IPause pauseControl = (Operation.IPause) mCurOperation;
+                if (pauseControl.isRunning()) {
+                    btnPause.setImageResource(R.drawable.ic_action_pause);
+                    btnPause.setPadding(btnPause.getPaddingLeft(),
+                            btnPause.getPaddingTop(),
+                            btnPause.getPaddingLeft(),
+                            btnPause.getPaddingBottom());
+                } else {
+                    btnPause.setImageResource(R.drawable.ic_action_play);
+                    btnPause.setPadding(btnPause.getPaddingLeft(),
+                            btnPause.getPaddingTop(),
+                            btnPause.getPaddingLeft() * 2/3,
+                            btnPause.getPaddingBottom());
+                }
+            } else {
+                removeMenuButton(btnPause);
+            }
         }
 
         // TODO unbind with operator
@@ -395,5 +461,6 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             animator.playSequentially(fadeOut, fadeIn);
             animator.start();
         }
+
     }
 }

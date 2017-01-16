@@ -12,20 +12,24 @@ import rx.Observable;
  * Project FileManager-master
  * Basic operation include copy, paste, move
  */
-public abstract class BasicOperation<T extends ItemExplorer> extends Operation.TraverseFileOperation<T> {
+public abstract class BasicOperation<T extends ItemExplorer> extends Operation.TraverseFileOperation<T> implements Operation.IPause {
     public static final String TAG = BasicOperation.class.getName();
     public static final int UPDATE_TIME = 800;
+    private final Object mLocker;
     protected Observable<? extends BasicUpdatableData> mCurObservable;
     protected BasicUpdatableData mResult;
     private boolean mIsOverwrite;
     private Validator mValidator;
     private long mLastEmitSize;
+    private boolean mRunning;
 
     public BasicOperation(List<T> data) {
         super(data);
 
         mIsOverwrite = false;
         mValidator = new Validator();
+        mRunning = true;
+        mLocker = new Object();
     }
 
     public long getLastEmitSize() {
@@ -50,6 +54,23 @@ public abstract class BasicOperation<T extends ItemExplorer> extends Operation.T
 
     public String formatTag() {
         return TAG + mResult.hashCode();
+    }
+
+    public boolean isRunning() {
+        return mRunning;
+    }
+
+    public void setRunning(boolean running) {
+        mRunning = running;
+        if (running) {
+            synchronized (mLocker) {
+                mLocker.notifyAll();
+            }
+        }
+    }
+
+    public Object getLocker() {
+        return mLocker;
     }
 
     public void validate() {

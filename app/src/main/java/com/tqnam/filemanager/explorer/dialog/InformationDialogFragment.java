@@ -68,7 +68,7 @@ public class InformationDialogFragment extends BaseDialog {
         return builder.create();
     }
 
-    private void initView(View rootView) {
+    private void initView(final View rootView) {
 
         mViewHolder = new ViewHolder();
         ButterKnife.bind(mViewHolder, rootView);
@@ -103,6 +103,7 @@ public class InformationDialogFragment extends BaseDialog {
                     LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) button
                             .getLayoutParams();
                     params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                    button.setLayoutParams(params);
                 }
             }
         });

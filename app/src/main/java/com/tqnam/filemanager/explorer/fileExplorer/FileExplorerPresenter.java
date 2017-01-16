@@ -345,12 +345,24 @@ public class FileExplorerPresenter implements ExplorerPresenter {
         mModel.getOperatorManager().addOperator(operation, category);
 
         operation.execute()
-                .subscribe(new Action1<Object>() {
+                .map(new Func1<Object, Operation.UpdatableData>() {
+
                     @Override
-                    public void call(Object o) {
+                    public Operation.UpdatableData call(Object o) {
+                        return (Operation.UpdatableData) o;
+                    }
+                })
+                .subscribe(new Action1<Operation.UpdatableData>() {
+                    @Override
+                    public void call(Operation.UpdatableData data) {
                         if (mCurFolder != null) openDirectory(mCurFolder);
-                        if (mView != null)
-                            mView.showMessage("Done!");
+
+                        if (data.isFinished()) {
+                            if (mView != null)
+                                mView.showMessage("Done!");
+                        } else if (data.isError()) {
+                            throw new SystemException(SystemException.RK_UNKNOWN, "Operation error");
+                        }
                     }
                 }, mErrorAction);
     }

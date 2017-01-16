@@ -70,6 +70,7 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
         traverse();
 
         mCurObservable = Observable.interval(UPDATE_TIME, TimeUnit.MILLISECONDS)
+                .subscribeOn(Schedulers.io())
                 .takeUntil(
                         Observable.create(new Observable.OnSubscribe<Void>() {
                             @Override
@@ -122,21 +123,6 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
 
             throw e;
         }
-    }
-
-    @Override
-    public boolean isCancelable() {
-        return true;
-    }
-
-    @Override
-    public boolean isUndoable() {
-        return true;
-    }
-
-    @Override
-    public boolean isAbleToPause() {
-        return true;
     }
 
     @Override
@@ -251,6 +237,12 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
                     while ((byteRead = inputStream.read(buff, 0, buff.length)) > 0) {
                         outputStream.write(buff);
                         mResult.setSizeExecuted(mResult.getSizeExecuted() + byteRead);
+
+                        synchronized (getLocker()) {
+                            if (!isRunning()) {
+                                getLocker().wait();
+                            }
+                        }
                     }
 
                     Log.d("COmpleted " + mDestination);

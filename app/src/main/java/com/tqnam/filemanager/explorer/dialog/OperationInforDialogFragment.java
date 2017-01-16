@@ -116,6 +116,7 @@ public class OperationInforDialogFragment extends BaseDialog {
                     LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) button
                             .getLayoutParams();
                     params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                    button.setLayoutParams(params);
                 }
             }
         });

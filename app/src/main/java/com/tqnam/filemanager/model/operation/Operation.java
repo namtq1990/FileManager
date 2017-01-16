@@ -33,7 +33,7 @@ public abstract class Operation<T> {
     }
 
     public boolean isAbleToPause() {
-        return false;
+        return this instanceof IPause;
     }
 
     public boolean isUpdatable() {
@@ -53,6 +53,11 @@ public abstract class Operation<T> {
     }
 
     public abstract UpdatableData getUpdateData();
+
+    public interface IPause {
+        boolean isRunning();
+        void setRunning(boolean isRunning);
+    }
 
     public abstract static class TraverseFileOperation<T extends ItemExplorer> extends Operation<List<T>> {
 
