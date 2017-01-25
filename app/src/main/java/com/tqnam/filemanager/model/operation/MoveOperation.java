@@ -33,6 +33,8 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
     private String mSourcePath;
     private String mDestinationPath;
 
+    private CopyFileOperation mCopyOperation;
+    private DeleteOperation mDeleteOperation;
 
     public MoveOperation(List<FileItem> data, String destPath) {
         super(data);
@@ -75,6 +77,18 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
     }
 
     @Override
+    public void cancel() {
+        super.cancel();
+
+        if (mCopyOperation != null) {
+            mCopyOperation.cancel();
+        }
+        if (mDeleteOperation != null) {
+            mDeleteOperation.cancel();
+        }
+    }
+
+    @Override
     public Observable<? extends BasicUpdatableData> createExecuter() {
         TrackingTime.beginTracking(formatTag(mResult));
 
@@ -83,12 +97,12 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
                 mResult.setProgress(100);
                 mCurObservable = Observable.just(mResult);
             } else {
-                CopyFileOperation copyOperation = new CopyFileOperation(getData(), getDestinationPath());
-                DeleteOperation deleteOperation = new DeleteOperation(getData());
-                copyOperation.setOverwrite(true);
-                copyOperation.getValidator().clear();
+                mCopyOperation = new CopyFileOperation(getData(), getDestinationPath());
+                mDeleteOperation = new DeleteOperation(getData());
+                mCopyOperation.setOverwrite(true);
+                mDeleteOperation.getValidator().clear();
 
-                mCurObservable = copyOperation.execute()
+                mCurObservable = mCopyOperation.execute()
                         .map(new Func1<BasicUpdatableData, BasicUpdatableData>() {
                             @Override
                             public BasicUpdatableData call(BasicUpdatableData copyFileData) {
@@ -104,13 +118,12 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
                             }
                         })
                         .concatWith(
-                                deleteOperation.execute()
+                                mDeleteOperation.execute()
                                         .map(new Func1<BasicUpdatableData, BasicUpdatableData>() {
                                             @Override
                                             public BasicUpdatableData call(DeleteOperation.BasicUpdatableData deleteFileData) {
                                                 if (deleteFileData.isFinished()) {
                                                     mResult.setProgress(100);
-                                                    mResult.setFinished(true);
                                                 }
 
                                                 mResult.setError(deleteFileData.isError());
@@ -177,6 +190,10 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
             ArrayList<Operation> operations = getAllStream();
 
             for (int i = 0; i < operations.size(); i++) {
+                if (isCancelled()) {
+                    break;
+                }
+
                 SingleMoveFile moveOperator = (SingleMoveFile) operations.get(i);
                 moveOperator.execute(false);
             }
@@ -201,23 +218,16 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
     }
 
     @Override
-    public boolean isUndoable() {
-        return false;
-    }
-
-    @Override
-    public boolean isAbleToPause() {
-        return true;
-    }
-
-    @Override
     public int validate(ItemExplorer item) {
         int mode = 0;
         String destinationPath = mDestinationPathStorage.get(item.getPath());
 
         if (destinationPath != null) {
             FileItem destFile = new FileItem(destinationPath);
-            if (destFile.exists()) {
+            if (destFile.getPath().equals(item.getPath())) {
+                mode = getValidator().setModeViolated(Validator.MODE_SAME_FILE, mode, true);
+            }
+            else if (destFile.exists()) {
                 mode = getValidator().setModeViolated(Validator.MODE_FILE_EXIST, mode, true);
             }
             if ((destFile.exists() && !destFile.canWrite())
@@ -227,12 +237,6 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
         }
 
         return mode;
-    }
-
-    @Override
-    public void setItemValidated(ItemExplorer item) {
-        super.setItemValidated(item);
-        getData().remove(item);
     }
 
     public class SingleMoveFile extends SingleFileOperation<FileItem> {
@@ -254,6 +258,10 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
             }
             FileItem data = getData();
             long dataLength = data.length();
+
+            if (isCancelled()) {
+                return;
+            }
 
             Log.d("Moving " + data.getPath());
 

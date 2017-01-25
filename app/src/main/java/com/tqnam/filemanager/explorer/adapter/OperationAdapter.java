@@ -118,17 +118,9 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         setupFileName(viewHolder, operation);
         setupStream(operation, viewHolder);
 
-        if (operation.isCancelable() && operation.isExecuting()) {
-            viewHolder.addMenuButton(viewHolder.btnCancel);
-        } else {
-            viewHolder.removeMenuButton(viewHolder.btnCancel);
-        }
+        viewHolder.setupCancelButton();
         viewHolder.setupResumeButton();
-        if (operation.isExecuting()) {
-            viewHolder.removeMenuButton(viewHolder.btnRestart);
-        } else {
-            viewHolder.addMenuButton(viewHolder.btnRestart);
-        }
+        viewHolder.setupRestartButton();
         if (operation.isUndoable()) {
             viewHolder.addMenuButton(viewHolder.btnUndo);
         } else {
@@ -167,7 +159,6 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         if (progress > 100) progress = 100;
 
         viewHolder.progressBar.setProgress(progress);
-        viewHolder.tvProgress.setText(String.format(Locale.ENGLISH, "%1d%%", progress));
     }
 
     private void setupFileName(ChildViewHolder viewHolder, Operation operation) {
@@ -265,7 +256,8 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         }
     }
 
-    public class ChildViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ChildViewHolder implements Action1<Object> {
+    public class ChildViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ChildViewHolder
+            implements Action1<Object> {
         private static final int CONTROLLER_BUTTON_ROW_SIZE = 3;        // Number of button per rows
 
         @BindView(R.id.prog_execute)
@@ -278,6 +270,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         @BindView(R.id.btn_info) AppCompatImageButton btnInfo;
         @BindView(R.id.btn_restart) AppCompatImageButton btnRestart;
         @BindView(R.id.btn_pause) AppCompatImageButton btnPause;
+        @BindView(R.id.btn_start) AppCompatImageButton btnStart;
         @BindView(R.id.btn_undo) AppCompatImageButton btnUndo;
         @BindView(R.id.tv_from) TextView tvFrom;
         @BindView(R.id.tv_to) TextView tvTo;
@@ -317,20 +310,27 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
                 space.getLayoutParams().width
                         = (CONTROLLER_BUTTON_ROW_SIZE - mVisibleButton.size()) * mControllerButtonSize;
                 space.setVisibility(View.VISIBLE);
+
+                if (space.getParent() != layoutController)
+                    layoutController.addView(space, space.getLayoutParams());
             }
 
             layoutController.removeView(button);
         }
 
         void addMenuButton(AppCompatImageButton button) {
+            addMenuButton(button, mVisibleButton.size());
+        }
+
+        void addMenuButton(AppCompatImageButton button, int index) {
             if (button.getId() != View.NO_ID)
                 mVisibleButton.add(button.getId());
             if (mVisibleButton.size() >= CONTROLLER_BUTTON_ROW_SIZE) {
-                space.setVisibility(View.GONE);
+                layoutController.removeView(space);
             }
 
             if (button.getParent() != layoutController) {
-                layoutController.addView(button, button.getLayoutParams());
+                layoutController.addView(button, index, button.getLayoutParams());
             }
         }
 
@@ -349,21 +349,23 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             if (o instanceof Operation) {
                 if (updatableData.getOperatorHashcode() == o.hashCode()) {
                     // This is right operator, so update this view
-                    if (progressBar.getProgress() != (int)updatableData.getProgress()) {
-                        setProgress(this, (int) updatableData.getProgress());
+                    if (progressBar.getProgress() != (int) updatableData.getProgress()) {
+                        setProgress(this, updatableData.getProgress());
                     }
 
-                    if (mCurOperation.getUpdateData().isFinished()) {
-                        setupResumeButton();
-                    }
+                    setupStatus();
+                    setupResumeButton();
+                    setupCancelButton();
                 }
             }
         }
 
         @OnClick(R.id.btn_cancel)
         public void onClickCancel() {
-            if (mCurOperation != null) {
-                //TODO Cancel operator
+            if (mCurOperation != null
+                    && mCurOperation.isCancelable()) {
+                ((Operation.ICancel) mCurOperation).cancel();
+                setupResumeButton();
             }
         }
 
@@ -374,7 +376,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             fragment.show(mContext.getSupportFragmentManager(), OperationInforDialogFragment.TAG);
         }
 
-        @OnClick(R.id.btn_pause)
+        @OnClick({R.id.btn_pause, R.id.btn_start})
         public void onClickPause() {
             if (mCurOperation.isAbleToPause()) {
                 Operation.IPause pauseControl = (Operation.IPause) mCurOperation;
@@ -383,26 +385,68 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             }
         }
 
+        public void onClickUndo() {
+            if (mCurOperation.isUndoable()) {
+                Operation.IRevert revertControl = (Operation.IRevert) mCurOperation;
+                revertControl.revert();
+            }
+        }
+
         public void setupResumeButton() {
-            if (mCurOperation.isAbleToPause() && !mCurOperation.getUpdateData().isFinished()) {
-                addMenuButton(btnPause);
+            Operation.UpdatableData data = mCurOperation.getUpdateData();
+            if (mCurOperation.isAbleToPause()
+                    && (data.getStateValue(Operation.OperationState.STATE_RUNNING)
+                    || data.getStateValue(Operation.OperationState.STATE_PAUSE))) {
 
                 Operation.IPause pauseControl = (Operation.IPause) mCurOperation;
                 if (pauseControl.isRunning()) {
-                    btnPause.setImageResource(R.drawable.ic_action_pause);
-                    btnPause.setPadding(btnPause.getPaddingLeft(),
-                            btnPause.getPaddingTop(),
-                            btnPause.getPaddingLeft(),
-                            btnPause.getPaddingBottom());
+                    int index = layoutController.indexOfChild(btnStart);
+                    removeMenuButton(btnStart);
+                    addMenuButton(btnPause, index);
                 } else {
-                    btnPause.setImageResource(R.drawable.ic_action_play);
-                    btnPause.setPadding(btnPause.getPaddingLeft(),
-                            btnPause.getPaddingTop(),
-                            btnPause.getPaddingLeft() * 2/3,
-                            btnPause.getPaddingBottom());
+                    int index = layoutController.indexOfChild(btnPause);
+                    removeMenuButton(btnPause);
+                    addMenuButton(btnStart, index);
                 }
             } else {
                 removeMenuButton(btnPause);
+                removeMenuButton(btnStart);
+            }
+        }
+
+        public void setupCancelButton() {
+            if (mCurOperation != null
+                    && mCurOperation.isCancelable()
+                    && !mCurOperation.getUpdateData().getStateValue(Operation.OperationState.STATE_CANCELLED)) {
+                addMenuButton(btnCancel);
+            } else {
+                removeMenuButton(btnCancel);
+            }
+        }
+
+        public void setupRestartButton() {
+            if (mCurOperation != null
+                    && mCurOperation.isRestartable()) {
+                addMenuButton(btnRestart);
+            } else {
+                removeMenuButton(btnRestart);
+            }
+        }
+
+        public void setupStatus() {
+            if (mCurOperation != null) {
+                Operation.UpdatableData data = mCurOperation.getUpdateData();
+                if (data.getStateValue(Operation.OperationState.STATE_RUNNING)) {
+                    tvProgress.setText(String.format(Locale.ENGLISH, "%1d%%", data.getProgress()));
+                } else if (data.getStateValue(Operation.OperationState.STATE_PAUSE)) {
+                    tvProgress.setText("Paused");
+                } else if (data.getStateValue(Operation.OperationState.STATE_CANCELLED)) {
+                    tvProgress.setText("Cancelled");
+                } else if (data.getStateValue(Operation.OperationState.STATE_ERROR)) {
+                    tvProgress.setText("Error");
+                } else if (data.getStateValue(Operation.OperationState.STATE_FINISHED)) {
+                    tvProgress.setText("Finished");
+                }
             }
         }
 
@@ -447,15 +491,10 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
 
                 @Override
                 public void onAnimationRepeat(Animator animation) {
-
                 }
 
                 void updateArrow() {
-                    if (!expanded) {
-                        arrow.setImageResource(R.drawable.ic_action_collapse);
-                    } else {
-                        arrow.setImageResource(R.drawable.ic_action_expand);
-                    }
+                    arrow.setImageResource(expanded ? R.drawable.ic_action_expand : R.drawable.ic_action_collapse);
                 }
             });
             animator.playSequentially(fadeOut, fadeIn);

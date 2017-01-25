@@ -13,5 +13,8 @@
     <string name="information_mod_date">Date Modified:&#160;</string>
     <string name="information_file">File:&#160;</string>
     <string name="information_property">File Property</string>
+    <string name="validate_exists">File %s is existed, do you want to continue?</string>
+    <string name="validate_permission">Don\'t have permission to access %s, do you want to continue?</string>
+    <string name="validate_same_file">File %s is same location. Do you want to continue?</string>
 
 </resources>

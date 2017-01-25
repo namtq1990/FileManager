@@ -93,6 +93,10 @@ public class DeleteOperation extends BasicOperation<FileItem> {
             ArrayList<Operation> operations = getAllStream();
 
             for (int i = operations.size() - 1; i >= 0; i--) {
+                if (isCancelled()) {
+                    break;
+                }
+
                 SingleDeleteFile deleteOperator = (SingleDeleteFile) operations.get(i);
                 deleteOperator.execute();
             }
@@ -126,11 +130,6 @@ public class DeleteOperation extends BasicOperation<FileItem> {
         return false;
     }
 
-    @Override
-    public boolean isAbleToPause() {
-        return true;
-    }
-
     public class SingleDeleteFile extends SingleFileOperation<FileItem> {
 
         public SingleDeleteFile(FileItem data) {
@@ -146,6 +145,9 @@ public class DeleteOperation extends BasicOperation<FileItem> {
             FileItem data = getData();
             long length = data.length();
 
+            if (isCancelled()) {
+                return;
+            }
             Log.d("Deleting " + data.getPath());
 
             boolean isDeleted = data.delete();

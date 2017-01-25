@@ -12,7 +12,9 @@ import rx.Observable;
  * Project FileManager-master
  * Basic operation include copy, paste, move
  */
-public abstract class BasicOperation<T extends ItemExplorer> extends Operation.TraverseFileOperation<T> implements Operation.IPause {
+public abstract class BasicOperation<T extends ItemExplorer> extends Operation.TraverseFileOperation<T>
+        implements Operation.IPause, Operation.ICancel, Operation.IRevert
+{
     public static final String TAG = BasicOperation.class.getName();
     public static final int UPDATE_TIME = 800;
     private final Object mLocker;
@@ -21,14 +23,13 @@ public abstract class BasicOperation<T extends ItemExplorer> extends Operation.T
     private boolean mIsOverwrite;
     private Validator mValidator;
     private long mLastEmitSize;
-    private boolean mRunning;
+    private boolean mCancelled;
 
     public BasicOperation(List<T> data) {
         super(data);
 
         mIsOverwrite = false;
         mValidator = new Validator();
-        mRunning = true;
         mLocker = new Object();
     }
 
@@ -57,16 +58,44 @@ public abstract class BasicOperation<T extends ItemExplorer> extends Operation.T
     }
 
     public boolean isRunning() {
-        return mRunning;
+        return mResult.getStateValue(OperationState.STATE_RUNNING);
     }
 
     public void setRunning(boolean running) {
-        mRunning = running;
+        mResult.setState(OperationState.STATE_RUNNING, running);
+        mResult.setState(OperationState.STATE_PAUSE, !running);
+
         if (running) {
             synchronized (mLocker) {
                 mLocker.notifyAll();
             }
         }
+    }
+
+    @Override
+    public boolean isCancelable() {
+        return super.isCancelable()
+                && !mResult.getStateValue(OperationState.STATE_FINISHED);
+    }
+
+    public boolean isCancelled() {
+        return mCancelled;
+    }
+
+    public void setCancelled(boolean cancelled) {
+        mCancelled = cancelled;
+    }
+
+    @Override
+    public void cancel() {
+        setCancelled(true);
+        setRunning(false);        // Resume all operation if operation paused to force cancel
+        mResult.setState(OperationState.STATE_CANCELLED, true);
+    }
+
+    @Override
+    public void revert() {
+        mResult.setState(OperationState.STATE_UNDO, true);
     }
 
     public Object getLocker() {
@@ -78,6 +107,10 @@ public abstract class BasicOperation<T extends ItemExplorer> extends Operation.T
 
     public void setItemValidated(ItemExplorer item) {
         mValidator.setItemSafe(item);
+    }
+
+    public void setItemSkipped(ItemExplorer item) {
+        getData().remove(item);
     }
 
     public ItemExplorer getValidatingItem() {
@@ -107,11 +140,6 @@ public abstract class BasicOperation<T extends ItemExplorer> extends Operation.T
         private float speed;
         private long sizeExecuted;
         private long sizeTotal;
-        private boolean isFinished;
-
-        BasicUpdatableData() {
-            isFinished = false;
-        }
 
         public float getSpeed() {
             return speed;
@@ -119,15 +147,6 @@ public abstract class BasicOperation<T extends ItemExplorer> extends Operation.T
 
         public void setSpeed(float speed) {
             this.speed = speed;
-        }
-
-        @Override
-        public boolean isFinished() {
-            return isFinished;
-        }
-
-        public void setFinished(boolean finished) {
-            isFinished = finished;
         }
 
         public long getSizeExecuted() {
@@ -149,13 +168,12 @@ public abstract class BasicOperation<T extends ItemExplorer> extends Operation.T
         @Override
         public void validate() {
             setProgress((int)(sizeTotal == 0 ? 100 : (sizeExecuted * 100 + 1) / sizeTotal));
-            if (getProgress() >= 100) setFinished(true);
         }
 
         @Override
         public String toString() {
             return super.toString() +
-                    "{speed=" + speed + ", sizeExecuted=" + sizeExecuted + ", sizeTotal=" + sizeTotal + ", isFinish:" + isFinished + "}";
+                    "{speed=" + speed + ", sizeExecuted=" + sizeExecuted + ", sizeTotal=" + sizeTotal + "}";
         }
     }
 }

@@ -13,6 +13,7 @@ public class Validator {
 
     public static final int MODE_FILE_EXIST = 0x1;
     public static final int MODE_PERMISSION = 0x2;
+    public static final int MODE_SAME_FILE = 0x4;
 
     private HashMap<ItemExplorer, Integer> mListViolated;
     private ValidateAction mValidateAction;
@@ -21,6 +22,9 @@ public class Validator {
         mListViolated = new HashMap<>();
     }
 
+    /**
+     * Custom validate action, action can validate itself mode to match with your purpose
+     */
     public void setValidateAction(ValidateAction validateAction) {
         mValidateAction = validateAction;
     }
@@ -78,6 +82,14 @@ public class Validator {
         return (flag & modeToCheck) != 0;
     }
 
+    public void setModeViolated(ItemExplorer item, int mode, boolean violated) {
+        Integer flag = mListViolated.get(item);
+
+        if (flag != null) {
+            setModeViolated(flag, mode, violated);
+        }
+    }
+
     public int setModeViolated(int flag, int mode, boolean violated) {
         if (violated)
             return flag | mode;
@@ -88,6 +100,9 @@ public class Validator {
         mListViolated.clear();
     }
 
+    /**
+     * Interface to implement action to validate yourself.
+     */
     public interface ValidateAction {
         int validate(ItemExplorer item);
     }

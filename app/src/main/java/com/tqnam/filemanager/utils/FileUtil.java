@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by quangnam on 10/6/16.
@@ -156,12 +157,46 @@ public class FileUtil {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < list.size(); i++) {
-            sb.append("i. ")
+            sb.append(" - ")
                     .append(list.get(i).getDisplayName())
                     .append('\n');
         }
 
         return sb.toString();
+    }
+
+    public static String getExtension(ItemExplorer file) {
+        String name = file.getDisplayName();
+        int index = name.lastIndexOf('.');
+
+        return index > 0 ? name.substring(index + 1) : "";
+    }
+
+    public static String createNameWithSuffix(FileItem file) {
+        String extension = file.getExtension();
+        if (!TextUtils.isEmpty(extension)) {
+            extension = "." + extension;
+        }
+        String nameWithoutExtension = file.getDisplayName().replace(extension, "");
+
+        int i = 1;
+        String nameFormat = "%s (%d)%s";
+        FileItem newFile;
+
+        while(true) {
+            String name = String.format(Locale.ENGLISH,
+                    nameFormat,
+                    nameWithoutExtension,
+                    i++,
+                    extension);
+
+            newFile = new FileItem(file.getParentPath(), name);
+            if (!newFile.exists()) {
+                break;
+            }
+        }
+
+        return newFile.getDisplayName();
     }
 
 }

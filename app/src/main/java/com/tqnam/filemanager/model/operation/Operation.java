@@ -12,6 +12,7 @@ import rx.Observable;
 public abstract class Operation<T> {
 
     protected OperationPropertyView mPropertyView;
+
     private T mData;
 
     public Operation(T data) {
@@ -20,23 +21,23 @@ public abstract class Operation<T> {
 
     public abstract Observable<?> execute(Object... arg);
 
-    public boolean isExecuting() {
-        return false;
-    }
-
     public boolean isCancelable() {
-        return false;
+        return this instanceof ICancel;
     }
 
     public boolean isUndoable() {
-        return false;
+        return this instanceof IRevert;
     }
 
-    public boolean isAbleToPause() {
+    public boolean isRestartable() {
+        return this instanceof IRestart;
+    }
+
+    public final boolean isAbleToPause() {
         return this instanceof IPause;
     }
 
-    public boolean isUpdatable() {
+    public final boolean isUpdatable() {
         return getUpdateData() != null;
     }
 
@@ -57,6 +58,18 @@ public abstract class Operation<T> {
     public interface IPause {
         boolean isRunning();
         void setRunning(boolean isRunning);
+    }
+
+    public interface ICancel {
+        void cancel();
+    }
+
+    public interface IRevert {
+        void revert();
+    }
+
+    public interface IRestart {
+        void restart();
     }
 
     public abstract static class TraverseFileOperation<T extends ItemExplorer> extends Operation<List<T>> {
@@ -123,10 +136,14 @@ public abstract class Operation<T> {
     public static class UpdatableData {
         private int progress;
         private int operatorHashcode;
-        private boolean isError;
+        private int state;
 
-        public boolean isFinished() {
-            return progress >= 100;
+        public UpdatableData() {
+            setState(OperationState.STATE_RUNNING, true);
+        }
+
+        public final boolean isFinished() {
+            return getStateValue(OperationState.STATE_FINISHED);
         }
 
         public int getProgress() {
@@ -135,6 +152,9 @@ public abstract class Operation<T> {
 
         public void setProgress(int progress) {
             this.progress = progress;
+            if (this.progress >= 100) {
+                setState(OperationState.STATE_FINISHED, true);
+            }
         }
 
         public long getOperatorHashcode() {
@@ -146,20 +166,47 @@ public abstract class Operation<T> {
         }
 
         public boolean isError() {
-            return isError;
+            return getStateValue(OperationState.STATE_ERROR);
         }
 
         public void setError(boolean error) {
-            isError = error;
+            setState(OperationState.STATE_ERROR, error);
+        }
+
+        public void setState(int stateMode, boolean value) {
+            if (value) {
+                state |= stateMode;
+            } else {
+                state &= ~stateMode;
+            }
+            state &= (value ? stateMode : ~stateMode);
+        }
+
+        public boolean getStateValue(int stateMode) {
+            return (state & stateMode) != 0;
+        }
+
+        public int getState() {
+            return state;
         }
 
         public void validate() {}
 
         @Override
         public String toString() {
-            return super.toString()
-                    + "{progress=" + progress + "}";
+            return super.toString() + "{"
+                    + "state=" + getState() + ","
+                    + "progress=" + progress + "}";
         }
+    }
+
+    public static class OperationState {
+        public static final int STATE_FINISHED = 0x1;
+        public static final int STATE_ERROR = 0x2;
+        public static final int STATE_CANCELLED = 0x4;
+        public static final int STATE_RUNNING = 0x8;
+        public static final int STATE_PAUSE = 0x10;
+        public static final int STATE_UNDO = 0x20;
     }
 
 }

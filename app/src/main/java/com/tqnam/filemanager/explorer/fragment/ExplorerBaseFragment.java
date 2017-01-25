@@ -50,6 +50,7 @@ import com.tqnam.filemanager.utils.ViewUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by quangnam on 11/12/15.
@@ -110,7 +111,10 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                             + "\n"
                             + FileUtil.formatListTitle(selectedList);
                     AlertDialogFragment.newInstance(ACTION_DELETE_VALIDATE,
-                            message, null)
+                            message,
+                            getString(R.string.ok),
+                            null,
+                            getString(R.string.cancel))
                             .show(getChildFragmentManager(), AlertDialogFragment.TAG);
 
                     break;
@@ -564,7 +568,9 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                 if (which == DialogInterface.BUTTON_NEUTRAL) {
                     // Skip this item
                     if (operation instanceof BasicOperation) {
-                        ((BasicOperation) operation).setItemValidated(((BasicOperation) operation).getValidatingItem());
+                        ItemExplorer validatingItem = ((BasicOperation) operation).getValidatingItem();
+                        ((BasicOperation) operation).setItemValidated(validatingItem);
+                        ((BasicOperation) operation).setItemSkipped(validatingItem);
                     }
                 } else if (which == DialogInterface.BUTTON_POSITIVE) {
                     // Overwrite this item
@@ -588,9 +594,25 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                 && !((BasicOperation) operation).getValidator().getListViolated().isEmpty()) {
             Validator validator = ((BasicOperation) operation).getValidator();
             ItemExplorer item = validator.getListViolated().iterator().next();
-            AlertDialogFragment dialog = AlertDialogFragment.newInstance(ACTION_COPY_VALIDATE,
-                    "File " + item.getPath() + " existed, do you want to continue?",
-                    "Skip");
+            String message = "";
+            int mode = 0;
+
+            if (validator.isModeViolated(item, Validator.MODE_FILE_EXIST)) {
+                message = getAppContext().getString(R.string.validate_exists);
+                mode = Validator.MODE_FILE_EXIST;
+            } else if (validator.isModeViolated(item, Validator.MODE_PERMISSION)) {
+                message = getAppContext().getString(R.string.validate_permission);
+                mode = Validator.MODE_PERMISSION;
+            } else if (validator.isModeViolated(item, Validator.MODE_SAME_FILE)) {
+                message = getAppContext().getString(R.string.validate_same_file);
+                mode = Validator.MODE_SAME_FILE;
+            }
+            AlertDialogFragment dialog = AlertDialogFragment.newInstance(
+                    ACTION_COPY_VALIDATE,
+                    String.format(Locale.ENGLISH, message, item.getPath()),
+                    mode == Validator.MODE_SAME_FILE ? null : getString(R.string.ok),
+                    "Skip",
+                    getString(R.string.cancel));
             mPresenter.setValidatingOperation(operation);
             dialog.show(getChildFragmentManager(), AlertDialogFragment.TAG);
 

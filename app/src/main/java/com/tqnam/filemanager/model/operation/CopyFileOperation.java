@@ -109,9 +109,13 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
     private void execute() {
         try {
             Log.d("Copying...");
+
             ArrayList<Operation> list = getAllStream();
 
             for (Operation operation : list) {
+                if (isCancelled()) {
+                    break;
+                }
                 SingleFileCopyOperation copyOperator = (SingleFileCopyOperation) operation;
                 copyOperator.execute(isOverwrite());
             }
@@ -165,7 +169,10 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
 
         if (destinationPath != null) {
             FileItem destFile = new FileItem(destinationPath);
-            if (destFile.exists()) {
+            if (destFile.getPath().equals(item.getPath())) {
+                mode = getValidator().setModeViolated(Validator.MODE_SAME_FILE, mode, true);
+            }
+            else if (destFile.exists()) {
                 mode = getValidator().setModeViolated(Validator.MODE_FILE_EXIST, mode, true);
             }
             if ((destFile.exists() && !destFile.canWrite())
@@ -175,13 +182,6 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
         }
 
         return mode;
-    }
-
-    @Override
-    public void setItemValidated(ItemExplorer item) {
-        super.setItemValidated(item);
-
-        getData().remove(item);
     }
 
     public class SingleFileCopyOperation extends SingleFileOperation<FileItem> {
@@ -230,13 +230,18 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
 
                 try {
                     inputStream = new FileInputStream(source);
-                    outputStream = new FileOutputStream(mDestination, isOverwrite);
+                    outputStream = new FileOutputStream(mDestination);
                     byte[] buff = new byte[FileUtil.BUFF_SIZE];
                     int byteRead;
 
                     while ((byteRead = inputStream.read(buff, 0, buff.length)) > 0) {
                         outputStream.write(buff);
                         mResult.setSizeExecuted(mResult.getSizeExecuted() + byteRead);
+
+                        if (isCancelled()) {
+                            Log.d("Operation " + this + " cancelled.");
+                            break;
+                        }
 
                         synchronized (getLocker()) {
                             if (!isRunning()) {

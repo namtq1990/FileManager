@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.Formatter;
 import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +28,8 @@ import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.operation.Operation;
 import com.tqnam.filemanager.model.operation.propertyView.OperationPropertyView;
 import com.tqnam.filemanager.utils.ViewUtils;
+
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -250,7 +253,7 @@ public class OperationInforDialogFragment extends BaseDialog {
             } else {
                 ViewUtils.formatTitleAndContentTextView(mSize,
                         getString(R.string.information_size),
-                        String.valueOf(size),
+                        String.format(Locale.ENGLISH, "%d [%s]", size, Formatter.formatFileSize(getAppContext(), size)),
                         new Object[]{
                                 new StyleSpan(Typeface.BOLD)
                         },

@@ -20,7 +20,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="File: "/>
+            android:text="@string/information_file"/>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/list_name"
@@ -31,7 +31,6 @@
     </LinearLayout>
 
     <android.support.v7.widget.GridLayout
-        android:id="@+id/layout_controller"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:columnCount="4">
@@ -53,108 +52,130 @@
             android:gravity="start"
             app:layout_column="0"
             app:layout_columnWeight="1"
+            app:layout_gravity="center_vertical"
             app:layout_row="1"
             tools:text="50%"
             />
 
-        <android.support.v7.widget.AppCompatImageButton
-            android:id="@+id/btn_info"
-            android:layout_width="@dimen/tiny_button_size"
-            android:layout_height="@dimen/tiny_button_size"
-            android:layout_marginBottom="@dimen/padding_small_02"
-            android:layout_marginEnd="@dimen/padding_small_02"
-            android:layout_marginStart="@dimen/padding_small_02"
-            android:background="@drawable/state_round_btn"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_action_about"
-            app:backgroundTint="@color/gray"
-            app:backgroundTintMode="multiply"
-            app:elevation="0dp"
+        <android.support.v7.widget.GridLayout
+            android:id="@+id/layout_controller"
+            app:columnCount="3"
             app:layout_column="1"
-            app:layout_gravity="center"
             app:layout_row="0"
-            />
+            app:layout_rowSpan="2"
+            >
 
-        <android.support.v7.widget.AppCompatImageButton
-            android:id="@+id/btn_cancel"
-            android:layout_width="@dimen/tiny_button_size"
-            android:layout_height="@dimen/tiny_button_size"
-            android:layout_marginBottom="@dimen/padding_small_02"
-            android:layout_marginEnd="@dimen/padding_small_02"
-            android:layout_marginStart="@dimen/padding_small_02"
-            android:background="@drawable/state_round_btn"
-            android:padding="@dimen/padding_small_02"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_action_cancel"
-            app:backgroundTint="@color/gray"
-            app:backgroundTintMode="multiply"
-            app:elevation="0dp"
-            app:layout_gravity="center"
-            />
+            <android.support.v7.widget.AppCompatImageButton
+                android:id="@+id/btn_info"
+                android:layout_width="@dimen/tiny_button_size"
+                android:layout_height="@dimen/tiny_button_size"
+                android:layout_marginBottom="@dimen/padding_small_02"
+                android:layout_marginEnd="@dimen/padding_small_02"
+                android:layout_marginStart="@dimen/padding_small_02"
+                android:background="@drawable/state_round_btn"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_action_about"
+                app:backgroundTint="@color/gray"
+                app:backgroundTintMode="multiply"
+                app:elevation="0dp"
+                app:layout_gravity="center"
+                app:layout_row="0"
+                />
 
-        <android.support.v7.widget.AppCompatImageButton
-            android:id="@+id/btn_pause"
-            android:layout_width="@dimen/tiny_button_size"
-            android:layout_height="@dimen/tiny_button_size"
-            android:layout_marginEnd="@dimen/padding_small_02"
-            android:layout_marginStart="@dimen/padding_small_02"
-            android:background="@drawable/state_round_btn"
-            android:padding="@dimen/padding_small_02"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_action_pause"
-            app:backgroundTint="@color/gray"
-            app:backgroundTintMode="multiply"
-            app:elevation="0dp"
-            app:fabSize="mini"
-            />
+            <android.support.v7.widget.AppCompatImageButton
+                android:id="@+id/btn_cancel"
+                android:layout_width="@dimen/tiny_button_size"
+                android:layout_height="@dimen/tiny_button_size"
+                android:layout_marginBottom="@dimen/padding_small_02"
+                android:layout_marginEnd="@dimen/padding_small_02"
+                android:layout_marginStart="@dimen/padding_small_02"
+                android:background="@drawable/state_round_btn"
+                android:padding="@dimen/padding_small_02"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_action_cancel"
+                app:backgroundTint="@color/gray"
+                app:backgroundTintMode="multiply"
+                app:elevation="0dp"
+                app:layout_gravity="center"
+                />
 
-        <android.support.v7.widget.AppCompatImageButton
-            android:id="@+id/btn_restart"
-            android:layout_width="@dimen/tiny_button_size"
-            android:layout_height="@dimen/tiny_button_size"
-            android:layout_marginEnd="@dimen/padding_small_02"
-            android:layout_marginStart="@dimen/padding_small_02"
-            android:background="@drawable/state_round_btn"
-            android:padding="@dimen/padding_small_02"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_action_refresh"
-            app:backgroundTint="@color/gray"
-            app:backgroundTintMode="multiply"
-            app:elevation="0dp"
-            app:fabSize="mini"
-            app:layout_gravity="center"
-            />
+            <android.support.v7.widget.AppCompatImageButton
+                android:id="@+id/btn_pause"
+                android:layout_width="@dimen/tiny_button_size"
+                android:layout_height="@dimen/tiny_button_size"
+                android:layout_marginEnd="@dimen/padding_small_02"
+                android:layout_marginStart="@dimen/padding_small_02"
+                android:background="@drawable/state_round_btn"
+                android:padding="@dimen/padding_small_02"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_action_pause"
+                app:backgroundTint="@color/gray"
+                app:backgroundTintMode="multiply"
+                app:elevation="0dp"
+                app:fabSize="mini"
+                />
 
-        <android.support.v7.widget.AppCompatImageButton
-            android:id="@+id/btn_undo"
-            android:layout_width="@dimen/tiny_button_size"
-            android:layout_height="@dimen/tiny_button_size"
-            android:layout_marginEnd="@dimen/padding_small_02"
-            android:layout_marginStart="@dimen/padding_small_02"
-            android:background="@drawable/state_round_btn"
-            android:padding="@dimen/padding_small_02"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_undo"
-            app:backgroundTint="@color/gray"
-            app:backgroundTintMode="multiply"
-            app:elevation="0dp"
-            app:fabSize="mini"
-            />
+            <android.support.v7.widget.AppCompatImageButton
+                android:id="@+id/btn_start"
+                android:layout_width="@dimen/tiny_button_size"
+                android:layout_height="@dimen/tiny_button_size"
+                android:layout_marginEnd="@dimen/padding_small_02"
+                android:layout_marginStart="@dimen/padding_small_02"
+                android:background="@drawable/state_round_btn"
+                android:paddingEnd="2dp"
+                android:paddingLeft="@dimen/padding_small_02"
+                android:paddingRight="2dp"
+                android:paddingStart="@dimen/padding_small_02"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_action_play"
+                app:backgroundTint="@color/gray"
+                app:backgroundTintMode="multiply"
+                app:elevation="0dp"
+                app:fabSize="mini"
+                />
 
-        <android.support.v4.widget.Space
-            android:id="@+id/space"
-            android:layout_width="@dimen/tiny_button_size"
-            android:layout_height="@dimen/tiny_button_size"
-            android:layout_marginEnd="@dimen/padding_small_02"
-            android:layout_marginStart="@dimen/padding_small_02"/>
+            <android.support.v7.widget.AppCompatImageButton
+                android:id="@+id/btn_restart"
+                android:layout_width="@dimen/tiny_button_size"
+                android:layout_height="@dimen/tiny_button_size"
+                android:layout_marginEnd="@dimen/padding_small_02"
+                android:layout_marginStart="@dimen/padding_small_02"
+                android:background="@drawable/state_round_btn"
+                android:padding="@dimen/padding_small_02"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_action_refresh"
+                app:backgroundTint="@color/gray"
+                app:backgroundTintMode="multiply"
+                app:elevation="0dp"
+                app:fabSize="mini"
+                app:layout_gravity="center"
+                />
 
-        <!--<android.support.v4.widget.Space-->
-            <!--android:id="@+id/space_2"-->
-            <!--android:visibility="gone"-->
-            <!--android:layout_width="@dimen/tiny_button_size"-->
-            <!--android:layout_height="@dimen/tiny_button_size"-->
-            <!--android:layout_marginEnd="@dimen/padding_small_02"-->
-            <!--android:layout_marginStart="@dimen/padding_small_02"/>-->
+            <android.support.v7.widget.AppCompatImageButton
+                android:id="@+id/btn_undo"
+                android:layout_width="@dimen/tiny_button_size"
+                android:layout_height="@dimen/tiny_button_size"
+                android:layout_marginEnd="@dimen/padding_small_02"
+                android:layout_marginStart="@dimen/padding_small_02"
+                android:background="@drawable/state_round_btn"
+                android:padding="@dimen/padding_small_02"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_undo"
+                app:backgroundTint="@color/gray"
+                app:backgroundTintMode="multiply"
+                app:elevation="0dp"
+                app:fabSize="mini"
+                />
+
+            <android.support.v4.widget.Space
+                android:id="@+id/space"
+                android:layout_width="@dimen/tiny_button_size"
+                android:layout_height="@dimen/tiny_button_size"
+                android:layout_marginEnd="@dimen/padding_small_02"
+                android:layout_marginStart="@dimen/padding_small_02"
+                tools:visibility="gone"/>
+        </android.support.v7.widget.GridLayout>
+
 
     </android.support.v7.widget.GridLayout>
 
