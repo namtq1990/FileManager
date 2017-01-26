@@ -121,11 +121,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         viewHolder.setupCancelButton();
         viewHolder.setupResumeButton();
         viewHolder.setupRestartButton();
-        if (operation.isUndoable()) {
-            viewHolder.addMenuButton(viewHolder.btnUndo);
-        } else {
-            viewHolder.removeMenuButton(viewHolder.btnUndo);
-        }
+        viewHolder.setupUndoButton();
         if (operation.isUpdatable()) {
             viewHolder.progressBar.setVisibility(View.VISIBLE);
         } else {
@@ -385,6 +381,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             }
         }
 
+        @OnClick(R.id.btn_undo)
         public void onClickUndo() {
             if (mCurOperation.isUndoable()) {
                 Operation.IRevert revertControl = (Operation.IRevert) mCurOperation;
@@ -430,6 +427,15 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
                 addMenuButton(btnRestart);
             } else {
                 removeMenuButton(btnRestart);
+            }
+        }
+
+        public void setupUndoButton() {
+            if (mCurOperation != null
+                    && mCurOperation.isUndoable()) {
+                addMenuButton(btnUndo);
+            } else {
+                removeMenuButton(btnUndo);
             }
         }
 

@@ -5,6 +5,7 @@ import android.widget.Toast;
 
 import com.quangnam.baseframework.BaseErrorAction;
 import com.quangnam.baseframework.exception.SystemException;
+import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ErrorCode;
@@ -47,6 +48,6 @@ public class DefaultErrorAction extends BaseErrorAction {
     }
 
     public Context getContext() {
-        return null;
+        return Application.getInstance();
     }
 }

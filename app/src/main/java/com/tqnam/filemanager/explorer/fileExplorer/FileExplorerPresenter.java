@@ -8,6 +8,7 @@ import com.tqnam.filemanager.explorer.ExplorerPresenter;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ExplorerModel;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.model.eventbus.LocalRefreshDataEvent;
 import com.tqnam.filemanager.model.operation.BasicOperation;
 import com.tqnam.filemanager.model.operation.CopyFileOperation;
 import com.tqnam.filemanager.model.operation.DeleteOperation;
@@ -17,6 +18,8 @@ import com.tqnam.filemanager.model.operation.Validator;
 import com.tqnam.filemanager.utils.DefaultErrorAction;
 import com.tqnam.filemanager.utils.FileUtil;
 import com.tqnam.filemanager.utils.OperatorManager;
+
+import org.greenrobot.eventbus.Subscribe;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -95,6 +98,13 @@ public class FileExplorerPresenter implements ExplorerPresenter {
             openDirectory(parentFolder);
         }
     }
+
+    // EventBus function
+    @Subscribe
+    public void onEvent(LocalRefreshDataEvent event) {
+        reload();
+    }
+    //
 
     @Override
     public List<ItemExplorer> getListData() {

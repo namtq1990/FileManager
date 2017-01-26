@@ -154,6 +154,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
         mPresenter = getPresenter();
         initializeData(savedInstanceState);
+
     }
 
     @Override
@@ -223,6 +224,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     private void initializeData(Bundle savedInstanceState) {
         BaseActivity activity = (BaseActivity) getActivity();
         mDataFragment = (FragmentDataStorage) activity.getDataFragment();
+        mDataFragment.registerEvent(mPresenter);
 
         if (savedInstanceState == null) {
             String homePath = getRootPath();

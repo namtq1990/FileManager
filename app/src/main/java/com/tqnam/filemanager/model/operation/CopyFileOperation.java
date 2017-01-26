@@ -7,8 +7,12 @@ import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.model.eventbus.LocalRefreshDataEvent;
 import com.tqnam.filemanager.model.operation.propertyView.BasicOperationPropertyView;
+import com.tqnam.filemanager.utils.DefaultErrorAction;
 import com.tqnam.filemanager.utils.FileUtil;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -22,6 +26,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -29,7 +34,7 @@ import rx.schedulers.Schedulers;
  * Created by quangnam on 11/16/16.
  * Project FileManager-master
  */
-public class CopyFileOperation extends BasicOperation<FileItem> implements Validator.ValidateAction{
+public class CopyFileOperation extends BasicOperation<FileItem> implements Validator.ValidateAction {
     public static final String TAG = CopyFileOperation.class.getCanonicalName();
 
     private HashMap<String, String> mDestinationPathStorage;
@@ -163,6 +168,37 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
     }
 
     @Override
+    public void revert() {
+        super.revert();
+
+        ArrayList<FileItem> deleteData = new ArrayList<>();
+
+        ArrayList<Operation> listOperation = getAllStream();
+        for (Operation operation : listOperation) {
+            SingleFileCopyOperation copyFileOperation = (SingleFileCopyOperation) operation;
+            if (!copyFileOperation.mExecuted) {
+                continue;
+            }
+            if (copyFileOperation.mDestination.isDirectory()
+                    && copyFileOperation.mFileExists) {
+                continue;
+            }
+
+            deleteData.add(copyFileOperation.mDestination);
+        }
+
+        DeleteOperation deleteOperation = new DeleteOperation(deleteData);
+        deleteOperation.execute()
+                .subscribe(new Action1<BasicUpdatableData>() {
+                    @Override
+                    public void call(BasicUpdatableData basicUpdatableData) {
+                        EventBus.getDefault().post(new LocalRefreshDataEvent());
+                    }
+                }, new DefaultErrorAction());
+
+    }
+
+    @Override
     public int validate(ItemExplorer item) {
         int mode = 0;
         String destinationPath = mDestinationPathStorage.get(item.getPath());
@@ -171,8 +207,7 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
             FileItem destFile = new FileItem(destinationPath);
             if (destFile.getPath().equals(item.getPath())) {
                 mode = getValidator().setModeViolated(Validator.MODE_SAME_FILE, mode, true);
-            }
-            else if (destFile.exists()) {
+            } else if (destFile.exists()) {
                 mode = getValidator().setModeViolated(Validator.MODE_FILE_EXIST, mode, true);
             }
             if ((destFile.exists() && !destFile.canWrite())
@@ -184,13 +219,16 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
         return mode;
     }
 
-    public class SingleFileCopyOperation extends SingleFileOperation<FileItem> {
+    public class SingleFileCopyOperation extends SingleFileOperation<FileItem> implements IRevert {
 
         private FileItem mDestination;
+        private boolean mExecuted;
+        private boolean mFileExists;
 
         public SingleFileCopyOperation(FileItem data) {
             super(data);
 
+            mExecuted = false;
             Log.d("make operation for item: " + data.getAbsolutePath());
         }
 
@@ -205,6 +243,8 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
                         "Can't copy file because file " + mDestination + " existed");
             }
             FileItem source = getData();
+
+            mFileExists = mDestination.exists();
 
             if (source.isDirectory()) {
                 if (!mDestination.exists()) {
@@ -222,6 +262,8 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
                                     "Cann't copy directory " + mDestination.getPath(),
                                     new IOException());
                         }
+                    } else {
+                        mExecuted = true;
                     }
                 }
             } else {
@@ -234,6 +276,7 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
                     byte[] buff = new byte[FileUtil.BUFF_SIZE];
                     int byteRead;
 
+                    mExecuted = true;
                     while ((byteRead = inputStream.read(buff, 0, buff.length)) > 0) {
                         outputStream.write(buff);
                         mResult.setSizeExecuted(mResult.getSizeExecuted() + byteRead);
@@ -285,6 +328,10 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
 
         public void setDestination(String path) {
             mDestination = new FileItem(path);
+        }
+
+        @Override
+        public void revert() {
         }
     }
 
