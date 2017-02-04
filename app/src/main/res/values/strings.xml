@@ -16,5 +16,6 @@
     <string name="validate_exists">File %s is existed, do you want to continue?</string>
     <string name="validate_permission">Don\'t have permission to access %s, do you want to continue?</string>
     <string name="validate_same_file">File %s is same location. Do you want to continue?</string>
+    <string name="notify_exit">Click back again to exit.</string>
 
 </resources>

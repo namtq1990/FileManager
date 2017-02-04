@@ -6,6 +6,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
@@ -76,6 +77,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
     private FragmentDataStorage mDataFragment;
     private ViewHolder mViewHolder;
     private Parcelable mSelectedList;
+    private int mBackClickCount;
 
     private ActionMode.Callback mActionCallback = new ActionMode.Callback() {
         @Override
@@ -225,6 +227,8 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         BaseActivity activity = (BaseActivity) getActivity();
         mDataFragment = (FragmentDataStorage) activity.getDataFragment();
         mDataFragment.registerEvent(mPresenter);
+
+        mBackClickCount = 0;
 
         if (savedInstanceState == null) {
             String homePath = getRootPath();
@@ -452,12 +456,27 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     public boolean onBackPressed() {
         //        mOpenAnimType = animActionOpenUp();
+        mBackClickCount++;
 
         if (isCloseFragment()) {
-            getFragmentManager().popBackStack();
+            if (getFragmentManager().getBackStackEntryCount() == 0) {
+                if (mBackClickCount == 1) {
+                    Toast.makeText(getAppContext(), R.string.notify_exit, Toast.LENGTH_SHORT).show();
+                    Handler handler = new Handler();        // Remove back click count to init value after 3s
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            mBackClickCount = 0;
+                        }
+                    }, 3000);
+                } else if (mBackClickCount == 2) {
+                    getActivitySafe().finish();
+                }
+            } else getFragmentManager().popBackStack();
         } else {
             mPresenter.onBackPressed();
         }
+
 
         return true;
     }
