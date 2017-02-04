@@ -3,7 +3,6 @@ package com.tqnam.filemanager.model.operation;
 import com.quangnam.baseframework.Log;
 import com.quangnam.baseframework.TrackingTime;
 import com.quangnam.baseframework.exception.SystemException;
-import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ItemExplorer;
@@ -11,6 +10,7 @@ import com.tqnam.filemanager.model.eventbus.LocalRefreshDataEvent;
 import com.tqnam.filemanager.model.operation.propertyView.BasicOperationPropertyView;
 import com.tqnam.filemanager.utils.DefaultErrorAction;
 import com.tqnam.filemanager.utils.FileUtil;
+import com.tqnam.filemanager.utils.OperationManager;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -53,7 +53,6 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
         mDestinationPathStorage = new HashMap<>();
         super.mPropertyView = new BasicOperationPropertyView(this);
 
-        mResult = new BasicUpdatableData();
         mResult.setOperatorHashcode(hashCode());
         getValidator().setValidateAction(this);
 
@@ -75,7 +74,6 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
         traverse();
 
         mCurObservable = Observable.interval(UPDATE_TIME, TimeUnit.MILLISECONDS)
-                .subscribeOn(Schedulers.io())
                 .takeUntil(
                         Observable.create(new Observable.OnSubscribe<Void>() {
                             @Override
@@ -105,8 +103,7 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
                         TrackingTime.endTracking(formatTag());
                     }
                 })
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(new RxCacheWithoutError<BasicUpdatableData>(1));
+                .observeOn(AndroidSchedulers.mainThread());
 
         return mCurObservable;
     }
@@ -132,6 +129,11 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
 
             throw e;
         }
+    }
+
+    @Override
+    public int getCategory() {
+        return OperationManager.CATEGORY_COPY;
     }
 
     @Override
@@ -286,11 +288,7 @@ public class CopyFileOperation extends BasicOperation<FileItem> implements Valid
                             break;
                         }
 
-                        synchronized (getLocker()) {
-                            if (!isRunning()) {
-                                getLocker().wait();
-                            }
-                        }
+                        performLockIfOperationPaused();
                     }
 
                     Log.d("COmpleted " + mDestination);

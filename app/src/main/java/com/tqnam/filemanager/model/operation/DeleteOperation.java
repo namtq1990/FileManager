@@ -3,9 +3,9 @@ package com.tqnam.filemanager.model.operation;
 import com.quangnam.baseframework.Log;
 import com.quangnam.baseframework.TrackingTime;
 import com.quangnam.baseframework.exception.SystemException;
-import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.operation.propertyView.BasicOperationPropertyView;
+import com.tqnam.filemanager.utils.OperationManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +51,11 @@ public class DeleteOperation extends BasicOperation<FileItem> {
     }
 
     @Override
+    public int getCategory() {
+        return OperationManager.CATEGORY_DELETE;
+    }
+
+    @Override
     public Observable<? extends BasicUpdatableData> createExecuter() {
         TrackingTime.beginTracking(formatTag(mResult));
         mCurObservable = Observable.interval(UPDATE_TIME, TimeUnit.MILLISECONDS).takeUntil(
@@ -81,8 +86,7 @@ public class DeleteOperation extends BasicOperation<FileItem> {
                         TrackingTime.endTracking(formatTag(mResult));
                     }
                 })
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(new RxCacheWithoutError<BasicOperation.BasicUpdatableData>(1));
+                .observeOn(AndroidSchedulers.mainThread());
 
         return mCurObservable;
     }
@@ -148,6 +152,8 @@ public class DeleteOperation extends BasicOperation<FileItem> {
             if (isCancelled()) {
                 return;
             }
+
+            performLockIfOperationPaused();
             Log.d("Deleting " + data.getPath());
 
             boolean isDeleted = data.delete();

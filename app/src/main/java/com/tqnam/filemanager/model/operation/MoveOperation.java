@@ -3,11 +3,15 @@ package com.tqnam.filemanager.model.operation;
 import com.quangnam.baseframework.Log;
 import com.quangnam.baseframework.TrackingTime;
 import com.quangnam.baseframework.exception.SystemException;
-import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ItemExplorer;
+import com.tqnam.filemanager.model.eventbus.LocalRefreshDataEvent;
 import com.tqnam.filemanager.model.operation.propertyView.BasicOperationPropertyView;
+import com.tqnam.filemanager.utils.DefaultErrorAction;
+import com.tqnam.filemanager.utils.OperationManager;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,6 +81,11 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
     }
 
     @Override
+    public int getCategory() {
+        return OperationManager.CATEGORY_MOVE;
+    }
+
+    @Override
     public void cancel() {
         super.cancel();
 
@@ -91,6 +100,7 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
     @Override
     public Observable<? extends BasicUpdatableData> createExecuter() {
         TrackingTime.beginTracking(formatTag(mResult));
+        //TODO: Separate between use move function or copy/delete function isn't exactly
 
         if (isOverwrite()) {
             if (getSourcePath().equals(getDestinationPath())) {
@@ -178,8 +188,7 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
                         mResult.setProgress(100);
                         mResult.setError(false);
                     }
-                })
-                .compose(new RxCacheWithoutError<BasicUpdatableData>(1));
+                });
 
         return mCurObservable;
     }
@@ -194,6 +203,8 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
                     break;
                 }
 
+                performLockIfOperationPaused();
+
                 SingleMoveFile moveOperator = (SingleMoveFile) operations.get(i);
                 moveOperator.execute(false);
             }
@@ -204,6 +215,42 @@ public class MoveOperation extends BasicOperation<FileItem> implements Validator
             mResult.setError(true);
 
             throw e;
+        }
+    }
+
+    @Override
+    public void revert() {
+        //TODO revert function isn't completed. Don't check if single operation is completed. So need separate all single operation to standalone
+        super.revert();
+
+        ArrayList<FileItem> moveFileData = new ArrayList<>();
+        for (FileItem file : getData()) {
+            FileItem inputFile = new FileItem(file.getPath().replaceFirst(getSourcePath(), getDestinationPath()));
+            if (inputFile.exists()) {
+                moveFileData.add(inputFile);
+            }
+        }
+
+        MoveOperation moveOperation = new MoveOperation(moveFileData, getSourcePath());
+        moveOperation.execute(null)
+                .subscribe(new Action1<BasicUpdatableData>() {
+                    @Override
+                    public void call(BasicUpdatableData basicUpdatableData) {
+                        EventBus.getDefault().post(new LocalRefreshDataEvent());
+                    }
+                }, new DefaultErrorAction());
+    }
+
+    @Override
+    public void setRunning(boolean running) {
+        super.setRunning(running);
+
+        if (mCopyOperation != null) {
+            mCopyOperation.setRunning(running);
+        }
+
+        if (mDeleteOperation != null) {
+            mDeleteOperation.setRunning(running);
         }
     }
 

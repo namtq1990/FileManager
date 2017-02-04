@@ -5,7 +5,7 @@ import android.os.Parcelable;
 
 import com.quangnam.baseframework.BaseDataFragment;
 import com.tqnam.filemanager.model.operation.Operation;
-import com.tqnam.filemanager.utils.OperatorManager;
+import com.tqnam.filemanager.utils.OperationManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,7 +29,7 @@ public class ExplorerModel {
     public int mCurCompare;
 
     private BaseDataFragment mDataFragment;
-    private OperatorManager mOperatorManager;
+    private OperationManager mOperatorManager;
      // The List item in current location, all item must be same type to restore value
     private ArrayList<ItemExplorer> mListItem;
     private ArrayList<Operation> mUnvalidatedOperations;
@@ -39,7 +39,7 @@ public class ExplorerModel {
         mListItem = new ArrayList<>();
 
         mDataFragment = dataFragment;
-        mOperatorManager = OperatorManager.getInstance();
+        mOperatorManager = OperationManager.getInstance();
         mUnvalidatedOperations = new ArrayList<>();
     }
 
@@ -94,7 +94,7 @@ public class ExplorerModel {
         mListItem.clear();
     }
 
-    public OperatorManager getOperatorManager() {
+    public OperationManager getOperatorManager() {
         return mOperatorManager;
     }
 
@@ -121,6 +121,6 @@ public class ExplorerModel {
 
     public int getClipboardCategory() {
         return mDataFragment.getData()
-                .getInt(ARG_CLIPBOARD_CATEGORY, OperatorManager.CATEGORY_COPY);
+                .getInt(ARG_CLIPBOARD_CATEGORY, OperationManager.CATEGORY_COPY);
     }
 }

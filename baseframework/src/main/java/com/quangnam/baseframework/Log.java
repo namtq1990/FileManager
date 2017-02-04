@@ -41,6 +41,14 @@ public class Log {
     }
 
     public static void d(String tag, String message) {
+        d(tag, message, false);
+    }
+
+    public static void d(String tag, String message, boolean dumpStack) {
+        if (dumpStack) {
+            Thread.dumpStack();
+        }
+
         android.util.Log.d(tag, message);
     }
 }

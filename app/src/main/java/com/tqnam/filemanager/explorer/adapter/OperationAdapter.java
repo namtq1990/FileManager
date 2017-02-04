@@ -26,7 +26,7 @@ import com.tqnam.filemanager.explorer.dialog.OperationInforDialogFragment;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.operation.Operation;
 import com.tqnam.filemanager.utils.DefaultErrorAction;
-import com.tqnam.filemanager.utils.OperatorManager;
+import com.tqnam.filemanager.utils.OperationManager;
 import com.tqnam.filemanager.utils.ViewUtils;
 
 import java.util.ArrayList;
@@ -51,11 +51,11 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
     private BaseActivity mContext;
     private int mControllerButtonSize;        //Size of a button in controller (reload, property, ...)
 
-//    private List<OperatorList> mTotalList;
+    //    private List<OperatorList> mTotalList;
 
     /**
      * Primary constructor. Sets up {@link #mParentItemList} and {@link #mItemList}.
-     * <p>
+     * <p/>
      * Changes to {@link #mParentItemList} should be made through add/remove methods in
      * {@link ExpandableRecyclerAdapter}
      *
@@ -93,13 +93,13 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         int index = parentList.indexOf(parentListItem);
 
         switch (index) {
-            case OperatorManager.CATEGORY_COPY:
+            case OperationManager.CATEGORY_COPY:
                 label = "COPY OPERATOR";
                 break;
-            case OperatorManager.CATEGORY_MOVE:
+            case OperationManager.CATEGORY_MOVE:
                 label = "MOVE OPERATOR";
                 break;
-            case OperatorManager.CATEGORY_DELETE:
+            case OperationManager.CATEGORY_DELETE:
                 label = "DELETE OPERATOR";
                 break;
             default:
@@ -194,6 +194,8 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             if (data.isError()) {
                 observable = Observable.just(data);
             }
+
+            data.registerStateChangeListener(viewHolder);
         }
         if (observable == null) {
             observable = operation.execute();
@@ -216,6 +218,8 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
                 return mContext;
             }
         });
+
+
     }
 
     public int getParentPosition(int position) {
@@ -238,7 +242,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         ArrayList<Operation> mList;
 
         public OperatorList(List<Operation> list) {
-            mList = new ArrayList<>(list);
+            mList = (ArrayList<Operation>) list;
         }
 
         @Override
@@ -253,24 +257,33 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
     }
 
     public class ChildViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ChildViewHolder
-            implements Action1<Object> {
+            implements Action1<Object>, Operation.OnStateChangeListener {
         private static final int CONTROLLER_BUTTON_ROW_SIZE = 3;        // Number of button per rows
 
         @BindView(R.id.prog_execute)
         ProgressBar progressBar;
-        @BindView(R.id.tv_progress) TextView tvProgress;
+        @BindView(R.id.tv_progress)
+        TextView tvProgress;
         @BindView(R.id.list_name)
         RecyclerView listName;
         @BindView(R.id.btn_cancel)
         AppCompatImageButton btnCancel;
-        @BindView(R.id.btn_info) AppCompatImageButton btnInfo;
-        @BindView(R.id.btn_restart) AppCompatImageButton btnRestart;
-        @BindView(R.id.btn_pause) AppCompatImageButton btnPause;
-        @BindView(R.id.btn_start) AppCompatImageButton btnStart;
-        @BindView(R.id.btn_undo) AppCompatImageButton btnUndo;
-        @BindView(R.id.tv_from) TextView tvFrom;
-        @BindView(R.id.tv_to) TextView tvTo;
-        @BindView(R.id.layout_controller) ViewGroup layoutController;
+        @BindView(R.id.btn_info)
+        AppCompatImageButton btnInfo;
+        @BindView(R.id.btn_restart)
+        AppCompatImageButton btnRestart;
+        @BindView(R.id.btn_pause)
+        AppCompatImageButton btnPause;
+        @BindView(R.id.btn_start)
+        AppCompatImageButton btnStart;
+        @BindView(R.id.btn_undo)
+        AppCompatImageButton btnUndo;
+        @BindView(R.id.tv_from)
+        TextView tvFrom;
+        @BindView(R.id.tv_to)
+        TextView tvTo;
+        @BindView(R.id.layout_controller)
+        ViewGroup layoutController;
         @BindView(R.id.space)
         View space;
         View rootView;
@@ -290,7 +303,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             ButterKnife.bind(this, itemView);
 
             mVisibleButton = new HashSet<>(layoutController.getChildCount());
-            for (int i = 0;i < layoutController.getChildCount();i++) {
+            for (int i = 0; i < layoutController.getChildCount(); i++) {
                 View child = layoutController.getChildAt(i);
                 if (child instanceof AppCompatImageButton) {
                     // Add all button in controller layout to visible button
@@ -315,7 +328,11 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         }
 
         void addMenuButton(AppCompatImageButton button) {
-            addMenuButton(button, mVisibleButton.size());
+            int index = mVisibleButton.size();
+            if (button.getTag() != null) {
+                index = Math.min(Integer.valueOf((String) button.getTag()), index);
+            }
+            addMenuButton(button, index);
         }
 
         void addMenuButton(AppCompatImageButton button, int index) {
@@ -350,8 +367,6 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
                     }
 
                     setupStatus();
-                    setupResumeButton();
-                    setupCancelButton();
                 }
             }
         }
@@ -361,7 +376,6 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             if (mCurOperation != null
                     && mCurOperation.isCancelable()) {
                 ((Operation.ICancel) mCurOperation).cancel();
-                setupResumeButton();
             }
         }
 
@@ -377,7 +391,6 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             if (mCurOperation.isAbleToPause()) {
                 Operation.IPause pauseControl = (Operation.IPause) mCurOperation;
                 pauseControl.setRunning(!pauseControl.isRunning());
-                setupResumeButton();
             }
         }
 
@@ -393,7 +406,9 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             Operation.UpdatableData data = mCurOperation.getUpdateData();
             if (mCurOperation.isAbleToPause()
                     && (data.getStateValue(Operation.OperationState.STATE_RUNNING)
-                    || data.getStateValue(Operation.OperationState.STATE_PAUSE))) {
+                    || data.getStateValue(Operation.OperationState.STATE_PAUSE)
+                    || data.getState() == 0
+            )) {
 
                 Operation.IPause pauseControl = (Operation.IPause) mCurOperation;
                 if (pauseControl.isRunning()) {
@@ -414,7 +429,9 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         public void setupCancelButton() {
             if (mCurOperation != null
                     && mCurOperation.isCancelable()
-                    && !mCurOperation.getUpdateData().getStateValue(Operation.OperationState.STATE_CANCELLED)) {
+                    && (mCurOperation.getUpdateData().getStateValue(Operation.OperationState.STATE_PAUSE)
+                    || mCurOperation.getUpdateData().getStateValue(Operation.OperationState.STATE_RUNNING)
+            )) {
                 addMenuButton(btnCancel);
             } else {
                 removeMenuButton(btnCancel);
@@ -422,6 +439,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         }
 
         public void setupRestartButton() {
+            //TODO not implemented
             if (mCurOperation != null
                     && mCurOperation.isRestartable()) {
                 addMenuButton(btnRestart);
@@ -453,14 +471,43 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
                 } else if (data.getStateValue(Operation.OperationState.STATE_FINISHED)) {
                     tvProgress.setText("Finished");
                 }
+                if (data.getStateValue(Operation.OperationState.STATE_UNDO)) {
+                    tvProgress.setText("Undoing");
+                }
             }
         }
 
-        // TODO unbind with operator
+        @Override
+        public void onStateChanging(int mode, boolean newValue) {
+            if (mode == Operation.OperationState.STATE_UNDO && newValue) {
+                //Undoing
+                List curOperationList = OperationManager.getInstance().getOperatorList(mCurOperation.getCategory());
+                int index = curOperationList.indexOf(mCurOperation);
+                if (index != -1) {
+                    curOperationList.remove(mCurOperation);
+                    notifyChildItemRemoved(getParentPosition(getAdapterPosition()), index);
+                }
+            }
+        }
+
+        @Override
+        public void onStateChanged(int mode, boolean oldValue, boolean newValue) {
+            mContext.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    setupResumeButton();
+                    setupCancelButton();
+                    setupStatus();
+                }
+            });
+        }
+
+        // TODO unbind with operator, unbind stateChangeListener
     }
 
     public class ParentViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ParentViewHolder {
-        @BindView(R.id.tv_label) TextView label;
+        @BindView(R.id.tv_label)
+        TextView label;
         @BindView(R.id.ic_arrow)
         ImageView arrow;
 
@@ -483,7 +530,8 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
                     .setDuration(100);
             fadeOut.addListener(new Animator.AnimatorListener() {
                 @Override
-                public void onAnimationStart(Animator animation) {}
+                public void onAnimationStart(Animator animation) {
+                }
 
                 @Override
                 public void onAnimationEnd(Animator animation) {

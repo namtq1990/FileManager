@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import com.quangnam.baseframework.BaseFragment;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.adapter.OperationAdapter;
-import com.tqnam.filemanager.utils.OperatorManager;
+import com.tqnam.filemanager.utils.OperationManager;
 
 import java.util.ArrayList;
 
@@ -20,6 +20,7 @@ import butterknife.ButterKnife;
 
 /**
  * Created by quangnam on 11/16/16.
+ * Project FileManager-master
  */
 public class OperatorManagerFragment extends BaseFragment {
     public static final String TAG = OperatorManagerFragment.class.getCanonicalName();
@@ -44,47 +45,10 @@ public class OperatorManagerFragment extends BaseFragment {
     }
 
     private void initData() {
-//        Operation testOperator;
-//        List<ItemExplorer> files = new ArrayList<>();
-//        files.add(new FileItem("/Sdcard/Movies"));
-//        files.add(new FileItem("/Sdcard/Music"));
-//
-//        List<FileItem> input = new ArrayList<>();
-//        input.add(new FileItem("/storage/emulated/0/Subtitles/Download"));
-////        testOperator = new CopyFileOperation(input, "/storage/emulated/0/Subtitles");
-//        testOperator = new DeleteOperation(input);
-////        Operation testOperator = new Operation.MultipleItemOperator<ItemExplorer>(files) {
-////            @Override
-////            public Observable execute(Object... arg) {
-////                return Observable.just("Test");
-////            }
-////
-////            @Override
-////            public String getSourcePath() {
-////                return "/Sdcard";
-////            }
-////
-////            @Override
-////            public String getDestinationPath() {
-////                return "/Sdcard";
-////            }
-////
-////            @Override
-////            public boolean isUpdatable() {
-////                return true;
-////            }
-////        };
-//
-//        ArrayList<Operation> operators = new ArrayList<>();
-//        operators.add(testOperator);
-//
-//        OperationAdapter.OperatorList childList = new OperationAdapter.OperatorList(operators);
-
         ArrayList<OperationAdapter.OperatorList> list = new ArrayList<>();
-//        list.add(childList);
-        for (int category : OperatorManager.CATEGORIES) {
+        for (int category : OperationManager.CATEGORIES) {
             OperationAdapter.OperatorList childList = new OperationAdapter.OperatorList(
-                    OperatorManager.getInstance().getOperatorList(category)
+                    OperationManager.getInstance().getOperatorList(category)
             );
             list.add(childList);
         }

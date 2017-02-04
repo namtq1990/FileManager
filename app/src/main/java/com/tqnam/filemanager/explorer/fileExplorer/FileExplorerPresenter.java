@@ -17,7 +17,7 @@ import com.tqnam.filemanager.model.operation.Operation;
 import com.tqnam.filemanager.model.operation.Validator;
 import com.tqnam.filemanager.utils.DefaultErrorAction;
 import com.tqnam.filemanager.utils.FileUtil;
-import com.tqnam.filemanager.utils.OperatorManager;
+import com.tqnam.filemanager.utils.OperationManager;
 
 import org.greenrobot.eventbus.Subscribe;
 
@@ -311,9 +311,9 @@ public class FileExplorerPresenter implements ExplorerPresenter {
         int category = mModel.getClipboardCategory();
         Operation operation = null;
 
-        if (category == OperatorManager.CATEGORY_MOVE) {
+        if (category == OperationManager.CATEGORY_MOVE) {
             operation = moveCurFolderOperation(listSelected);
-        } else if (category == OperatorManager.CATEGORY_COPY) {
+        } else if (category == OperationManager.CATEGORY_COPY) {
             operation = copyCurFolderOperation(listSelected);
         }
 
@@ -339,15 +339,15 @@ public class FileExplorerPresenter implements ExplorerPresenter {
             }
         }
 
-        int category = OperatorManager.CATEGORY_OTHER;
+        int category = OperationManager.CATEGORY_OTHER;
         if (operation instanceof DeleteOperation) {
-            category = OperatorManager.CATEGORY_DELETE;
+            category = OperationManager.CATEGORY_DELETE;
             mView.showMessage("Deleting...");
         } else if (operation instanceof MoveOperation) {
-            category = OperatorManager.CATEGORY_MOVE;
+            category = OperationManager.CATEGORY_MOVE;
             mView.showMessage("Moving...");
         } else if (operation instanceof CopyFileOperation) {
-            category = OperatorManager.CATEGORY_COPY;
+            category = OperationManager.CATEGORY_COPY;
             mView.showMessage("Copying...");
         }
 

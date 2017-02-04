@@ -14,7 +14,7 @@ import rx.Subscriber;
  * Created by quangnam on 11/17/16.
  * Project FileManager-master
  */
-public class OperatorManager {
+public class OperationManager {
     public static final int CATEGORY_COPY = 0;
     public static final int CATEGORY_MOVE = 1;
     public static final int CATEGORY_DELETE = 2;
@@ -28,14 +28,14 @@ public class OperatorManager {
     };
 
 //    private ArrayList<Operation> mPrepareList;
-    private static OperatorManager mInstance;
+    private static OperationManager mInstance;
 
     private ArrayList<Operation> mCopyOperation;
     private ArrayList<Operation> mDeleteOperation;
     private ArrayList<Operation> mMoveOperation;
     private ArrayList<Operation> mOtherList;
 
-    private OperatorManager() {
+    private OperationManager() {
 //        mPrepareList = new ArrayList<>();
 
         mCopyOperation = new ArrayList<>();
@@ -44,9 +44,9 @@ public class OperatorManager {
         mOtherList = new ArrayList<>();
     }
 
-    public static OperatorManager getInstance() {
+    public static OperationManager getInstance() {
         if (mInstance == null)
-            mInstance = new OperatorManager();
+            mInstance = new OperationManager();
 
         return mInstance;
     }

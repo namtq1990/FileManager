@@ -1,11 +1,14 @@
 package com.tqnam.filemanager.model.operation;
 
+import com.quangnam.baseframework.utils.RxCacheWithoutError;
 import com.tqnam.filemanager.model.ItemExplorer;
 
 import java.util.Iterator;
 import java.util.List;
 
 import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func1;
 
 /**
  * Created by quangnam on 11/25/16.
@@ -19,6 +22,7 @@ public abstract class BasicOperation<T extends ItemExplorer> extends Operation.T
     public static final int UPDATE_TIME = 800;
     private final Object mLocker;
     protected Observable<? extends BasicUpdatableData> mCurObservable;
+    protected boolean mEmitResult;
     protected BasicUpdatableData mResult;
     private boolean mIsOverwrite;
     private Validator mValidator;
@@ -31,6 +35,9 @@ public abstract class BasicOperation<T extends ItemExplorer> extends Operation.T
         mIsOverwrite = false;
         mValidator = new Validator();
         mLocker = new Object();
+        mEmitResult = true;
+
+        mResult = new BasicUpdatableData();
     }
 
     public long getLastEmitSize() {
@@ -72,6 +79,18 @@ public abstract class BasicOperation<T extends ItemExplorer> extends Operation.T
         }
     }
 
+    public void performLockIfOperationPaused() {
+        synchronized (mLocker) {
+            if (!isRunning()) {
+                try {
+                    mLocker.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     @Override
     public boolean isCancelable() {
         return super.isCancelable()
@@ -96,10 +115,6 @@ public abstract class BasicOperation<T extends ItemExplorer> extends Operation.T
     @Override
     public void revert() {
         mResult.setState(OperationState.STATE_UNDO, true);
-    }
-
-    public Object getLocker() {
-        return mLocker;
     }
 
     public void validate() {
@@ -129,7 +144,24 @@ public abstract class BasicOperation<T extends ItemExplorer> extends Operation.T
     @Override
     public final Observable<? extends BasicUpdatableData> execute(Object... arg) {
         if (mCurObservable == null) {
-            mCurObservable = createExecuter();
+            mCurObservable = createExecuter()
+                    .filter(new Func1<BasicUpdatableData, Boolean>() {
+                        @Override
+                        public Boolean call(BasicUpdatableData basicUpdatableData) {
+                            boolean emitResult = mEmitResult;
+                            mEmitResult = mResult.getStateValue(OperationState.STATE_RUNNING);
+                            return emitResult || mEmitResult;
+                        }
+                    })
+                    .doOnError(new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            if (mResult != null) {
+                                mResult.setError(true);
+                            }
+                        }
+                    })
+                    .compose(new RxCacheWithoutError<BasicUpdatableData>(1));
         }
 
         return mCurObservable;

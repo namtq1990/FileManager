@@ -1,7 +1,9 @@
 package com.tqnam.filemanager.model.operation;
 
+import com.quangnam.baseframework.Log;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.operation.propertyView.OperationPropertyView;
+import com.tqnam.filemanager.utils.OperationManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,12 +35,16 @@ public abstract class Operation<T> {
         return this instanceof IRestart;
     }
 
-    public final boolean isAbleToPause() {
+    public boolean isAbleToPause() {
         return this instanceof IPause;
     }
 
-    public final boolean isUpdatable() {
+    public boolean isUpdatable() {
         return getUpdateData() != null;
+    }
+
+    public int getCategory() {
+        return OperationManager.CATEGORY_OTHER;
     }
 
     public abstract String getSourcePath();
@@ -57,6 +63,7 @@ public abstract class Operation<T> {
 
     public interface IPause {
         boolean isRunning();
+
         void setRunning(boolean isRunning);
     }
 
@@ -70,6 +77,11 @@ public abstract class Operation<T> {
 
     public interface IRestart {
         void restart();
+    }
+
+    public interface OnStateChangeListener {
+        void onStateChanging(int mode, boolean newValue);
+        void onStateChanged(int mode, boolean oldValue, boolean newValue);
     }
 
     public abstract static class TraverseFileOperation<T extends ItemExplorer> extends Operation<List<T>> {
@@ -138,7 +150,10 @@ public abstract class Operation<T> {
         private int operatorHashcode;
         private int state;
 
+        private ArrayList<OnStateChangeListener> mOnStateChangeListeners;
+
         public UpdatableData() {
+            mOnStateChangeListeners = new ArrayList<>();
             setState(OperationState.STATE_RUNNING, true);
         }
 
@@ -170,16 +185,34 @@ public abstract class Operation<T> {
         }
 
         public void setError(boolean error) {
+            setState(OperationState.STATE_PAUSE, false);
+            setState(OperationState.STATE_RUNNING, false);
             setState(OperationState.STATE_ERROR, error);
         }
 
         public void setState(int stateMode, boolean value) {
+            Log.d("Setting state " + stateMode + " value " + value + " in cur state: " + getState());
+            boolean stateChange = false;
+            if (getStateValue(stateMode) != value) {
+                // State changing, so notify all
+                stateChange = true;
+                for (OnStateChangeListener listener : mOnStateChangeListeners) {
+                    listener.onStateChanging(stateMode, value);
+                }
+            }
+
             if (value) {
                 state |= stateMode;
             } else {
                 state &= ~stateMode;
             }
             state &= (value ? stateMode : ~stateMode);
+
+            if (stateChange) {
+                for (OnStateChangeListener listener : mOnStateChangeListeners) {
+                    listener.onStateChanged(stateMode, !value, value);
+                }
+            }
         }
 
         public boolean getStateValue(int stateMode) {
@@ -190,7 +223,17 @@ public abstract class Operation<T> {
             return state;
         }
 
-        public void validate() {}
+        public void validate() {
+        }
+
+        public void registerStateChangeListener(OnStateChangeListener listener) {
+            if (!mOnStateChangeListeners.contains(listener))
+                mOnStateChangeListeners.add(listener);
+        }
+
+        public void unregisterStateChangeListener(OnStateChangeListener listener) {
+            mOnStateChangeListeners.remove(listener);
+        }
 
         @Override
         public String toString() {
@@ -198,6 +241,7 @@ public abstract class Operation<T> {
                     + "state=" + getState() + ","
                     + "progress=" + progress + "}";
         }
+
     }
 
     public static class OperationState {

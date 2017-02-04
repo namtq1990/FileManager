@@ -44,7 +44,7 @@ import com.tqnam.filemanager.model.operation.DeleteOperation;
 import com.tqnam.filemanager.model.operation.Operation;
 import com.tqnam.filemanager.model.operation.Validator;
 import com.tqnam.filemanager.utils.FileUtil;
-import com.tqnam.filemanager.utils.OperatorManager;
+import com.tqnam.filemanager.utils.OperationManager;
 import com.tqnam.filemanager.utils.SparseBooleanArrayParcelable;
 import com.tqnam.filemanager.utils.ViewUtils;
 
@@ -120,14 +120,14 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                     break;
                 }
                 case R.id.action_copy: {
-                    mPresenter.saveClipboard(new ArrayList<>(selectedList), OperatorManager.CATEGORY_COPY);
+                    mPresenter.saveClipboard(new ArrayList<>(selectedList), OperationManager.CATEGORY_COPY);
                     getActivity().supportInvalidateOptionsMenu();
                     hideContextMenu();
 
                     break;
                 }
                 case R.id.action_cut:
-                    mPresenter.saveClipboard(new ArrayList<>(selectedList), OperatorManager.CATEGORY_MOVE);
+                    mPresenter.saveClipboard(new ArrayList<>(selectedList), OperationManager.CATEGORY_MOVE);
                     getActivity().supportInvalidateOptionsMenu();
                     hideContextMenu();
 
