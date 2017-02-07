@@ -115,6 +115,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         Operation operation = (Operation) childListItem;
         final ChildViewHolder viewHolder = (ChildViewHolder) childViewHolder;
 
+        viewHolder.unBind();
         setupFileName(viewHolder, operation);
         setupStream(operation, viewHolder);
 
@@ -150,8 +151,15 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         }
     }
 
+    @Override
+    public void onViewDetachedFromWindow(RecyclerView.ViewHolder holder) {
+        super.onViewDetachedFromWindow(holder);
+        if (holder instanceof ChildViewHolder) {
+            ((ChildViewHolder) holder).unBind();
+        }
+    }
+
     private void setProgress(ChildViewHolder viewHolder, int progress) {
-        Log.d("Set progress: " + progress);
         if (progress > 100) progress = 100;
 
         viewHolder.progressBar.setProgress(progress);
@@ -362,7 +370,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             if (o instanceof Operation) {
                 if (updatableData.getOperatorHashcode() == o.hashCode()) {
                     // This is right operator, so update this view
-                    if (progressBar.getProgress() != (int) updatableData.getProgress()) {
+                    if (progressBar.getProgress() != updatableData.getProgress()) {
                         setProgress(this, updatableData.getProgress());
                     }
 
@@ -463,16 +471,16 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
                 if (data.getStateValue(Operation.OperationState.STATE_RUNNING)) {
                     tvProgress.setText(String.format(Locale.ENGLISH, "%1d%%", data.getProgress()));
                 } else if (data.getStateValue(Operation.OperationState.STATE_PAUSE)) {
-                    tvProgress.setText("Paused");
+                    tvProgress.setText(R.string.paused);
                 } else if (data.getStateValue(Operation.OperationState.STATE_CANCELLED)) {
-                    tvProgress.setText("Cancelled");
+                    tvProgress.setText(R.string.cancelled);
                 } else if (data.getStateValue(Operation.OperationState.STATE_ERROR)) {
-                    tvProgress.setText("Error");
+                    tvProgress.setText(R.string.error);
                 } else if (data.getStateValue(Operation.OperationState.STATE_FINISHED)) {
-                    tvProgress.setText("Finished");
+                    tvProgress.setText(R.string.finished);
                 }
                 if (data.getStateValue(Operation.OperationState.STATE_UNDO)) {
-                    tvProgress.setText("Undoing");
+                    tvProgress.setText(R.string.undoing);
                 }
             }
         }
@@ -502,7 +510,17 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             });
         }
 
-        // TODO unbind with operator, unbind stateChangeListener
+        void unBind() {
+            if (mCurOperation != null
+                    && mCurOperation.getUpdateData() != null) {
+                mCurOperation.getUpdateData().unregisterAllStateChangeListener();
+            }
+
+            if (curSubscription != null
+                    && !curSubscription.isUnsubscribed()) {
+                curSubscription.unsubscribe();
+            }
+        }
     }
 
     public class ParentViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ParentViewHolder {

@@ -38,10 +38,16 @@ public class OperatorManagerFragment extends BaseFragment {
         initData();
         ButterKnife.bind(mViewHolder, rootView);
         mViewHolder.listOperator.setAdapter(mViewHolder.listAdapter);
-        mViewHolder.listOperator.setLayoutManager(new LinearLayoutManager(inflater.getContext()));
+        mViewHolder.listOperator.setLayoutManager(mViewHolder.listLayout);
         mViewHolder.listOperator.setHasFixedSize(true);
 
         return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        mViewHolder.listLayout.removeAllViews();    // Force remove view here to let adapter free all resource
+        super.onDestroyView();
     }
 
     private void initData() {
@@ -54,10 +60,12 @@ public class OperatorManagerFragment extends BaseFragment {
         }
 
         mViewHolder.listAdapter = new OperationAdapter(list, getActivity());
+        mViewHolder.listLayout = new LinearLayoutManager(getActivity());
     }
 
     class ViewHolder {
         @BindView(R.id.list_operator) RecyclerView listOperator;
         OperationAdapter listAdapter;
+        LinearLayoutManager listLayout;
     }
 }

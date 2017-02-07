@@ -235,6 +235,10 @@ public abstract class Operation<T> {
             mOnStateChangeListeners.remove(listener);
         }
 
+        public void unregisterAllStateChangeListener() {
+            mOnStateChangeListeners.clear();
+        }
+
         @Override
         public String toString() {
             return super.toString() + "{"
