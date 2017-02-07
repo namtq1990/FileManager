@@ -285,9 +285,11 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_explorer, menu);
-        addActionSearch(menu);
-        addActionPaste(menu);
+        if (mIsShownMenu) {
+            inflater.inflate(R.menu.menu_explorer, menu);
+            addActionSearch(menu);
+            addActionPaste(menu);
+        }
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -343,7 +345,6 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
             }
         });
 
-        mViewHolder.mSearchMenu.setVisible(mIsShownMenu);
         //region Add animation to search field, consider default fadeIn and translate
         // -----------------------------------------------------------------------------------------
 
@@ -500,12 +501,13 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     @Override
     public void onFocusFragmentChange(BaseFragmentInterface oldFragment, BaseFragmentInterface newFragment) {
+        getActivitySafe().supportInvalidateOptionsMenu();
         if (isFragmentFocusing(newFragment)) {
             ((ExplorerBaseFunction) getActivity()).showAddButton();
             mIsShownMenu = true;
-            getActivity().supportInvalidateOptionsMenu();
 
             if (mDataFragment.getData().containsKey(ARG_SELECTED_LIST)) {
+                // Restore selected list
                 mSelectedList = mDataFragment.getData().getParcelable(ARG_SELECTED_LIST);
                 mDataFragment.getData().remove(ARG_SELECTED_LIST);
 
@@ -528,7 +530,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                     mDataFragment.getData()
                             .putParcelable(ARG_SELECTED_LIST, mSelectedList);
                 }
-                hideContextMenu();
+                hideContextMenu();      // Hide menu cut, copy, ...
             }
         }
     }
