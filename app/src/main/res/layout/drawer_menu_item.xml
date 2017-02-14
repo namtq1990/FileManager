@@ -10,14 +10,18 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@color/gray" />
+        android:background="@color/light_gray" />
 
     <TextView
         android:id="@+id/label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawableLeft="@drawable/folder_fab"
+        android:drawablePadding="@dimen/default_padding"
+        android:gravity="center_vertical"
         android:padding="@dimen/padding_small_00"
-        android:textColor="#DDDDDD"
+        android:textColor="@color/light_gray"
         tools:text="Sdcard"/>
 
     <View

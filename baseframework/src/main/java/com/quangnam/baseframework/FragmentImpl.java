@@ -40,16 +40,42 @@ class FragmentImpl implements BaseFragmentInterface {
         if (savedState != null) {
             mSavedHostID = savedState.getInt(ARG_SAVED_HOST);
         }
+
+        if (Config.DEBUG) {
+            Log.d("Fragment " + mHost + " onCreate");
+        }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putInt(ARG_SAVED_HOST, mHost.hashCode());
+
+        if (Config.DEBUG) {
+            Log.d("Fragment " + mHost + " onSaveInstanceState");
+        }
     }
 
     @Override
     public void onDestroy() {
         mSubscription.unsubscribe();
+
+        if (Config.DEBUG) {
+            Log.d("Fragment " + mHost + " onDestroy");
+        }
+    }
+
+    @Override
+    public void onResume() {
+        if (Config.DEBUG) {
+            Log.d("Fragment " + mHost + " onResume");
+        }
+    }
+
+    @Override
+    public void onPause() {
+        if (Config.DEBUG) {
+            Log.d("Fragment " + mHost + " onPause");
+        }
     }
 
     @Override

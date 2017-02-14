@@ -1,5 +1,6 @@
 package com.tqnam.filemanager.explorer;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
@@ -33,10 +34,13 @@ import com.tqnam.filemanager.explorer.fragment.FragmentDataStorage;
 import com.tqnam.filemanager.explorer.fragment.HostFragment;
 import com.tqnam.filemanager.explorer.fragment.MenuAddItemFragment;
 import com.tqnam.filemanager.explorer.fragment.OperatorManagerFragment;
-import com.tqnam.filemanager.preference.PreferenceFragment;
 import com.tqnam.filemanager.utils.ViewUtils;
 
 import java.util.ArrayList;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 /**
  * Activity container
@@ -174,11 +178,7 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 
         mViewHolder = new ViewHolder();
 
-        mViewHolder.mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        mViewHolder.mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mViewHolder.mPager = (ViewPager) findViewById(R.id.pager);
-        mViewHolder.mTab = (TabLayout) findViewById(R.id.appbar_tab);
-        mViewHolder.mBtnAddFile = (FloatingActionButton) findViewById(R.id.btn_add);
+        ButterKnife.bind(mViewHolder, this);
         mViewHolder.mAdapter = new PageAdapter(getSupportFragmentManager());
         setSupportActionBar(mViewHolder.mToolbar);
         mViewHolder.mPager.setAdapter(mViewHolder.mAdapter);
@@ -239,7 +239,6 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
             }
         };
         mViewHolder.mDrawerLayout.addDrawerListener(mViewHolder.mDrawerToggle);
-        mViewHolder.mDrawerMenuList = (RecyclerView) findViewById(R.id.drawer_menu);
         mViewHolder.mDrawerMenuAdapter = new DrawerMenuAdapter(mShortcutList);
         mViewHolder.mDrawerMenuList.setAdapter(mViewHolder.mDrawerMenuAdapter);
         mViewHolder.mDrawerMenuList.setLayoutManager(new LinearLayoutManager(this));
@@ -412,8 +411,8 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
     private class PageAdapter extends FragmentPagerAdapter {
 
         static final int INDEX_LOCAL_FILE_FRAGMENT = 0;
-        static final int INDEX_PREF_FRAGMENT = 1;
-        static final int INDEX_OPERATOR_FRAGMENT = 2;
+//        static final int INDEX_PREF_FRAGMENT = 1;
+        static final int INDEX_OPERATOR_FRAGMENT = 1;
 
         public PageAdapter(FragmentManager fm) {
             super(fm);
@@ -438,9 +437,9 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
                     });
 
                     break;
-                case INDEX_PREF_FRAGMENT:
-                    fragment = new PreferenceFragment();
-                    break;
+//                case INDEX_PREF_FRAGMENT:
+//                    fragment = new PreferenceFragment();
+//                    break;
                 case INDEX_OPERATOR_FRAGMENT:
                     fragment = OperatorManagerFragment.newInstance();
                     break;
@@ -454,7 +453,7 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 
         @Override
         public int getCount() {
-            return 3;
+            return 2;
         }
 
         @Override
@@ -463,24 +462,47 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
             switch (position) {
                 case INDEX_LOCAL_FILE_FRAGMENT:
                     return "LOCAL";
-                case INDEX_PREF_FRAGMENT:
-                    return "PREFERENCE";
+//                case INDEX_PREF_FRAGMENT:
+//                    return "PREFERENCE";
                 default:
                     return null;
             }
         }
     }
 
-    private class ViewHolder {
+    class ViewHolder {
         ListFileFragment mFragmentListFile;
+        @BindView(R.id.drawer_layout)
         DrawerLayout mDrawerLayout;
         ActionBarDrawerToggle mDrawerToggle;
+        @BindView(R.id.drawer_menu)
         RecyclerView mDrawerMenuList;
         DrawerMenuAdapter mDrawerMenuAdapter;
+        @BindView(R.id.toolbar)
         Toolbar mToolbar;
+        @BindView(R.id.appbar_tab)
         TabLayout mTab;
+        @BindView(R.id.pager)
         ViewPager mPager;
         PageAdapter mAdapter;
+        @BindView(R.id.btn_add)
         FloatingActionButton mBtnAddFile;
+
+        @OnClick(R.id.btn_setting)
+        public void onSettingClick() {
+            mDrawerLayout.closeDrawers();
+//            PreferenceFragment fragment = (PreferenceFragment) getSupportFragmentManager()
+//                    .findFragmentByTag(PreferenceFragment.TAG);
+//
+//            if (fragment == null) {
+//                fragment = new PreferenceFragment();
+//
+//                getSupportFragmentManager().beginTransaction()
+//                        .add(R.id.rootview, fragment, PreferenceFragment.TAG)
+//                        .addToBackStack(null)
+//                        .commit();
+//            }
+            startActivity(new Intent(MainActivity.this, SettingActivity.class));
+        }
     }
 }

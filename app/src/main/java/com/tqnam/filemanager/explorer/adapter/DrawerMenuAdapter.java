@@ -57,6 +57,11 @@ public class DrawerMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     @Override
+    public int getItemViewType(int position) {
+        return super.getItemViewType(position);
+    }
+
+    @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof ItemHolder) {
             String path = getItem(position);

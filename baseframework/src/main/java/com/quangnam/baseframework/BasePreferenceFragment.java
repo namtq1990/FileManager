@@ -45,6 +45,18 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat im
         mDelegate.onDestroy();
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        mDelegate.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mDelegate.onResume();
+    }
+
     public void requestFocusFragment() {
         mDelegate.requestFocusFragment();
     }

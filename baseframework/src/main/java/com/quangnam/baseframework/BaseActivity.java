@@ -25,6 +25,47 @@ public class BaseActivity extends AppCompatActivity implements AutoUnsubscribe {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mRequestActiveList = new Stack<>();
+
+        if (Config.DEBUG) {
+            Log.d("Activity " + toString() + " onCreate");
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mSubscriptions.unsubscribe();
+
+        if (Config.DEBUG) {
+            Log.d("Activity " + toString() + " onDestroy");
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (Config.DEBUG) {
+            Log.d("Activity " + toString() + " onPause");
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (Config.DEBUG) {
+            Log.d("Activity " + toString() + " onResume");
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        if (Config.DEBUG) {
+            Log.d("Activity " + toString() + " onSaveInstanceState");
+        }
     }
 
     public BaseFragmentInterface getFocusFragment() {
@@ -102,12 +143,6 @@ public class BaseActivity extends AppCompatActivity implements AutoUnsubscribe {
                 listener.onFocusFragmentChange(oldFragment, newFragment);
             }
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mSubscriptions.unsubscribe();
     }
 
     @Override

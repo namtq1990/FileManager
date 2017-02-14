@@ -46,6 +46,18 @@ public class BaseDialog extends DialogFragment implements BaseFragmentInterface 
         mDelegate.onDestroy();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        mDelegate.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mDelegate.onPause();
+    }
+
     public void requestFocusFragment() {
         mDelegate.requestFocusFragment();
     }

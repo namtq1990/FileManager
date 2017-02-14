@@ -51,6 +51,18 @@ public class BaseFragment extends android.support.v4.app.Fragment implements Bas
         mDelegate.onDestroy();
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        mDelegate.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mDelegate.onResume();
+    }
+
     public void requestFocusFragment() {
         mDelegate.requestFocusFragment();
     }

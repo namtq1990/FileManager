@@ -15,6 +15,8 @@ public interface BaseFragmentInterface extends AutoUnsubscribe {
     void onCreate(Bundle savedState);
     void onSaveInstanceState(Bundle outState);
     void onDestroy();
+    void onResume();
+    void onPause();
 
     Context getAppContext();
 
