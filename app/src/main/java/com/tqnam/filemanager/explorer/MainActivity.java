@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2017 Tran Quang Nam
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.tqnam.filemanager.explorer;
 
 import android.content.Intent;
@@ -27,6 +51,7 @@ import com.quangnam.baseframework.BaseDataFragment;
 import com.quangnam.baseframework.BaseFragmentInterface;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.adapter.DrawerMenuAdapter;
+import com.tqnam.filemanager.explorer.dialog.AboutDialogFragment;
 import com.tqnam.filemanager.explorer.dialog.EnterTextDialogFragment;
 import com.tqnam.filemanager.explorer.fileExplorer.ListFileFragment;
 import com.tqnam.filemanager.explorer.fragment.ExplorerBaseFragment;
@@ -503,6 +528,12 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 //                        .commit();
 //            }
             startActivity(new Intent(MainActivity.this, SettingActivity.class));
+        }
+
+        @OnClick(R.id.img_logo)
+        public void onAboutClick() {
+            AboutDialogFragment dialog = new AboutDialogFragment();
+            dialog.show(getSupportFragmentManager(), AboutDialogFragment.TAG);
         }
     }
 }
