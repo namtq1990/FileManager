@@ -31,5 +31,5 @@
             <solid android:color="@color/gray" />
         </shape>
     </item>
-    <item android:drawable="@drawable/rect_round_corner" />
+    <item android:drawable="@drawable/rect_round_20dp" />
 </selector>

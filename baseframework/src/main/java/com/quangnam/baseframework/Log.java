@@ -26,6 +26,10 @@ package com.quangnam.baseframework;
 
 import android.content.Context;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 /**
  * Created by quangnam on 4/18/16.
  */
@@ -74,5 +78,20 @@ public class Log {
         }
 
         android.util.Log.d(tag, message);
+    }
+
+    public static BufferedReader loadLog() throws IOException {
+        String[] cmd = {
+                "logcat",
+                "-d",
+                "-v",
+                "threadtime"
+        };
+
+        Process process = Runtime.getRuntime().exec(cmd);
+
+        return new BufferedReader(new InputStreamReader(
+                process.getInputStream()
+        ));
     }
 }

@@ -26,5 +26,5 @@
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="@color/black">
 
-    <item android:drawable="@drawable/rect_round_corner" />
+    <item android:drawable="@drawable/rect_round_20dp" />
 </ripple>
