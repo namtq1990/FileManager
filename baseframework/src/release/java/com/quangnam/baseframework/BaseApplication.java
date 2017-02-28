@@ -22,38 +22,18 @@
  * SOFTWARE.
  */
 
-apply plugin: 'com.android.library'
+package com.quangnam.baseframework;
 
-android {
-    compileSdkVersion project.compiledSdk
-    buildToolsVersion project.buildToolVersion
+/**
+ * Created by quangnam on 1/31/16.
+ * Base Application
+ */
+public class BaseApplication extends InternalBaseApplication {
 
-    defaultConfig {
-        minSdkVersion project.minSdk
-        targetSdkVersion project.targetSdk
-        versionCode 1
-        versionName "1.0"
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        Log.d("Running in release mode");
     }
-    buildTypes {
-        release {
-            defaultPublishConfig "release"
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-        debug {
-            defaultPublishConfig "debug"
-            debuggable true
-            minifyEnabled false
-        }
-    }
-    sourceSets { release { java.srcDirs = ['src/release/java', 'src/release/java/'] } }
-}
-
-dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:' + project.androidSupport
-    compile 'com.android.support:preference-v7:' + project.androidSupport
-    compile 'com.android.support:gridlayout-v7:' + project.androidSupport
-    compile 'io.reactivex:rxjava:1.1.0'
 }

@@ -26,18 +26,15 @@ package com.quangnam.baseframework;
 
 import android.app.Activity;
 import android.app.Application;
-import android.content.Intent;
 import android.os.Bundle;
-
-import com.quangnam.baseframework.service.FloatingViewService;
 
 import java.lang.ref.WeakReference;
 
 /**
- * Created by quangnam on 1/31/16.
- * Base Application
+ * Created by quangnam on 2/27/17.
+ * Project FileManager-master
  */
-public class BaseApplication extends Application implements Application.ActivityLifecycleCallbacks {
+class InternalBaseApplication extends Application implements Application.ActivityLifecycleCallbacks  {
 
     private WeakReference<Activity> mCurActivity;
 
@@ -47,10 +44,6 @@ public class BaseApplication extends Application implements Application.Activity
 
         Log.init(this);
         registerActivityLifecycleCallbacks(this);
-
-        if (Config.DEBUG) {
-            startService(new Intent(this, FloatingViewService.class));
-        }
     }
 
     @Override

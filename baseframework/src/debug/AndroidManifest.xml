@@ -21,11 +21,23 @@
   ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   ~ SOFTWARE.
-  -->
+-->
+<manifest package="com.quangnam.baseframework"
+          xmlns:android="http://schemas.android.com/apk/res/android">
 
-<resources>
-    <dimen name="default_padding">16dp</dimen>
-    <!-- Default screen margins, per the Android Design guidelines. -->
-    <dimen name="activity_horizontal_margin">16dp</dimen>
-    <dimen name="activity_vertical_margin">16dp</dimen>
-</resources>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true">
+        <service
+            android:name=".service.FloatingViewService"
+            android:enabled="true"
+            android:exported="false"/>
+
+        <activity android:name=".PermissionDebugActivity">
+        </activity>
+    </application>
+
+</manifest>

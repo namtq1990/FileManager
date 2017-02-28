@@ -24,21 +24,29 @@
 
 package com.quangnam.baseframework.service;
 
+import android.app.Activity;
 import android.app.Service;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
-import android.text.method.ScrollingMovementMethod;
+import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -47,14 +55,22 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.quangnam.baseframework.BaseApplication;
 import com.quangnam.baseframework.Log;
+import com.quangnam.baseframework.PermissionDebugActivity;
 import com.quangnam.baseframework.R;
 import com.quangnam.baseframework.TrackingTime;
+import com.quangnam.baseframework.exception.SystemException;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Date;
 
 /**
  * Created by quangnam on 2/18/17.
@@ -73,6 +89,19 @@ public class FloatingViewService extends Service {
     private View mExpandedView;
     private View mCollapsedView;
     private TextView mTvLog;
+
+    private CharSequence mLog;
+
+    private static final int[] MENU_ID = {
+            R.id.btn_reload,
+            R.id.btn_copy,
+            R.id.btn_collapse,
+            R.id.btn_up,
+            R.id.btn_down,
+            R.id.btn_exception,
+            R.id.btn_screenshot
+    };
+
     private View.OnClickListener mMenuOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -81,6 +110,16 @@ public class FloatingViewService extends Service {
                 collapseView();
             } else if (id == R.id.btn_reload) {
                 refresh();
+            } else if (id == R.id.btn_copy) {
+                copyAll();
+            } else if (id == R.id.btn_up) {
+                scrollUp();
+            } else if (id == R.id.btn_down) {
+                scrollDown();
+            } else if (id == R.id.btn_exception) {
+                throw new SystemException(SystemException.RK_UNKNOWN, "Test");
+            } else if (id == R.id.btn_screenshot) {
+                takeScreenshot();
             }
         }
     };
@@ -89,6 +128,22 @@ public class FloatingViewService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && !Settings.canDrawOverlays(this)) {
+            startActivity(new Intent(this, PermissionDebugActivity.class));
+            stopSelf();
+        } else {
+            initView();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mWindowManager.removeView(mFloatingView);
+    }
+
+    private void initView() {
         mFloatingView = LayoutInflater.from(new ContextThemeWrapper(this, R.style.TemplateTheme))
                 .inflate(R.layout.layout_floating_debug, null);
         mLayoutParams = new WindowManager.LayoutParams(
@@ -106,16 +161,6 @@ public class FloatingViewService extends Service {
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         mWindowManager.addView(mFloatingView, mLayoutParams);
 
-        initView();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mWindowManager.removeView(mFloatingView);
-    }
-
-    private void initView() {
         ImageView collapsedIcon = (ImageView) mFloatingView.findViewById(R.id.img_collapse);
 
         try {
@@ -144,11 +189,10 @@ public class FloatingViewService extends Service {
 
         collapseView();
 
-        View btnCollapse = mExpandedView.findViewById(R.id.btn_collapse);
-        btnCollapse.setOnClickListener(mMenuOnClickListener);
-
-        mExpandedView.findViewById(R.id.btn_reload)
-                .setOnClickListener(mMenuOnClickListener);
+        for (int id : MENU_ID) {
+            View btn = mExpandedView.findViewById(id);
+            btn.setOnClickListener(mMenuOnClickListener);
+        }
 
         collapsedIcon.setOnTouchListener(new View.OnTouchListener() {
             private int initializeX;
@@ -214,7 +258,7 @@ public class FloatingViewService extends Service {
         });
 
         mTvLog = (TextView) mExpandedView.findViewById(R.id.tv_log);
-        mTvLog.setMovementMethod(new ScrollingMovementMethod());
+//        mTvLog.setMovementMethod(new AccelerationMovement(mTvLog));
         mTvLog.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -281,6 +325,7 @@ public class FloatingViewService extends Service {
     }
 
     public void loadLog() {
+        mLog = new StringBuilder();
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -289,14 +334,16 @@ public class FloatingViewService extends Service {
 
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        final String finalLine = line;
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                addLineToLog(finalLine);
-                            }
-                        });
+                        addLineToLog(line);
                     }
+
+
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mTvLog.setText(mLog);
+                        }
+                    });
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -313,11 +360,69 @@ public class FloatingViewService extends Service {
                 19,
                 Spanned.SPAN_INCLUSIVE_INCLUSIVE);
 
-        mTvLog.append(text);
+        mLog = TextUtils.concat(mLog, text);
     }
 
     public void refresh() {
         mTvLog.setText(null);
         loadLog();
+    }
+
+    private void copyAll() {
+        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("Text", mTvLog.getText());
+        clipboardManager.setPrimaryClip(clip);
+
+        Toast.makeText(FloatingViewService.this, "Log copied", Toast.LENGTH_SHORT).show();
+    }
+
+    public void scrollUp() {
+        ScrollView scrollView = (ScrollView) mTvLog.getParent();
+        scrollView.fullScroll(ScrollView.FOCUS_UP);
+    }
+
+    public void scrollDown() {
+        ScrollView scrollView = (ScrollView) mTvLog.getParent();
+        scrollView.fullScroll(ScrollView.FOCUS_DOWN);
+    }
+
+    public void takeScreenshot() {
+
+        Date now = new Date();
+        android.text.format.DateFormat.format("yyyy-MM-dd_hh:mm:ss", now);
+
+        try {
+            BaseApplication application = (BaseApplication) getApplicationContext();
+            if (application.getCurActivity() != null) {
+                Activity activity = application.getCurActivity();
+                // image naming and path  to include sd card  appending name you choose for file
+                String mPath = Environment.getExternalStorageDirectory().toString()
+                        + "/"
+                        + getPackageName()
+                        + "_"
+                        + now
+                        + ".jpg";
+
+                // create bitmap screen capture
+                View v1 = activity.getWindow().getDecorView().getRootView();
+                v1.setDrawingCacheEnabled(true);
+                Bitmap bitmap = Bitmap.createBitmap(v1.getDrawingCache());
+                v1.setDrawingCacheEnabled(false);
+
+                File imageFile = new File(mPath);
+
+                FileOutputStream outputStream = new FileOutputStream(imageFile);
+                int quality = 100;
+                bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
+                outputStream.flush();
+                outputStream.close();
+            }
+
+            Toast.makeText(FloatingViewService.this, "Screenshot captured", Toast.LENGTH_SHORT).show();
+
+        } catch (Throwable e) {
+            // Several error may come out with file handling or OOM
+            e.printStackTrace();
+        }
     }
 }
