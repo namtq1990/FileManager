@@ -27,6 +27,7 @@ package com.quangnam.baseframework;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
+import android.os.Handler;
 
 import java.lang.ref.WeakReference;
 
@@ -37,11 +38,13 @@ import java.lang.ref.WeakReference;
 class InternalBaseApplication extends Application implements Application.ActivityLifecycleCallbacks  {
 
     private WeakReference<Activity> mCurActivity;
+    private Handler mHandler;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
+        mHandler = new Handler();
         Log.init(this);
         registerActivityLifecycleCallbacks(this);
     }
@@ -79,5 +82,9 @@ class InternalBaseApplication extends Application implements Application.Activit
 
     public Activity getCurActivity() {
         return mCurActivity == null ? null : mCurActivity.get();
+    }
+
+    public Handler getAppHandler() {
+        return mHandler;
     }
 }

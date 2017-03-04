@@ -68,6 +68,7 @@ public class Application extends BaseApplication implements android.app.Applicat
 
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
+        super.onActivityCreated(activity, bundle);
 
         // tqnam: set color of status_bar if request
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
