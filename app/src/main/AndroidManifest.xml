@@ -41,7 +41,8 @@
         <activity
             android:name=".explorer.MainActivity"
             android:configChanges="orientation"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

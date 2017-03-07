@@ -30,11 +30,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.widget.RemoteViews;
 
 import com.quangnam.baseframework.service.FloatingViewService;
@@ -65,19 +63,23 @@ public class BaseApplication extends InternalBaseApplication {
     }
 
     @Override
-    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        super.onActivityCreated(activity, savedInstanceState);
+    public void onActivityResumed(Activity activity) {
+        super.onActivityResumed(activity);
 
         if (Config.DEBUG) {
             Intent appIntent;
             appIntent = new Intent(this, activity.getClass());
-            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-            stackBuilder.addParentStack(activity.getClass());
-            stackBuilder.addNextIntent(appIntent);
+//            appIntent.setAction(Intent.ACTION_MAIN);
+//            appIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+            appIntent.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED | Intent.FLAG_ACTIVITY_NEW_TASK);
+//            appIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+//            stackBuilder.addParentStack(activity.getClass());
+//            stackBuilder.addNextIntent(appIntent);
             PendingIntent pendingIntent;
-            pendingIntent = stackBuilder.getPendingIntent(REQUEST_CODE_APP, PendingIntent.FLAG_UPDATE_CURRENT);
+            //            pendingIntent = stackBuilder.getPendingIntent(REQUEST_CODE_APP, PendingIntent.FLAG_UPDATE_CURRENT);
 
-//            PendingIntent.getActivity(this, REQUEST_CODE_APP, );
+            pendingIntent = PendingIntent.getActivity(this, REQUEST_CODE_APP, appIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // Add cur activity to notification setting
             mBigNotificationView.setOnClickPendingIntent(R.id.btn_open_app, pendingIntent);
@@ -99,7 +101,8 @@ public class BaseApplication extends InternalBaseApplication {
                 .setSmallIcon(R.drawable.round_corner_selector)
                 .setCustomBigContentView(mBigNotificationView)
                 .setContentTitle(getPackageName())
-                .setContentText(getPackageName() + " is Debugging");
+                .setContentText(getPackageName() + " is Debugging")
+                .setPriority(NotificationCompat.PRIORITY_MAX);
 
         try {
             BitmapDrawable icon = (BitmapDrawable) getPackageManager().getApplicationIcon(getPackageName());

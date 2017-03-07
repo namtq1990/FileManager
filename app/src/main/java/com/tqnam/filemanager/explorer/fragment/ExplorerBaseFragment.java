@@ -481,9 +481,10 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
 
     public boolean onBackPressed() {
         //        mOpenAnimType = animActionOpenUp();
-        mBackClickCount++;
 
         if (isCloseFragment()) {
+            mBackClickCount++;
+
             if (getFragmentManager().getBackStackEntryCount() == 0) {
                 if (mBackClickCount == 1) {
                     Toast.makeText(getAppContext(), R.string.notify_exit, Toast.LENGTH_SHORT).show();
