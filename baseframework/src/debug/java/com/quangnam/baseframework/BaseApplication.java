@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -49,7 +50,7 @@ public class BaseApplication extends InternalBaseApplication {
 
     private NotificationManagerCompat mNotificationManager;
     private NotificationCompat.Builder mBuilder;
-    private RemoteViews mBigNotificationView;
+    private RemoteViews mContent;
 
     @Override
     public void onCreate() {
@@ -82,7 +83,7 @@ public class BaseApplication extends InternalBaseApplication {
             pendingIntent = PendingIntent.getActivity(this, REQUEST_CODE_APP, appIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // Add cur activity to notification setting
-            mBigNotificationView.setOnClickPendingIntent(R.id.btn_open_app, pendingIntent);
+            mContent.setOnClickPendingIntent(R.id.btn_open_app, pendingIntent);
             mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
         }
     }
@@ -93,20 +94,25 @@ public class BaseApplication extends InternalBaseApplication {
         settingIntent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         settingIntent.setData(Uri.parse("package:" + getPackageName()));
 
-        mBigNotificationView = new RemoteViews(getPackageName(), R.layout.layout_notification_debug);
-        mBigNotificationView.setOnClickPendingIntent(R.id.btn_open_debug, PendingIntent.getService(this, REQUEST_CODE_DEBUG_MENU, serviceIntent, 0));
-        mBigNotificationView.setOnClickPendingIntent(R.id.btn_setting, PendingIntent.getActivity(this, REQUEST_CODE_SETTING, settingIntent, 0));
+        mContent = new RemoteViews(getPackageName(), R.layout.layout_notification_debug);
+        mContent.setOnClickPendingIntent(R.id.btn_open_debug, PendingIntent.getService(this, REQUEST_CODE_DEBUG_MENU, serviceIntent, 0));
+        mContent.setOnClickPendingIntent(R.id.btn_setting, PendingIntent.getActivity(this, REQUEST_CODE_SETTING, settingIntent, 0));
 
         mBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.round_corner_selector)
-                .setCustomBigContentView(mBigNotificationView)
                 .setContentTitle(getPackageName())
                 .setContentText(getPackageName() + " is Debugging")
                 .setPriority(NotificationCompat.PRIORITY_MAX);
 
+        if (Build.VERSION.SDK_INT >= 16) {
+            mBuilder.setCustomBigContentView(mContent);
+        } else {
+            mBuilder.setCustomContentView(mContent);
+        }
+
         try {
             BitmapDrawable icon = (BitmapDrawable) getPackageManager().getApplicationIcon(getPackageName());
-            mBigNotificationView.setImageViewBitmap(R.id.img_noti_logo, icon.getBitmap());
+            mContent.setImageViewBitmap(R.id.img_noti_logo, icon.getBitmap());
 
             mBuilder.setLargeIcon(icon.getBitmap());
         } catch (PackageManager.NameNotFoundException e) {

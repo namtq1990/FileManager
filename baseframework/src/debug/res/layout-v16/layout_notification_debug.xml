@@ -27,13 +27,17 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingEnd="@dimen/activity_horizontal_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingStart="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/default_padding">
 
     <RelativeLayout
         android:id="@+id/layout_noti_main"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone">
+        android:layout_height="wrap_content">
 
 
         <ImageView
@@ -56,33 +60,32 @@
         android:id="@+id/menu_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:orientation="horizontal"
-        android:theme="@style/TemplateTheme">
+        android:layout_below="@+id/layout_noti_main"
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/btn_open_debug"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="DEBUG"
-            android:theme="@style/Widget.AppCompat.Button.Borderless.Colored"/>
+            android:text="Show Log"
+            android:theme="@style/Base.Widget.AppCompat.Button.Borderless.Colored"/>
 
         <Button
             android:id="@+id/btn_open_app"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="APP"
-            android:theme="@style/Widget.AppCompat.Button.Borderless.Colored"/>
+            android:text="Open app"
+            android:theme="@style/Base.Widget.AppCompat.Button.Borderless.Colored"/>
 
         <Button
             android:id="@+id/btn_setting"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="SETTING"
-            android:theme="@style/Widget.AppCompat.Button.Borderless.Colored"/>
+            android:text="setting"
+            android:theme="@style/Base.Widget.AppCompat.Button.Borderless.Colored"/>
 
     </LinearLayout>
 
