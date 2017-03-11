@@ -22,4 +22,4 @@
  * SOFTWARE.
  */
 
-include ':app', ':baseframework'
+include ':app', ':base'

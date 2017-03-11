@@ -26,7 +26,7 @@ package com.tqnam.filemanager.explorer.fragment;
 
 import android.os.Bundle;
 
-import com.quangnam.baseframework.BaseDataFragment;
+import com.quangnam.base.BaseDataFragment;
 
 import org.greenrobot.eventbus.EventBus;
 

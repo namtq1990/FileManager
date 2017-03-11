@@ -43,9 +43,9 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.quangnam.baseframework.BaseActivity;
-import com.quangnam.baseframework.BaseDataFragment;
-import com.quangnam.baseframework.BaseDialog;
+import com.quangnam.base.BaseActivity;
+import com.quangnam.base.BaseDataFragment;
+import com.quangnam.base.BaseDialog;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.adapter.SimpleArrayAdapter;
 import com.tqnam.filemanager.model.ItemExplorer;

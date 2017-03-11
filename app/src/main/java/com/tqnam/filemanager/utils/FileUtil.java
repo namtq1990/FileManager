@@ -26,7 +26,7 @@ package com.tqnam.filemanager.utils;
 
 import android.text.TextUtils;
 
-import com.quangnam.baseframework.exception.SystemException;
+import com.quangnam.base.exception.SystemException;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ItemExplorer;

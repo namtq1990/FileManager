@@ -43,7 +43,7 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.quangnam.baseframework.BaseDialog;
+import com.quangnam.base.BaseDialog;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.adapter.SimpleArrayAdapter;
 import com.tqnam.filemanager.model.ItemInformation;

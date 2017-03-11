@@ -32,8 +32,8 @@ import android.view.View;
 import android.view.WindowManager;
 
 import com.crashlytics.android.Crashlytics;
-import com.quangnam.baseframework.BaseApplication;
-import com.quangnam.baseframework.Config;
+import com.quangnam.base.BaseApplication;
+import com.quangnam.base.Config;
 import com.squareup.picasso.Picasso;
 
 import io.fabric.sdk.android.Fabric;

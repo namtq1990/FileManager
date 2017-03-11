@@ -36,7 +36,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.jakewharton.rxbinding.view.RxView;
-import com.quangnam.baseframework.BaseActivity;
+import com.quangnam.base.BaseActivity;
 import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;

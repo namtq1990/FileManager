@@ -30,7 +30,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 
-import com.quangnam.baseframework.BaseDialog;
+import com.quangnam.base.BaseDialog;
 import com.tqnam.filemanager.R;
 
 /**

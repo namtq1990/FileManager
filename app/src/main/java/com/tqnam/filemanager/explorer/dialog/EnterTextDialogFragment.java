@@ -34,7 +34,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
-import com.quangnam.baseframework.BaseDialog;
+import com.quangnam.base.BaseDialog;
 import com.tqnam.filemanager.R;
 
 /**

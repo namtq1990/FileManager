@@ -28,7 +28,7 @@ import android.net.Uri;
 import android.os.Parcel;
 import android.webkit.MimeTypeMap;
 
-import com.quangnam.baseframework.exception.SystemException;
+import com.quangnam.base.exception.SystemException;
 import com.tqnam.filemanager.model.ErrorCode;
 import com.tqnam.filemanager.model.ItemExplorer;
 

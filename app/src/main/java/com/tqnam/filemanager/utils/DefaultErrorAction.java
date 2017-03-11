@@ -27,8 +27,8 @@ package com.tqnam.filemanager.utils;
 import android.content.Context;
 import android.widget.Toast;
 
-import com.quangnam.baseframework.BaseErrorAction;
-import com.quangnam.baseframework.exception.SystemException;
+import com.quangnam.base.BaseErrorAction;
+import com.quangnam.base.exception.SystemException;
 import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.Common;
 import com.tqnam.filemanager.R;

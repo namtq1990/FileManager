@@ -31,8 +31,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.quangnam.baseframework.BaseActivity;
-import com.quangnam.baseframework.BaseFragment;
+import com.quangnam.base.BaseActivity;
+import com.quangnam.base.BaseFragment;
 import com.tqnam.filemanager.R;
 
 /**

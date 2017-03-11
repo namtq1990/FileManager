@@ -24,7 +24,7 @@
 
 package com.tqnam.filemanager.model;
 
-import com.quangnam.baseframework.exception.SystemException;
+import com.quangnam.base.exception.SystemException;
 
 /**
  * Created by quangnam on 3/3/16.

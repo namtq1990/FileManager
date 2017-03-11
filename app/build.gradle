@@ -81,5 +81,5 @@ dependencies {
     compile 'io.reactivex:rxandroid:1.1.0'
     compile 'com.jakewharton.rxbinding:rxbinding:0.3.0'
     compile 'com.squareup.picasso:picasso:2.3.2'
-    compile project(':baseframework')
+    compile project(':base')
 }

@@ -24,9 +24,9 @@
 
 package com.tqnam.filemanager.model.operation;
 
-import com.quangnam.baseframework.Log;
-import com.quangnam.baseframework.TrackingTime;
-import com.quangnam.baseframework.exception.SystemException;
+import com.quangnam.base.Log;
+import com.quangnam.base.TrackingTime;
+import com.quangnam.base.exception.SystemException;
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
 import com.tqnam.filemanager.model.operation.propertyView.BasicOperationPropertyView;
 import com.tqnam.filemanager.utils.OperationManager;

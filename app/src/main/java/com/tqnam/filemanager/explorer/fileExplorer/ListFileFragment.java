@@ -26,8 +26,8 @@ package com.tqnam.filemanager.explorer.fileExplorer;
 
 import android.os.Bundle;
 
-import com.quangnam.baseframework.BaseActivity;
-import com.quangnam.baseframework.BaseDataFragment;
+import com.quangnam.base.BaseActivity;
+import com.quangnam.base.BaseDataFragment;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;
 import com.tqnam.filemanager.explorer.fragment.ExplorerBaseFragment;

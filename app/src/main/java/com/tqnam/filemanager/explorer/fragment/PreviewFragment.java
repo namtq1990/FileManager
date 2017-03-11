@@ -40,10 +40,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.quangnam.baseframework.BaseActivity;
-import com.quangnam.baseframework.BaseFragment;
-import com.quangnam.baseframework.Config;
-import com.quangnam.baseframework.DialogUtil;
+import com.quangnam.base.BaseActivity;
+import com.quangnam.base.BaseFragment;
+import com.quangnam.base.Config;
+import com.quangnam.base.DialogUtil;
 import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;

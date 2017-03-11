@@ -27,7 +27,7 @@ package com.tqnam.filemanager.model;
 import android.os.Bundle;
 import android.os.Parcelable;
 
-import com.quangnam.baseframework.BaseDataFragment;
+import com.quangnam.base.BaseDataFragment;
 import com.tqnam.filemanager.model.operation.Operation;
 import com.tqnam.filemanager.utils.OperationManager;
 

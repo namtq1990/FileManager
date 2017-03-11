@@ -24,7 +24,7 @@
 
 package com.tqnam.filemanager.model.operation;
 
-import com.quangnam.baseframework.Log;
+import com.quangnam.base.Log;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.operation.propertyView.OperationPropertyView;
 import com.tqnam.filemanager.utils.OperationManager;

@@ -50,9 +50,9 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.quangnam.baseframework.BaseActivity;
-import com.quangnam.baseframework.BaseFragment;
-import com.quangnam.baseframework.BaseFragmentInterface;
+import com.quangnam.base.BaseActivity;
+import com.quangnam.base.BaseFragment;
+import com.quangnam.base.BaseFragmentInterface;
 import com.tqnam.filemanager.Application;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.ExplorerPresenter;

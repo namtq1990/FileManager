@@ -42,7 +42,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.quangnam.baseframework.BaseDialog;
+import com.quangnam.base.BaseDialog;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.utils.ViewUtils;
 

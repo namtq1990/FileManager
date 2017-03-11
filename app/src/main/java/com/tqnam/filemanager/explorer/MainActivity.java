@@ -30,6 +30,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
@@ -40,15 +41,14 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
-import com.quangnam.baseframework.BaseActivity;
-import com.quangnam.baseframework.BaseDataFragment;
-import com.quangnam.baseframework.BaseFragmentInterface;
+import com.quangnam.base.BaseActivity;
+import com.quangnam.base.BaseDataFragment;
+import com.quangnam.base.BaseFragmentInterface;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.adapter.DrawerMenuAdapter;
 import com.tqnam.filemanager.explorer.dialog.AboutDialogFragment;
@@ -439,7 +439,7 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
 //        static final int INDEX_PREF_FRAGMENT = 1;
         static final int INDEX_OPERATOR_FRAGMENT = 1;
 
-        public PageAdapter(FragmentManager fm) {
+        PageAdapter(FragmentManager fm) {
             super(fm);
         }
 
@@ -514,7 +514,7 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
         FloatingActionButton mBtnAddFile;
 
         @OnClick(R.id.btn_setting)
-        public void onSettingClick() {
+        void onSettingClick() {
             mDrawerLayout.closeDrawers();
 //            PreferenceFragment fragment = (PreferenceFragment) getSupportFragmentManager()
 //                    .findFragmentByTag(PreferenceFragment.TAG);
@@ -531,7 +531,7 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
         }
 
         @OnClick(R.id.img_logo)
-        public void onAboutClick() {
+        void onAboutClick() {
             AboutDialogFragment dialog = new AboutDialogFragment();
             dialog.show(getSupportFragmentManager(), AboutDialogFragment.TAG);
         }

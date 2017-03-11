@@ -24,8 +24,8 @@
 
 package com.tqnam.filemanager.explorer;
 
-import com.quangnam.baseframework.AutoUnsubscribe;
-import com.quangnam.baseframework.SaveBundleListener;
+import com.quangnam.base.AutoUnsubscribe;
+import com.quangnam.base.SaveBundleListener;
 import com.tqnam.filemanager.model.ItemExplorer;
 import com.tqnam.filemanager.model.operation.Operation;
 

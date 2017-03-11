@@ -34,7 +34,7 @@ import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
-import com.quangnam.baseframework.BaseDialog;
+import com.quangnam.base.BaseDialog;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.model.ItemExplorer;
 

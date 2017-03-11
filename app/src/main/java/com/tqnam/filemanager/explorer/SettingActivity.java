@@ -29,7 +29,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
-import com.quangnam.baseframework.BaseActivity;
+import com.quangnam.base.BaseActivity;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.preference.PreferenceFragment;
 

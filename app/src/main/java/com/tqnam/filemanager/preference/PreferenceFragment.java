@@ -28,7 +28,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 
-import com.quangnam.baseframework.BasePreferenceFragment;
+import com.quangnam.base.BasePreferenceFragment;
 import com.tqnam.filemanager.R;
 
 public class PreferenceFragment extends BasePreferenceFragment {
