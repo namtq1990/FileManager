@@ -24,7 +24,9 @@
   -->
 
 <PreferenceScreen
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <PreferenceCategory
         android:title="Explorer">
@@ -33,6 +35,13 @@
             android:dialogMessage="Please enter path of default local home directory"
             android:key="@string/pref_local_home_path"
             android:summary="Home path in local storage"/>
+
+        <com.tqnam.filemanager.view.SwitchPreference
+            android:defaultValue="false"
+            android:key="@string/pref_show_ads"
+            android:summary="I implemented advertising in app here just to development purpose. If you don't like, you can disable it."
+            android:title="Show Advertising"/>
+
     </PreferenceCategory>
 
 </PreferenceScreen>

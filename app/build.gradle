@@ -68,18 +68,21 @@ dependencies {
     compile('com.crashlytics.sdk.android:crashlytics:2.5.2@aar') {
         transitive = true;
     }
-    compile 'com.android.support:design:'+project.androidSupport
-    compile 'com.android.support:recyclerview-v7:'+project.androidSupport
-    compile 'com.android.support:gridlayout-v7:'+project.androidSupport
-    compile ('com.bignerdranch.android:expandablerecyclerview:2.1.1') {
+    compile 'com.android.support:design:' + project.androidSupport
+    compile 'com.android.support:recyclerview-v7:' + project.androidSupport
+    compile 'com.android.support:gridlayout-v7:' + project.androidSupport
+    compile('com.bignerdranch.android:expandablerecyclerview:2.1.1') {
         exclude module: 'recyclerview-v7'
         exclude module: 'appcompat-v7'
     }
+    compile project(':base')
     compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.jakewharton:butterknife:8.4.0'
-    apt 'com.jakewharton:butterknife-compiler:8.4.0'
     compile 'io.reactivex:rxandroid:1.1.0'
     compile 'com.jakewharton.rxbinding:rxbinding:0.3.0'
     compile 'com.squareup.picasso:picasso:2.3.2'
-    compile project(':base')
+    compile 'com.google.firebase:firebase-ads:10.0.1'
+    apt 'com.jakewharton:butterknife-compiler:8.4.0'
 }
+
+apply plugin: 'com.google.gms.google-services'

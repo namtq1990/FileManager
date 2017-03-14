@@ -40,7 +40,8 @@
     <android.support.v4.widget.DrawerLayout
         android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_above="@+id/adView">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -77,7 +78,7 @@
                         android:id="@+id/appbar_tab"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:layout_scrollFlags="scroll|enterAlways"
+                        app:layout_scrollFlags="scroll|enterAlways|snap"
                         app:tabIndicatorColor="@android:color/holo_red_dark"/>
 
                 </android.support.design.widget.AppBarLayout>
@@ -110,5 +111,13 @@
             android:layout_gravity="start"/>
 
     </android.support.v4.widget.DrawerLayout>
+
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        app:adSize="BANNER"
+        app:adUnitId="ca-app-pub-5353303356991918/5858867784"/>
 
 </RelativeLayout>

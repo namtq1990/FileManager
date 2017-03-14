@@ -1,0 +1,50 @@
+{
+  "project_info": {
+    "project_number": "929167416204",
+    "firebase_url": "https://simplefilemanager.firebaseio.com",
+    "project_id": "simplefilemanager",
+    "storage_bucket": "simplefilemanager.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:929167416204:android:bf2d521a3abaaa53",
+        "android_client_info": {
+          "package_name": "com.tqnam.filemanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "929167416204-aoej3unmbbh982jje84plkr2863l9agi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tqnam.filemanager",
+            "certificate_hash": "44bed53479305d2b3c84e901eb04ffcada814e0e"
+          }
+        },
+        {
+          "client_id": "929167416204-u95tnrql842k9gid867hs2cappktuc8q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5q80i62Y4ghQSjrmE4jszQBcthfcivR0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

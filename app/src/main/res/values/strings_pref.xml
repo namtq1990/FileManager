@@ -25,4 +25,5 @@
 
 <resources>
     <string name="pref_local_home_path">local_home_page</string>
+    <string name="pref_show_ads">pref_show_add</string>
 </resources>

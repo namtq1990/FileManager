@@ -46,6 +46,8 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.quangnam.base.BaseActivity;
 import com.quangnam.base.BaseDataFragment;
 import com.quangnam.base.BaseFragmentInterface;
@@ -83,7 +85,23 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
     private Handler mHandler;
     private ViewHolder mViewHolder;
     private FragmentDataStorage mDataFragment;
+    private SharedPreferences mPref;
     private ArrayList<String> mShortcutList;
+    private SharedPreferences.OnSharedPreferenceChangeListener mPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            if (key.equals(getString(R.string.pref_show_ads))) {
+                if (sharedPreferences.getBoolean(key, false)) {
+                    AdRequest adRequest = new AdRequest.Builder().build();
+                    mViewHolder.mBottomAdView.loadAd(adRequest);
+                    mViewHolder.mBottomAdView.setVisibility(View.VISIBLE);
+                } else {
+                    mViewHolder.mBottomAdView.destroy();
+                    mViewHolder.mBottomAdView.setVisibility(View.GONE);
+                }
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -169,6 +187,25 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mPref.unregisterOnSharedPreferenceChangeListener(mPreferenceChangeListener);
+        mViewHolder.mBottomAdView.destroy();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mViewHolder.mBottomAdView.resume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mViewHolder.mBottomAdView.pause();
+    }
+
+    @Override
     public void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         mViewHolder.mDrawerToggle.syncState();
@@ -199,6 +236,8 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
      */
     private void init(Bundle savedInstanceState) {
         mHandler = new Handler(Looper.getMainLooper());
+        mPref = PreferenceManager.getDefaultSharedPreferences(this);
+        mPref.registerOnSharedPreferenceChangeListener(mPreferenceChangeListener);
         initData();
 
         mViewHolder = new ViewHolder();
@@ -221,6 +260,7 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
         });
 
         initDrawerMenu();
+        initAds();
 
         //        Observable<Boolean> obsMenuVisibility = RxView.layoutChanges(mViewHolder.mMenuAddItem)
         //                .flatMap(new Func1<Void, Observable<Boolean>>() {
@@ -275,6 +315,10 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeButtonEnabled(true);
         }
+    }
+
+    private void initAds() {
+        mPreferenceChangeListener.onSharedPreferenceChanged(mPref, getString(R.string.pref_show_ads));
     }
 
     private void initData() {
@@ -512,6 +556,8 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
         PageAdapter mAdapter;
         @BindView(R.id.btn_add)
         FloatingActionButton mBtnAddFile;
+        @BindView(R.id.adView)
+        AdView mBottomAdView;
 
         @OnClick(R.id.btn_setting)
         void onSettingClick() {
