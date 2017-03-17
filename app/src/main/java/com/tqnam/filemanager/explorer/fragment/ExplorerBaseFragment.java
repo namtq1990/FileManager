@@ -295,6 +295,7 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
                 mPresenter.reload();
             }
         });
+        mViewHolder.mRefreshLayout.setDistanceToTriggerSync(getResources().getDimensionPixelSize(R.dimen.distance_trigger_refresh));
     }
 
     @Override

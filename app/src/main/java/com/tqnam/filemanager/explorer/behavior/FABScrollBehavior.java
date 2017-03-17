@@ -24,29 +24,44 @@
 
 package com.tqnam.filemanager.explorer.behavior;
 
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.ViewCompat;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.util.AttributeSet;
 import android.view.View;
+
+import com.google.android.gms.ads.AdView;
+
+import java.util.List;
 
 /**
  * Created by tqnam on 12/22/2015.
  */
 public class FABScrollBehavior extends FloatingActionButton.Behavior {
 
+    private ObjectAnimator mFabTranslationYAnimator;
+    private float mFabTranslationY;
+
     public FABScrollBehavior(Context context, AttributeSet attributeSet) {
         super();
+    }
+
+    @Override
+    public boolean layoutDependsOn(CoordinatorLayout parent, FloatingActionButton child, View dependency) {
+        return super.layoutDependsOn(parent, child, dependency) || (dependency instanceof AdView);
     }
 
     @Override
     public void onNestedScroll(CoordinatorLayout coordinatorLayout, FloatingActionButton child, View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
         super.onNestedScroll(coordinatorLayout, child, target, dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed);
 
-        if (dyConsumed > 0 && child.getVisibility() == View.VISIBLE) {
+        if ((dyConsumed > 0 || dyUnconsumed > 0 ) && child.getVisibility() == View.VISIBLE) {
             child.hide();
-        } else if (dyConsumed < 0 && child.getVisibility() == View.GONE) {
+        } else if ((dyConsumed < 0 || dyUnconsumed < 0) && child.getVisibility() == View.GONE) {
             child.show();
         }
     }
@@ -55,4 +70,64 @@ public class FABScrollBehavior extends FloatingActionButton.Behavior {
     public boolean onStartNestedScroll(CoordinatorLayout coordinatorLayout, FloatingActionButton child, View directTargetChild, View target, int nestedScrollAxes) {
         return (nestedScrollAxes == ViewCompat.SCROLL_AXIS_VERTICAL);
     }
+
+    public boolean onDependentViewChanged(CoordinatorLayout parent, FloatingActionButton child, View dependency) {
+        if(isDependencyUpdateTranslationY(dependency)) {
+            this.updateFabTranslation(parent, child, true);
+            return false;
+        } else {
+            return super.onDependentViewChanged(parent, child, dependency);
+        }
+    }
+
+    public void onDependentViewRemoved(CoordinatorLayout parent, FloatingActionButton child, View dependency) {
+        if(isDependencyUpdateTranslationY(dependency)) {
+            this.updateFabTranslation(parent, child, true);
+        }
+
+    }
+
+    private void updateFabTranslation(CoordinatorLayout parent, final FloatingActionButton fab, boolean animationAllowed) {
+        float targetTransY = this.getFabTranslationY(parent, fab);
+        if(this.mFabTranslationY != targetTransY) {
+            float currentTransY = ViewCompat.getTranslationY(fab);
+            if(this.mFabTranslationYAnimator != null && this.mFabTranslationYAnimator.isRunning()) {
+                this.mFabTranslationYAnimator.cancel();
+            }
+
+            if(animationAllowed && fab.isShown() && Math.abs(currentTransY - targetTransY) > (float)fab.getHeight() * 0.667F) {
+                if(this.mFabTranslationYAnimator == null) {
+                    this.mFabTranslationYAnimator = ObjectAnimator.ofFloat(fab, "translationY", targetTransY);
+                    this.mFabTranslationYAnimator.setInterpolator(new FastOutSlowInInterpolator());
+                }
+
+//                this.mFabTranslationYAnimator.setFloatValues(currentTransY, targetTransY);
+                this.mFabTranslationYAnimator.start();
+            } else {
+                ViewCompat.setTranslationY(fab, targetTransY);
+            }
+
+            this.mFabTranslationY = targetTransY;
+        }
+    }
+
+    private float getFabTranslationY(CoordinatorLayout parent, FloatingActionButton fab) {
+        float minOffset = 0.0F;
+        List dependencies = parent.getDependencies(fab);
+        int i = 0;
+
+        for(int z = dependencies.size(); i < z; ++i) {
+            View view = (View)dependencies.get(i);
+            if(isDependencyUpdateTranslationY(view) && parent.doViewsOverlap(fab, view)) {
+                minOffset = Math.min(minOffset, ViewCompat.getTranslationY(view) - (float)view.getHeight());
+            }
+        }
+
+        return minOffset;
+    }
+
+    private boolean isDependencyUpdateTranslationY(View dependency) {
+        return dependency instanceof Snackbar.SnackbarLayout || dependency instanceof AdView;
+    }
+
 }

@@ -34,5 +34,6 @@
     <dimen name="padding_large_00">50dp</dimen>
 
     <dimen name="tiny_button_size">20dp</dimen>
+    <dimen name="distance_trigger_refresh">180dp</dimen>
 
 </resources>
