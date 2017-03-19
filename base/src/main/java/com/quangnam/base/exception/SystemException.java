@@ -35,6 +35,11 @@ public class SystemException extends RuntimeException {
 
     public static final int RK_UNKNOWN = 1;
 
+    /**
+     * Error code for use wrong function in code
+     */
+    public static final int RK_API = 2;
+
     public int mErrorcode;
     public String mMessage;
 

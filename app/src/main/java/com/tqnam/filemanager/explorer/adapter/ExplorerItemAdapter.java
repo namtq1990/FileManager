@@ -108,6 +108,7 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
             setFilter(null);
         } else {
             setFilter(mCurFilter);
+            mCurFilter.setQuery(mQuery);
         }
 
         notifyDataSetChanged();
@@ -239,33 +240,19 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
         }
     }
 
+    @SuppressWarnings("unchecked")
     private class Filter extends ComplexAdapter.Filter {
 
         @Override
-        public Array<ItemExplorer> cloneData(Object data) {
-            return new Array<>((List<ItemExplorer>) data);
+        public List filter(List list, Object query) {
+
+            FileUtil.filter(list, (String) query);
+            return list;
         }
 
         @Override
-        public void filter(Object... constraint) {
-            String query = (String) constraint[0];
-            Array<ItemExplorer> list = cloneData(mPresenter.getListData());
-
-            FileUtil.filter(list, query);
-
-            mDataCopied = list;
-        }
-
-        @Override
-        public void onChanged() {
-            filter(mQuery);
-        }
-    }
-
-    private class Array<T> extends ArrayList<T> implements Collection {
-
-        Array(List<T> list) {
-            super(list);
+        public Object getOriginalData() {
+            return mPresenter.getListData();
         }
     }
 

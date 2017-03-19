@@ -28,7 +28,12 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Checkable;
 
+import com.quangnam.base.exception.SystemException;
 import com.tqnam.filemanager.utils.SparseBooleanArrayParcelable;
+
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.List;
 
 interface CheckListener {
     void onCheckedChange(ComplexAdapter.ViewHolder viewHolder, boolean checked);
@@ -38,6 +43,7 @@ interface CheckListener {
  * Created by quangnam on 11/23/16.
  * This Adapter add multiselect mode and filter to support {@link RecyclerView}
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class ComplexAdapter<T extends ComplexAdapter.ViewHolder> extends RecyclerView.Adapter<T>
     implements CheckListener
 {
@@ -156,12 +162,6 @@ public abstract class ComplexAdapter<T extends ComplexAdapter.ViewHolder> extend
         return getRawDataCount();
     }
 
-    public interface Collection {
-        int size();
-        Object get(int position);
-        boolean remove(Object item);
-    }
-
     public static class ViewHolder extends RecyclerView.ViewHolder implements Checkable {
 
         CheckListener mCheckListener;
@@ -198,24 +198,62 @@ public abstract class ComplexAdapter<T extends ComplexAdapter.ViewHolder> extend
     }
 
     /**
-     * Class to apply filter to this adapter. You must call {@link #filter(Object...)} function
+     * Class to apply filter to this adapter. You must call {@link #performFilter()}} function
      * in method {@link #onChanged()} or any method that change data that you want.
      * <BR>
      *     It also copy your source data to a {@link Collection} to be a mask to provide data for
      *     this adapter.
      */
     public static abstract class Filter extends RecyclerView.AdapterDataObserver {
-        protected Collection mDataCopied;
+        protected List mDataCopied;
+        private Object mQuery;
 
-        public abstract Collection cloneData(Object data);
-        public abstract void filter(Object... constraint);
+        public List cloneData(Object data) {
+            if (!(data instanceof Cloneable)) {
+                throw new SystemException(SystemException.RK_API, "" + data
+                        + " couldn't be cloneable, so implement this function to clone data.");
+            }
 
-        public void setSource(Object source) {
-            mDataCopied = cloneData(source);
+            if (!(data instanceof List)) {
+                throw new SystemException(SystemException.RK_API, "" + data
+                        + " isn't a list, so you have to implement this function to clone this data to list");
+            }
+
+            try {
+                Method cloneMethod = data.getClass().getMethod("clone");
+                cloneMethod.setAccessible(true);
+                return (List) cloneMethod.invoke(data);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /**
+         * Perform filter action. You should update query by {@link #setQuery(Object)}
+         * and get query by {@link #getQuery()}. You should update directly in this list,
+         * It's cloned data.
+         */
+        public abstract List filter(List list, Object query);
+
+        public abstract Object getOriginalData();
+
+        public Object getQuery() {
+            return mQuery;
+        }
+
+        public void setQuery(Object query) {
+            mQuery = query;
         }
 
         @Override
-        public abstract void onChanged();
+        public void onChanged() {
+            performFilter();
+        }
+
+        private void performFilter() {
+            mDataCopied = cloneData(getOriginalData());
+            mDataCopied = filter(mDataCopied, getQuery());
+        }
     }
 
 }
