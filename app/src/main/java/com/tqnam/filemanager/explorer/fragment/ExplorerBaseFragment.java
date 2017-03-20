@@ -77,6 +77,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static com.tqnam.filemanager.explorer.adapter.ComplexAdapter.VIEW_TYPE_FOOTER;
+
 /**
  * Created by quangnam on 11/12/15.
  * Base fragment for explorer view, may be file explorer, ftp explorer, ...
@@ -276,7 +278,18 @@ public abstract class ExplorerBaseFragment extends BaseFragment implements Explo
         ((BaseActivity) getActivity()).addFocusListener(this);
         mViewHolder.mAdapter = new ExplorerItemAdapter(rootView.getContext(), mPresenter);
 
-        GridLayoutManager layoutManager = new GridLayoutManager(rootView.getContext(), 2);
+        final GridLayoutManager layoutManager = new GridLayoutManager(rootView.getContext(), 2);
+        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int i) {
+                if (mViewHolder.mAdapter.getItemViewType(i) == VIEW_TYPE_FOOTER
+                        || mViewHolder.mAdapter.getItemViewType(i) == VIEW_TYPE_FOOTER) {
+                    return layoutManager.getSpanCount();
+                }
+
+                return 1;
+            }
+        });
 
         mViewHolder.mRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_refresh);
         mViewHolder.mRefreshLayout.setColorSchemeResources(R.color.green);

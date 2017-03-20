@@ -25,6 +25,7 @@
 package com.tqnam.filemanager.explorer.adapter;
 
 import android.content.Context;
+import android.support.v4.widget.Space;
 import android.text.TextUtils;
 import android.util.SparseBooleanArray;
 import android.util.TypedValue;
@@ -55,7 +56,7 @@ import rx.functions.Action1;
 /**
  * Adapter for explorer, must be combined with GridViewItem
  */
-public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.ViewHolder> {
+public class ExplorerItemAdapter extends ComplexAdapter {
 
 
     public static int mDefaultThemeBackgroundID;
@@ -65,6 +66,7 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
     private ExplorerItemAdapterListener mListener;
     private String mQuery;
     private Filter mCurFilter;
+    private View mFooter;
 
     public ExplorerItemAdapter(Context context, ExplorerPresenter presenter) {
         mContext = context;
@@ -95,7 +97,7 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateContentHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_file, parent, false);
 
         return new ViewHolder(v);
@@ -115,7 +117,8 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindContent(ComplexAdapter.ViewHolder _holder, int position) {
+        ViewHolder holder = (ViewHolder) _holder;
 
         ItemExplorer item = (ItemExplorer) getItem(position);
         if (item != null) {
@@ -143,8 +146,6 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
 
             }
         }
-
-        super.onBindViewHolder((ComplexAdapter.ViewHolder) holder, position);
     }
 
     @Override
@@ -158,6 +159,18 @@ public class ExplorerItemAdapter extends ComplexAdapter<ExplorerItemAdapter.View
         }
 
         super.setEnableMultiSelect(isEnable);
+    }
+
+    @Override
+    public View getFooterView() {
+        if (mFooter == null) {
+            mFooter = new Space(mContext);
+            ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    (int) (1.5 * mContext.getResources().getDimensionPixelSize(R.dimen.padding_large_00)));
+            mFooter.setLayoutParams(lp);
+        }
+
+        return mFooter;
     }
 
     @Override

@@ -26,6 +26,7 @@ package com.tqnam.filemanager.explorer.adapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Checkable;
 
 import com.quangnam.base.exception.SystemException;
@@ -43,10 +44,14 @@ interface CheckListener {
  * Created by quangnam on 11/23/16.
  * This Adapter add multiselect mode and filter to support {@link RecyclerView}
  */
-@SuppressWarnings("WeakerAccess")
-public abstract class ComplexAdapter<T extends ComplexAdapter.ViewHolder> extends RecyclerView.Adapter<T>
+@SuppressWarnings({"WeakerAccess", "unused"})
+public abstract class ComplexAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     implements CheckListener
 {
+    public static final int VIEW_TYPE_NORMAL = 0;
+    public static final int VIEW_TYPE_HEADER = 1;
+    public static final int VIEW_TYPE_FOOTER = 2;
+
     protected RecyclerView mRecyclerView;
     private Filter mFilter;
     private boolean mEnableMultiSelect = false;
@@ -123,9 +128,76 @@ public abstract class ComplexAdapter<T extends ComplexAdapter.ViewHolder> extend
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
-        holder.setChecked(mSelectedList.get(position));
-        holder.mCheckListener = this;
+    public void onViewAttachedToWindow(RecyclerView.ViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+    }
+
+    /**
+     * Define header view. If you don't use header, return null here.
+     * Note: If header enabled, position of {@link ViewHolder} will be increase to 1
+     * because index of 0 is header.
+     */
+    public View getHeaderView() {
+        return null;
+    }
+
+    /**
+     * Define footer view. If you don't use footer, return null here.
+     * Note: If footer enabled, position of {@link ViewHolder} will be increase to 1
+     * because last index is footer.
+     */
+    public View getFooterView() {
+        return null;
+    }
+
+    public boolean useHeader() {
+        return getHeaderView() != null;
+    }
+
+    public boolean useFooter() {
+        return getFooterView() != null;
+    }
+
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+        switch (viewType) {
+            case VIEW_TYPE_FOOTER:
+                return onCreateFooterHolder(viewGroup, viewType);
+            case VIEW_TYPE_HEADER:
+                return onCreateHeaderHolder(viewGroup, viewType);
+            default:
+                return onCreateContentHolder(viewGroup, viewType);
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof ViewHolder) {
+            ((ViewHolder) holder).setChecked(mSelectedList.get(position));
+            ((ViewHolder) holder).mCheckListener = this;
+
+            onBindContent((ViewHolder) holder, position);
+        } else if (holder instanceof HeaderHolder) {
+            onBindHeader((HeaderHolder) holder, position);
+        } else if (holder instanceof FooterHolder) {
+            onBindFooter((FooterHolder) holder, position);
+        }
+    }
+
+    public void onBindHeader(final HeaderHolder holder, int position) {}
+
+    public void onBindFooter(final FooterHolder holder, int position) {}
+
+    public abstract void onBindContent(final ViewHolder holder, int position);
+
+    public abstract ViewHolder onCreateContentHolder(ViewGroup viewGroup, int viewType);
+
+    public HeaderHolder onCreateHeaderHolder(ViewGroup viewGroup, int viewType) {
+        return new HeaderHolder(getHeaderView());
+    }
+
+    public FooterHolder onCreateFooterHolder(ViewGroup viewGroup, int viewType) {
+        return new FooterHolder(getFooterView());
     }
 
     @Override
@@ -147,19 +219,43 @@ public abstract class ComplexAdapter<T extends ComplexAdapter.ViewHolder> extend
     public abstract Object getRawDataAt(int position);
 
     public final Object getItem(int position) {
+        int contentPosition = position;
+        if (useHeader())
+            contentPosition--;
+
         if (mFilter != null) {
-            return mFilter.mDataCopied.get(position);
+            return mFilter.mDataCopied.get(contentPosition);
         }
 
-        return getRawDataAt(position);
+        return getRawDataAt(contentPosition);
     }
 
     @Override
     public final int getItemCount() {
-        if (mFilter != null)
-            return mFilter.mDataCopied.size();
+        int itemCount;
+        if (mFilter != null) {
+            itemCount = mFilter.mDataCopied.size();
+        } else {
+            itemCount = getRawDataCount();
+        }
 
-        return getRawDataCount();
+        if (useHeader())
+            itemCount++;
+        if (useFooter()) {
+            itemCount++;
+        }
+
+        return itemCount;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (useHeader() && position == 0)
+            return VIEW_TYPE_HEADER;
+        if (useFooter() && position == getItemCount() - 1)
+            return VIEW_TYPE_FOOTER;
+
+        return VIEW_TYPE_NORMAL;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements Checkable {
@@ -194,6 +290,20 @@ public abstract class ComplexAdapter<T extends ComplexAdapter.ViewHolder> extend
         @Override
         public void toggle() {
             setChecked(!isChecked());
+        }
+    }
+
+    public static class HeaderHolder extends RecyclerView.ViewHolder {
+
+        public HeaderHolder(View itemView) {
+            super(itemView);
+        }
+    }
+
+    public static class FooterHolder extends RecyclerView.ViewHolder {
+
+        public FooterHolder(View itemView) {
+            super(itemView);
         }
     }
 
