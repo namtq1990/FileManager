@@ -25,8 +25,11 @@
 package com.tqnam.filemanager.utils;
 
 import com.tqnam.filemanager.explorer.fileExplorer.FileItem;
+import com.tqnam.filemanager.model.eventbus.OperationAddedEvent;
 import com.tqnam.filemanager.model.operation.CopyFileOperation;
 import com.tqnam.filemanager.model.operation.Operation;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,6 +123,9 @@ public class OperationManager {
 
                     }
                 });
+
+        OperationAddedEvent event = new OperationAddedEvent(category, list.size() - 1);
+        EventBus.getDefault().post(event);
     }
 
 //    public void addPrepareList(Operation operator) {

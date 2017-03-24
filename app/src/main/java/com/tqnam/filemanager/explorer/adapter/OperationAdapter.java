@@ -75,7 +75,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
     private BaseActivity mContext;
     private int mControllerButtonSize;        //Size of a button in controller (reload, property, ...)
 
-    //    private List<OperatorList> mTotalList;
+    //    private List<OperationList> mTotalList;
 
     /**
      * Primary constructor. Sets up {@link #mParentItemList} and {@link #mItemList}.
@@ -87,7 +87,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
      *                       displayed in the RecyclerView that this
      *                       adapter is linked to
      */
-    public OperationAdapter(@NonNull List<OperatorList> parentItemList, Context context) {
+    public OperationAdapter(@NonNull List<OperationList> parentItemList, Context context) {
         super(parentItemList);
         mContext = (BaseActivity) context;
         mControllerButtonSize = context.getResources().getDimensionPixelSize(R.dimen.tiny_button_size);
@@ -269,11 +269,11 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         return i;
     }
 
-    public static class OperatorList implements ParentListItem {
+    public static class OperationList implements ParentListItem {
 
         ArrayList<Operation> mList;
 
-        public OperatorList(List<Operation> list) {
+        public OperationList(List<Operation> list) {
             mList = (ArrayList<Operation>) list;
         }
 
@@ -288,7 +288,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         }
     }
 
-    public class ChildViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ChildViewHolder
+    class ChildViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ChildViewHolder
             implements Action1<Object>, Operation.OnStateChangeListener {
         private static final int CONTROLLER_BUTTON_ROW_SIZE = 3;        // Number of button per rows
 
@@ -329,7 +329,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
          *
          * @param itemView The {@link View} being hosted in this ViewHolder
          */
-        public ChildViewHolder(View itemView) {
+        ChildViewHolder(View itemView) {
             super(itemView);
             rootView = itemView;
             ButterKnife.bind(this, itemView);
@@ -386,7 +386,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             }
         }
 
-        public void update(Operation.UpdatableData updatableData) {
+        void update(Operation.UpdatableData updatableData) {
             Log.d("Updated data: " + updatableData);
             int position = getAdapterPosition();
             Object o = getListItem(position);
@@ -404,7 +404,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         }
 
         @OnClick(R.id.btn_cancel)
-        public void onClickCancel() {
+        void onClickCancel() {
             if (mCurOperation != null
                     && mCurOperation.isCancelable()) {
                 ((Operation.ICancel) mCurOperation).cancel();
@@ -412,14 +412,14 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         }
 
         @OnClick(R.id.btn_info)
-        public void onClickInfo() {
+        void onClickInfo() {
             OperationInforDialogFragment fragment = OperationInforDialogFragment
                     .newInstance(mCurOperation, mContext.getDataFragment());
             fragment.show(mContext.getSupportFragmentManager(), OperationInforDialogFragment.TAG);
         }
 
         @OnClick({R.id.btn_pause, R.id.btn_start})
-        public void onClickPause() {
+        void onClickPause() {
             if (mCurOperation.isAbleToPause()) {
                 Operation.IPause pauseControl = (Operation.IPause) mCurOperation;
                 pauseControl.setRunning(!pauseControl.isRunning());
@@ -427,14 +427,14 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         }
 
         @OnClick(R.id.btn_undo)
-        public void onClickUndo() {
+        void onClickUndo() {
             if (mCurOperation.isUndoable()) {
                 Operation.IRevert revertControl = (Operation.IRevert) mCurOperation;
                 revertControl.revert();
             }
         }
 
-        public void setupResumeButton() {
+        void setupResumeButton() {
             Operation.UpdatableData data = mCurOperation.getUpdateData();
             if (mCurOperation.isAbleToPause()
                     && (data.getStateValue(Operation.OperationState.STATE_RUNNING)
@@ -458,7 +458,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             }
         }
 
-        public void setupCancelButton() {
+        void setupCancelButton() {
             if (mCurOperation != null
                     && mCurOperation.isCancelable()
                     && (mCurOperation.getUpdateData().getStateValue(Operation.OperationState.STATE_PAUSE)
@@ -470,7 +470,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             }
         }
 
-        public void setupRestartButton() {
+        void setupRestartButton() {
             //TODO not implemented
             if (mCurOperation != null
                     && mCurOperation.isRestartable()) {
@@ -480,7 +480,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             }
         }
 
-        public void setupUndoButton() {
+        void setupUndoButton() {
             if (mCurOperation != null
                     && mCurOperation.isUndoable()) {
                 addMenuButton(btnUndo);
@@ -489,7 +489,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
             }
         }
 
-        public void setupStatus() {
+        void setupStatus() {
             if (mCurOperation != null) {
                 Operation.UpdatableData data = mCurOperation.getUpdateData();
                 if (data.getStateValue(Operation.OperationState.STATE_RUNNING)) {
@@ -547,7 +547,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
         }
     }
 
-    public class ParentViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ParentViewHolder {
+    class ParentViewHolder extends com.bignerdranch.expandablerecyclerview.ViewHolder.ParentViewHolder {
         @BindView(R.id.tv_label)
         TextView label;
         @BindView(R.id.ic_arrow)
@@ -558,7 +558,7 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
          *
          * @param itemView The {@link View} being hosted in this ViewHolder
          */
-        public ParentViewHolder(View itemView) {
+        ParentViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }

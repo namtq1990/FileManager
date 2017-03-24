@@ -35,7 +35,11 @@ import android.view.ViewGroup;
 import com.quangnam.base.BaseFragment;
 import com.tqnam.filemanager.R;
 import com.tqnam.filemanager.explorer.adapter.OperationAdapter;
+import com.tqnam.filemanager.model.eventbus.OperationAddedEvent;
 import com.tqnam.filemanager.utils.OperationManager;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
 
@@ -57,6 +61,10 @@ public class OperatorManagerFragment extends BaseFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+
         View rootView = inflater.inflate(R.layout.fragment_operator, container, false);
         mViewHolder = new ViewHolder();
         initData();
@@ -71,13 +79,17 @@ public class OperatorManagerFragment extends BaseFragment {
     @Override
     public void onDestroyView() {
         mViewHolder.listLayout.removeAllViews();    // Force remove view here to let adapter free all resource
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
+
         super.onDestroyView();
     }
 
     private void initData() {
-        ArrayList<OperationAdapter.OperatorList> list = new ArrayList<>();
+        ArrayList<OperationAdapter.OperationList> list = new ArrayList<>();
         for (int category : OperationManager.CATEGORIES) {
-            OperationAdapter.OperatorList childList = new OperationAdapter.OperatorList(
+            OperationAdapter.OperationList childList = new OperationAdapter.OperationList(
                     OperationManager.getInstance().getOperatorList(category)
             );
             list.add(childList);
@@ -85,6 +97,24 @@ public class OperatorManagerFragment extends BaseFragment {
 
         mViewHolder.listAdapter = new OperationAdapter(list, getActivity());
         mViewHolder.listLayout = new LinearLayoutManager(getActivity());
+    }
+
+    @Subscribe
+    public void onEvent(OperationAddedEvent event) {
+        if (mViewHolder != null) {
+            int category = event.getCategory();
+            int parentPosition = 0;
+
+            for (int i = 0;i < OperationManager.CATEGORIES.length;i++) {
+                parentPosition = i;
+
+                if (OperationManager.CATEGORIES[i] == category) {
+                    break;
+                }
+            }
+
+            mViewHolder.listAdapter.notifyChildItemInserted(parentPosition, event.getPosition());
+        }
     }
 
     class ViewHolder {
