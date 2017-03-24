@@ -44,7 +44,7 @@ allprojects {
         minSdk=14
         targetSdk=22
         compiledSdk=24
-
+        libBuild="release"
         androidSupport='24.1.1'
 
     }

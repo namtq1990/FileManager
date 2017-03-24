@@ -36,12 +36,12 @@ android {
     }
     buildTypes {
         release {
-            defaultPublishConfig "release"
+            defaultPublishConfig project.libBuild
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         debug {
-            defaultPublishConfig "debug"
+            defaultPublishConfig project.libBuild
             debuggable true
             minifyEnabled false
         }

@@ -34,5 +34,5 @@ public class Config {
     // Debug with fake json implement in each service. To test GUI in offlinemode, set it to true
     public static final boolean DEBUG_FAKE_DATA = false;
 
-    public static final boolean USE_FABRIC = false;
+    public static final boolean USE_FABRIC = !DEBUG;
 }
