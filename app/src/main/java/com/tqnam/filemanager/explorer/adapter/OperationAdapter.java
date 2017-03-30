@@ -118,13 +118,13 @@ public class OperationAdapter extends ExpandableRecyclerAdapter<OperationAdapter
 
         switch (index) {
             case OperationManager.CATEGORY_COPY:
-                label = "COPY OPERATOR";
+                label = "COPY OPERATION";
                 break;
             case OperationManager.CATEGORY_MOVE:
-                label = "MOVE OPERATOR";
+                label = "MOVE OPERATION";
                 break;
             case OperationManager.CATEGORY_DELETE:
-                label = "DELETE OPERATOR";
+                label = "DELETE OPERATION";
                 break;
             default:
                 label = "OTHERS OPERATION";

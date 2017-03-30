@@ -32,6 +32,7 @@ import java.io.InputStreamReader;
 
 /**
  * Created by quangnam on 4/18/16.
+ *
  */
 public class Log {
     private static String TAG;
@@ -77,7 +78,9 @@ public class Log {
             Thread.dumpStack();
         }
 
-        android.util.Log.d(tag, message);
+        if (Config.DEBUG) {
+            android.util.Log.d(tag, message);
+        }
     }
 
     public static BufferedReader loadLog() throws IOException {

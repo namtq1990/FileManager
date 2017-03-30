@@ -26,6 +26,7 @@ package com.tqnam.filemanager.model;
 
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
 
 import com.quangnam.base.BaseDataFragment;
 import com.tqnam.filemanager.model.operation.Operation;
@@ -41,21 +42,26 @@ public class ExplorerModel {
     public static final int COMPARE_NAME = 1;
     public static final int COMPARE_TYPE = 2;
 
-    public static final String ARG_CUR_LOCATION = "cur_location";
-    public static final String ARG_PARENT_PATH = "parent_path";
-    public static final String ARG_CUR_COMPARE = "cur_compare";
-    public static final String ARG_LIST_ITEM = "list_item";
-    public static final String ARG_CLIPBOARD = "list_clipboard";
-    public static final String ARG_CLIPBOARD_CATEGORY = "clipboard_category";
+    private static final String ARG_CUR_LOCATION = "cur_location";
+    private static final String ARG_PARENT_PATH = "parent_path";
+    private static final String ARG_CUR_COMPARE = "cur_compare";
+    private static final String ARG_LIST_ITEM = "list_item";
+    private static final String ARG_CLIPBOARD = "list_clipboard";
+    private static final String ARG_CLIPBOARD_CATEGORY = "clipboard_category";
 
     public String mCurLocation;
     public String mParentPath;
-    public int mCurCompare;
+    private int mCurCompare;
 
     private BaseDataFragment mDataFragment;
     private OperationManager mOperatorManager;
      // The List item in current location, all item must be same type to restore value
     private ArrayList<ItemExplorer> mListItem;
+    // The list to temporary store list item to update later. main list should only be changed in
+    // main thread because it connect directly to view adapter. If you want to change list
+    // in background thread, use this list.
+    @Nullable
+    private ArrayList<ItemExplorer> mTemporaryListItem;
     private ArrayList<Operation> mUnvalidatedOperations;
 
     public ExplorerModel(BaseDataFragment dataFragment) {
@@ -106,20 +112,61 @@ public class ExplorerModel {
         return mListItem;
     }
 
+    /**
+     * Set list data. Should only be called in main thread.
+     */
     public void setList(List<? extends ItemExplorer> list) {
         mListItem = (ArrayList<ItemExplorer>) list;
     }
 
+    /**
+     * Main data should only be updated in main thead because it's connected directly to UI.
+     * See <a href="http://stackoverflow.com/a/33822747/1907469">bug</a> for crash bug.
+     * Later this temporary data'll be updated in main thread.
+     */
+    public void setTemporaryListItem(List<? extends ItemExplorer> temporaryListItem) {
+        mTemporaryListItem = (ArrayList<ItemExplorer>) temporaryListItem;
+    }
+
+    /**
+     * Add list data. Should only be called in main thread.
+     */
     public void addItem(ItemExplorer item) {
         mListItem.add(item);
     }
 
+    /**
+     * If you want to add data in background thread. Use this function and call {@link #sync()}
+     * later in main thread.
+     */
+    public void addTemporaryItem(ItemExplorer item) {
+        if (mTemporaryListItem == null) {
+            mTemporaryListItem = new ArrayList<>();
+            mTemporaryListItem.add(item);
+        }
+    }
+
+    /**
+     * Clear list data. Should only be called in main thread.
+     */
     public void clearItem() {
         mListItem.clear();
     }
 
     public OperationManager getOperatorManager() {
         return mOperatorManager;
+    }
+
+    /**
+     * Sync between temporary list and main list. This method should only be run in main thread.
+     * See <a href="http://stackoverflow.com/a/33822747/1907469">bug</a> for detail.
+     */
+    public void sync() {
+        if (mTemporaryListItem != null) {
+            setList(mTemporaryListItem);
+            sort();
+            mTemporaryListItem = null;
+        }
     }
 
     public ArrayList<Operation> getUnvalidatedList() {

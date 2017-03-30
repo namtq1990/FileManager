@@ -165,8 +165,7 @@ public class FileExplorerPresenter implements ExplorerPresenter {
 
                         if (list != null) {
                             mModel.mCurLocation = item.getPath();
-                            mModel.setList(list);
-                            mModel.sort();
+                            mModel.setTemporaryListItem(list);
                             mModel.mParentPath = item.getParentPath();
 
                             mCurFolder = item;
@@ -236,7 +235,7 @@ public class FileExplorerPresenter implements ExplorerPresenter {
             public void call(Subscriber<? super FileItem> subscriber) {
                 File file = FileUtil.createFile(mModel.mCurLocation, filename);
                 FileItem item = new FileItem(file.getPath());
-                mModel.getList().add(item);
+                mModel.addTemporaryItem(item);
                 subscriber.onNext(item);
                 subscriber.onCompleted();
             }
@@ -258,7 +257,7 @@ public class FileExplorerPresenter implements ExplorerPresenter {
             public void call(Subscriber<? super FileItem> subscriber) {
                 File file = FileUtil.createFolder(mModel.mCurLocation, filename);
                 FileItem item = new FileItem(file.getPath());
-                mModel.getList().add(item);
+                mModel.addTemporaryItem(item);
                 subscriber.onNext(item);
                 subscriber.onCompleted();
             }
@@ -288,8 +287,7 @@ public class FileExplorerPresenter implements ExplorerPresenter {
                 //                            case EXPLORER:
                 //
                 //                        }
-                mModel.setList(list);
-                mModel.sort();
+                mModel.setTemporaryListItem(list);
                 subscriber.onNext(null);
                 subscriber.onCompleted();
             }
@@ -510,6 +508,8 @@ public class FileExplorerPresenter implements ExplorerPresenter {
 
         @Override
         public void call(Object o) {
+            mModel.sync();
+
             if (mView != null)
                 mView.refreshView();
         }
